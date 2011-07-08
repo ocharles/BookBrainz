@@ -1,1 +1,12 @@
 BookBrainz - unique identifiers for books and texts
+
+Assuming you are running Ubuntu with PostgreSQL installed (basically
+assuming you can run the MusicBrainz server):
+
+    ./setup.sh
+
+Then:
+
+    ./upgrade.sh
+
+To run the latest code/schema

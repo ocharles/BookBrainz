@@ -1,0 +1,3 @@
+[submodule "Versioning"]
+	path = Versioning
+	url = https://github.com/depesz/Versioning.git
