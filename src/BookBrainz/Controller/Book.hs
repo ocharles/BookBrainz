@@ -17,6 +17,6 @@ bookResource :: Controller ()
 bookResource = do
   bid <- getParam "bid"
   mbook <- model $ getBook $ BookId $ read $ unpack $ fromJust $ bid
-  case mbook of
-    Just book -> output $ showBook book
-    Nothing -> generic404 "The request book could not be found"
+  maybe (generic404 "The request book could not be found")
+        (\book -> output $ showBook book)
+        mbook
