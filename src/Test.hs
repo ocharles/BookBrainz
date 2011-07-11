@@ -9,7 +9,9 @@ import Snap.Http.Server           hiding (Config)
 import Snap.Types
 
 runHandler :: Connection -> Controller () -> Snap ()
-runHandler conn controller = runReaderT (runController controller) $ ControllerState conn
+runHandler conn controller = do
+  modifyResponse $ setContentType "text/html; charset=utf8"
+  runReaderT (runController controller) $ ControllerState conn
 
 -- | Main entry point.
 main :: IO ()
