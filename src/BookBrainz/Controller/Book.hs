@@ -18,5 +18,7 @@ bookResource = do
   bid <- getParam "bid"
   mbook <- model $ getBook $ BookId $ read $ unpack $ fromJust $ bid
   maybe (generic404 "The request book could not be found")
-        (\book -> output $ showBook book)
+        (\book -> do
+            book <- model $ loadAuthorCredit book
+            output $ showBook book)
         mbook

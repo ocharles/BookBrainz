@@ -1,5 +1,6 @@
 module BookBrainz.Types.AuthorCredit
        ( AuthorCredit(..)
+       , Credit(..)
        ) where
 
 import BookBrainz.Types.Newtypes (AuthorCreditId)

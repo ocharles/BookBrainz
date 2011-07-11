@@ -1,5 +1,6 @@
 module BookBrainz.Model.Book
        ( getBook
+       , loadAuthorCredit
        ) where
 
 import BookBrainz.Model (query)
@@ -22,3 +23,21 @@ getBook (BookId bid) = do
                                   , bookGid = fromSql $ row ! "gid"
                                   , bookAuthorCredit = AuthorCreditReference $ AuthorCreditId $ fromSql $ row ! "author_credit"
                                   }
+loadAuthorCredit :: Book -> Model Book
+loadAuthorCredit book = case bookAuthorCredit book of
+  AuthorCreditReference orig@(AuthorCreditId acid) -> do
+    credits <- query selectQuery [ toSql acid ]
+    return book { bookAuthorCredit = AuthorCredit { authorCreditId = orig
+                                                  , authorCredits = fromRows credits }
+                }
+  _ -> return book
+  where selectQuery = unlines [ "SELECT *"
+                              , "FROM author_credit_person"
+                              , "WHERE author_credit = ?"
+                              , "ORDER BY position" ]
+        fromRows = map fromRow
+        fromRow row = Credit { creditedName = fromSql $ row ! "credited_name"
+                             , creditedAuthor = PersonReference $ PersonId $ fromSql $ row ! "person"
+                             , creditedJoinPhrase = fromSql $ row ! "join_phrase"
+                             , creditedPosition = fromSql $ row ! "position"
+                             }
