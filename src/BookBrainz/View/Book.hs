@@ -8,6 +8,7 @@ module BookBrainz.View.Book
 import BookBrainz.Types
 import BookBrainz.View (pageLayout)
 import BookBrainz.View.AuthorCredit (linkAuthorCredit)
+import BookBrainz.View.Edition (linkEdition)
 import qualified Text.Blaze.Html5 as H
 import Text.Blaze.Html5 (toHtml, Html, text)
 import qualified Data.Text as T
@@ -29,5 +30,5 @@ showBook book editions =
       H.tbody $ editionRow `mapM_` editions
       where editionRow edition = do
               H.tr $ do
-                H.td $ toHtml $ editionName edition
+                H.td $ toHtml $ linkEdition edition
                 H.td $ toHtml $ maybe "-" show $ editionYear edition
