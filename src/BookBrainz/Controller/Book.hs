@@ -3,7 +3,7 @@ module BookBrainz.Controller.Book
        ( bookResource
        ) where
 
-import BookBrainz.Controller (output)
+import BookBrainz.Controller (output, generic404)
 import BookBrainz.Model
 import BookBrainz.Model.Book
 import BookBrainz.Types.MVC (Controller)
@@ -16,5 +16,7 @@ import Data.ByteString.Char8 (unpack)
 bookResource :: Controller ()
 bookResource = do
   bid <- getParam "bid"
-  book <- model $ getBook $ BookId $ read $ unpack $ fromJust $ bid
-  output $ showBook $ fromJust book
+  mbook <- model $ getBook $ BookId $ read $ unpack $ fromJust $ bid
+  case mbook of
+    Just book -> output $ showBook book
+    Nothing -> generic404 "The request book could not be found"
