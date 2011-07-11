@@ -1,0 +1,1 @@
+module BookBrainz.View where
