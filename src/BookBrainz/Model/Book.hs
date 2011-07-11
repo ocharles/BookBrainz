@@ -10,15 +10,16 @@ import BookBrainz.Types.MVC (Model)
 import BookBrainz.Types.Newtypes
 import Data.Map ((!))
 import Data.Maybe
+import Data.UUID (UUID)
 import Database.HDBC (toSql, fromSql)
 
-getBook :: BookId -> Model (Maybe Book)
-getBook (BookId bid) = do
-  results <- query selectQuery [ toSql bid ]
+getBook :: UUID -> Model (Maybe Book)
+getBook gid = do
+  results <- query selectQuery [ toSql gid ]
   return $ (listToMaybe results) >>= fromRow
   where selectQuery = unlines  [ "SELECT *"
                                , "FROM book"
-                               , "WHERE id = ?" ]
+                               , "WHERE gid = ?" ]
         fromRow row = Just $ Book { bookId = BookId $ fromSql $ row ! "id"
                                   , bookName = fromSql $ row ! "name"
                                   , bookGid = fromSql $ row ! "gid"

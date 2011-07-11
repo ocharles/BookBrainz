@@ -1,5 +1,6 @@
 module BookBrainz.Controller
        ( generic404
+       , genericError
        , output
        ) where
 
@@ -15,6 +16,9 @@ output :: Html -> Controller ()
 output = writeText . toStrict . renderHtml
 
 generic404 :: Text -> Controller ()
-generic404 message = do
-  output $ V.generic404 message
-  modifyResponse $ setResponseCode 404
+generic404 = genericError 404
+
+genericError :: Int -> Text -> Controller ()
+genericError status message = do
+  modifyResponse $ setResponseCode status
+  output $ V.genericError message

@@ -3,23 +3,28 @@ module BookBrainz.Controller.Book
        ( bookResource
        ) where
 
-import BookBrainz.Controller (output, generic404)
+import BookBrainz.Controller (output, generic404, genericError)
 import BookBrainz.Model
 import BookBrainz.Model.Book
 import BookBrainz.Types.MVC (Controller)
-import BookBrainz.Types.Newtypes
 import BookBrainz.View.Book (showBook)
-import Data.Maybe (fromJust)
-import Snap.Types
+import Control.Applicative
 import Data.ByteString.Char8 (unpack)
+import Data.Maybe (fromJust)
+import Data.UUID (fromString)
+import Snap.Types
+
 
 bookResource :: Controller ()
 bookResource = do
-  bid <- getParam "bid"
-  mbook <- model $ getBook $ BookId $ read $ unpack $ fromJust $ bid
-  maybe (generic404 "The request book could not be found")
-        (\book -> do
-            book <- model $ loadAuthorCredit book
-            editions <- model $ findBookEditions book
-            output $ showBook book editions)
-        mbook
+  maybeGid <- (fromString . unpack . fromJust) <$> getParam "gid"
+  case maybeGid of
+    Nothing -> genericError 400 "Invalid BBID"
+    Just gid -> do
+      maybeBook <- model $ getBook gid
+      case maybeBook of
+        Nothing -> generic404 "The request book could not be found"
+        Just book -> do
+          book <- model $ loadAuthorCredit book
+          editions <- model $ findBookEditions book
+          output $ showBook book editions
