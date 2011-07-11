@@ -20,5 +20,5 @@ main = do
 
 serve :: Connection -> Snap ()
 serve conn = route routes where
-  routes = [("/book/:id", run bookResource)]
+  routes = [("/book/:bid", run bookResource)]
   run = runHandler conn
