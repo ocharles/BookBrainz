@@ -9,4 +9,8 @@ Then:
 
     ./upgrade.sh
 
-To run the latest code/schema
+To run the latest code/schema.
+
+We have some test data, which can be applied with:
+
+    psql -U bookbrainz bookbrainz < sql/test-data.sql
