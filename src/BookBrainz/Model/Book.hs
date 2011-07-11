@@ -8,15 +8,7 @@ import BookBrainz.Types.MVC (Model)
 import BookBrainz.Types.Newtypes
 import Data.Map ((!))
 import Data.Maybe
-import Database.HDBC (toSql, fromSql, SqlValue)
-
-import Data.Convertible (Convertible(..), ConvertError(..))
-import Data.UUID (UUID, fromString)
-
-instance Convertible SqlValue UUID where
-  safeConvert gid = takeRes $ fromString $ fromSql gid
-    where takeRes (Just uuid) = Right uuid
-          takeRes _ = Left ConvertError { convErrorMessage = "Could not converT" }
+import Database.HDBC (toSql, fromSql)
 
 getBook :: BookId -> Model (Maybe Book)
 getBook (BookId bid) = do

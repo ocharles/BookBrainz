@@ -11,6 +11,10 @@ module BookBrainz.Types.Newtypes
   , PublisherId(..)
   ) where
 
+import Data.Convertible (Convertible(..), convError)
+import Data.UUID (UUID, fromString)
+import Database.HDBC (fromSql, SqlValue)
+
 newtype AuthorCreditId = AuthorCreditId Integer
                deriving (Integral,Real,Num,Ord,Eq,Enum)
 
@@ -67,3 +71,7 @@ instance Show PublisherId where
   show (PublisherId pid) = show pid
 
 
+instance Convertible SqlValue UUID where
+  safeConvert gid = case (fromString $ fromSql gid) of
+              Just uuid -> return uuid
+              Nothing -> convError "Not a valid UUID" gid
