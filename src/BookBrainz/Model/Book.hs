@@ -28,4 +28,5 @@ getBook (BookId bid) = do
         fromRow row = Just $ Book { bookId = BookId $ fromSql $ row ! "id"
                                   , bookName = fromSql $ row ! "name"
                                   , bookGid = fromSql $ row ! "gid"
+                                  , bookAuthorCredit = AuthorCreditReference $ AuthorCreditId $ fromSql $ row ! "author_credit"
                                   }
