@@ -1,6 +1,7 @@
 module BookBrainz.Model.Book
        ( getBook
        , loadAuthorCredit
+       , findBookEditions
        ) where
 
 import BookBrainz.Model (query)
@@ -23,6 +24,34 @@ getBook (BookId bid) = do
                                   , bookGid = fromSql $ row ! "gid"
                                   , bookAuthorCredit = AuthorCreditReference $ AuthorCreditId $ fromSql $ row ! "author_credit"
                                   }
+
+findBookEditions :: Book -> Model [Edition]
+findBookEditions book = do
+  results <- query selectQuery [ toSql $ bookId book ]
+  return $ fromRow `map` results
+  where selectQuery = unlines [ "SELECT * "
+                              , "FROM edition"
+                              , "WHERE book = ?"
+                              , "ORDER BY year, edition_index NULLS LAST"
+                              ]
+        fromRow row = Edition { editionId = fromSql $ row ! "id"
+                              , editionGid = fromSql $ row ! "gid"
+                              , editionName = fromSql $ row ! "name"
+                              , editionFormat = maybeReference row "format" EditionFormatReference
+                              , editionBook = book
+                              , editionYear = fromSql $ row ! "year"
+                              , editionPublisher = maybeReference row "publisher" PublisherReference
+                              , editionCountry = maybeReference row "country" CountryReference
+                              , editionIllustrator = maybeReference row "illustrator" PersonReference
+                              , editionTranslator = maybeReference row "translator" PersonReference
+                              , editionAuthor = AuthorCreditReference $ fromSql $ row ! "author"
+                              , editionLanguage = maybeReference row "language" LanguageReference
+                              , editionIsbn = fromSql $ row ! "isbn"
+                              , editionBarcode = fromSql $ row ! "barcode"
+                              , editionIndex = fromSql $ row ! "edition_index"
+                              }
+        maybeReference row column constructor = (fromSql $ row ! column) >>= (return . constructor)
+
 loadAuthorCredit :: Book -> Model Book
 loadAuthorCredit book = case bookAuthorCredit book of
   AuthorCreditReference orig@(AuthorCreditId acid) -> do

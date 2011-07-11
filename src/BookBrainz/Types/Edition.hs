@@ -16,7 +16,7 @@ import Data.UUID (UUID)
 data EditionFormat = EditionFormat
                      { editionFormatId :: EditionFormatId
                      , editionFormatName :: Text }
-                   | PartialEditionFormat
+                   | EditionFormatReference
                      { editionFormatId :: EditionFormatId
                      }
                    deriving Show

@@ -20,5 +20,6 @@ bookResource = do
   maybe (generic404 "The request book could not be found")
         (\book -> do
             book <- model $ loadAuthorCredit book
-            output $ showBook book)
+            editions <- model $ findBookEditions book
+            output $ showBook book editions)
         mbook
