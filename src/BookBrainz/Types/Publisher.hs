@@ -1,6 +1,5 @@
 module BookBrainz.Types.Publisher
   ( Publisher(..)
-  , PublisherId(..)
   ) where
 
 import BookBrainz.Types.Newtypes (PublisherId)

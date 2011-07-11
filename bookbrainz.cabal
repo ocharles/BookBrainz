@@ -1,0 +1,52 @@
+Name:                bookbrainz
+Version:             0.1
+License:             AllRightsReserved
+Author:              Oliver Charles
+Maintainer:          bookbrainz@ocharles.org.uk
+Stability:           Experimental
+Category:            Web
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Flag development
+  Description: Whether to build the server in development (interpreted) mode
+  Default: False
+
+Executable bookbrainz-server
+  hs-source-dirs: src
+  main-is: Test.hs
+
+  Build-depends:
+    base >= 4 && < 5,
+    bytestring >= 0.9.1 && < 0.10,
+    MonadCatchIO-transformers >= 0.2.1 && < 0.3,
+    mtl >= 2 && < 3,
+    text >= 0.11 && < 0.12,
+    time >= 1.1 && < 1.3,
+    uuid >= 1.2.2,
+    HDBC >= 2.2.7.0,
+    containers >= 0.4.0.0,
+    convertible >= 1.0.10.0,
+    HDBC-postgresql >= 2.2.3.3,
+    snap-core >= 0.5.1.4,
+    snap-server >= 0.5.1.4
+
+  extensions: TypeSynonymInstances MultiParamTypeClasses
+
+  if flag(development)
+    cpp-options: -DDEVELOPMENT
+    build-depends: hint >= 0.3.2 && < 0.4
+    -- In development mode, speed is already going to suffer, so skip
+    -- the fancy optimization flags.  Additionally, disable all
+    -- warnings.  The hint library doesn't give an option to execute
+    -- compiled code when there were also warnings, so disabling
+    -- warnings allows quicker workflow.
+    ghc-options: -threaded -w
+  else
+    if impl(ghc >= 6.12.0)
+      ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                   -fno-warn-orphans -fno-warn-unused-do-bind
+    else
+      ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                   -fno-warn-orphans
+
