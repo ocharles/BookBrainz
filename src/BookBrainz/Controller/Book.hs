@@ -3,7 +3,7 @@ module BookBrainz.Controller.Book
        ( bookResource
        ) where
 
-import BookBrainz.Controller (output, generic404, genericError)
+import BookBrainz.Controller
 import BookBrainz.Model
 import BookBrainz.Model.Book
 import BookBrainz.Model.Person
@@ -21,16 +21,10 @@ import Snap.Types
 
 bookResource :: Controller ()
 bookResource = do
-  maybeGid <- (fromString . unpack . fromJust) <$> getParam "gid"
-  case maybeGid of
-    Nothing -> genericError 400 "Invalid BBID"
-    Just gid -> do
-      maybeBook <- model $ getBook gid
-      case maybeBook of
-        Nothing -> generic404 "The request book could not be found"
-        Just book -> do
-          book <- model $ loadAuthorCredit book
-          book <- model $ set lBookAuthorCredit book <$> (loadForAuthorCredits $ bookAuthorCredit book)
-          editions <- model $ findBookEditions book
-          output $ showBook book editions
-          where set field on = \val -> setL field val on
+  gid  <- (fromString . unpack . fromJust <$> getParam "gid") `onNothing` "Invalid BBID"
+  book <- (model $ getBook gid) `onNothing` "Book not found"
+  book <- model $ loadAuthorCredit book
+  book <- model $ set lBookAuthorCredit book <$> (loadForAuthorCredits $ bookAuthorCredit book)
+  editions <- model $ findBookEditions book
+  output $ showBook book editions
+  where set field on = \val -> setL field val on

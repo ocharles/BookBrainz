@@ -3,6 +3,7 @@
 import BookBrainz.Controller.Book
 import BookBrainz.Types.MVC
 import Control.Monad.Reader
+import Control.Monad.Error
 
 import Database.HDBC.PostgreSQL (connectPostgreSQL, Connection)
 import Snap.Http.Server           hiding (Config)
@@ -11,7 +12,10 @@ import Snap.Types
 runHandler :: Connection -> Controller () -> Snap ()
 runHandler conn controller = do
   modifyResponse $ setContentType "text/html; charset=utf8"
-  runReaderT (runController controller) $ ControllerState conn
+  outcome <- runErrorT $ runReaderT (runController controller) $ ControllerState conn
+  handleOutcome outcome
+  where handleOutcome (Left msg) = error msg
+        handleOutcome (Right outcome) = return outcome
 
 -- | Main entry point.
 main :: IO ()

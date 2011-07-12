@@ -11,6 +11,7 @@ import Control.Applicative        (Applicative,Alternative)
 import Control.Monad              (MonadPlus)
 import Control.Monad.CatchIO      (MonadCatchIO)
 import Control.Monad.Reader       (ReaderT,MonadReader)
+import Control.Monad.Error        (ErrorT,MonadError)
 import Control.Monad.Trans        (MonadIO)
 import Database.HDBC.PostgreSQL   (Connection)
 import Snap.Types                 (Snap,MonadSnap)
@@ -22,12 +23,13 @@ data ControllerState = ControllerState {
 
 -- | The controller monad.
 newtype Controller a = Controller {
-    runController :: ReaderT ControllerState Snap a
+    runController :: ReaderT ControllerState (ErrorT String Snap) a
   } deriving (Monad
              ,Functor
              ,Applicative
              ,Alternative
              ,MonadReader ControllerState
+             ,MonadError String
              ,MonadSnap
              ,MonadIO
              ,MonadCatchIO
