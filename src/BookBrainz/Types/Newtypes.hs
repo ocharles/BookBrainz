@@ -81,6 +81,9 @@ instance Show PersonId where
 instance Convertible SqlValue PersonId where
   safeConvert = Right . PersonId . fromSql
 
+instance Convertible PersonId SqlValue where
+  safeConvert (PersonId pid) = Right $ toSql pid
+
 newtype PublisherId = PublisherId Integer
                     deriving (Integral,Real,Num,Ord,Eq,Enum)
 

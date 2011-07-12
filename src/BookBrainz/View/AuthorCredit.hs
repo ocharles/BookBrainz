@@ -3,11 +3,16 @@ module BookBrainz.View.AuthorCredit
        ) where
 
 import BookBrainz.Types
-import qualified Data.Text as T
 import qualified Text.Blaze.Html5 as H
-import Text.Blaze.Html5 (toHtml, Html)
+import Text.Blaze.Html5 (toHtml, Html, (!), toValue)
+import Text.Blaze.Html5.Attributes
+import Data.UUID (toString)
 
 linkAuthorCredit :: AuthorCredit -> Html
 linkAuthorCredit authorCredit =
-  toHtml $ T.concat $ formatCredit `map` (authorCredits authorCredit)
-    where formatCredit credit = T.concat [ (creditedName credit), (creditedJoinPhrase credit) ]
+  formatCredit `mapM_` (authorCredits authorCredit)
+    where formatCredit credit = do
+            H.a ! href (uri credit) $ toHtml $ creditedName credit
+            toHtml $ creditedJoinPhrase credit
+          uri credit = toValue $ "/person/" ++ (toString $ personGid $ creditedAuthor credit)
+

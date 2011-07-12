@@ -6,7 +6,9 @@ module BookBrainz.Controller.Book
 import BookBrainz.Controller (output, generic404, genericError)
 import BookBrainz.Model
 import BookBrainz.Model.Book
+import BookBrainz.Model.Person
 import BookBrainz.Types.MVC (Controller)
+import BookBrainz.Types
 import BookBrainz.View.Book (showBook)
 import Control.Applicative
 import Data.ByteString.Char8 (unpack)
@@ -26,5 +28,6 @@ bookResource = do
         Nothing -> generic404 "The request book could not be found"
         Just book -> do
           book <- model $ loadAuthorCredit book
+          book <- model $ (\credits -> book { bookAuthorCredit = credits }) <$> (loadForAuthorCredits $ bookAuthorCredit book)
           editions <- model $ findBookEditions book
           output $ showBook book editions
