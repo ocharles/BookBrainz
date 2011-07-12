@@ -10,16 +10,15 @@ import BookBrainz.View (pageLayout)
 import BookBrainz.View.AuthorCredit (linkAuthorCredit)
 import BookBrainz.View.Edition (linkEdition)
 import qualified Text.Blaze.Html5 as H
-import Text.Blaze.Html5 (toHtml, Html, text)
-import qualified Data.Text as T
+import Text.Blaze.Html5 (toHtml, Html)
 
 showBook :: Book -> [Edition] -> Html
 showBook book editions =
   pageLayout $ do
     H.h1 $ toHtml $ bookName book
     H.h2 $ do
-      H.span $ H.text "~"
-      H.text " "
+      H.span "~"
+      " "
       linkAuthorCredit $ bookAuthorCredit book
     H.h3 "Editions"
     H.table $ do
