@@ -95,7 +95,7 @@ instance Convertible SqlValue PublisherId where
 
 
 instance Convertible SqlValue UUID where
-  safeConvert gid = case (fromString $ fromSql gid) of
+  safeConvert gid = case fromString $ fromSql gid of
               Just uuid -> return uuid
               Nothing -> convError "Not a valid UUID" gid
 

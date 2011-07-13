@@ -23,12 +23,12 @@ showBook book editions =
       linkAuthorCredit $ bookAuthorCredit book
     H.h3 "Editions"
     H.table $ do
-      H.thead $ do
+      H.thead $
         H.tr $ do
           H.th "Name"
           H.th "Year"
       H.tbody $ editionRow `mapM_` editions
-      where editionRow edition = do
+      where editionRow edition =
               H.tr $ do
                 H.td $ toHtml $ linkEdition edition
                 H.td $ toHtml $ maybe "-" show $ editionYear edition

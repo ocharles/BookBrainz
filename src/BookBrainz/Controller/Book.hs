@@ -23,15 +23,15 @@ import Snap.Types
 bookResource :: Controller ()
 bookResource = do
   gid  <- (fromString . unpack . fromJust <$> getParam "gid") `onNothing` "Invalid BBID"
-  book <- (model $ getBook gid >>= traverse loadPeople) `onNothing` "Book not found"
+  book <- model (getBook gid >>= traverse loadPeople) `onNothing` "Book not found"
   editions <- model $ findBookEditions book
   output $ showBook book editions
 
 loadPeople :: Book -> Model Book
 loadPeople book = do
   book' <- loadAuthorCredit book
-  set lBookAuthorCredit book' <$> (loadForAuthorCredits $ bookAuthorCredit book')
-  where set field on = \val -> setL field val on
+  set lBookAuthorCredit book' <$> loadForAuthorCredits (bookAuthorCredit book')
+  where set field on val = setL field val on
 
 books :: Controller ()
 books = do

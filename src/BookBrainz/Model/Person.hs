@@ -13,12 +13,12 @@ import Data.List (intercalate)
 
 loadForAuthorCredits :: AuthorCredit -> Model AuthorCredit
 loadForAuthorCredits ac = do
-  let personIds = (toSql . personId . creditedAuthor) `map` (authorCredits ac)
+  let personIds = (toSql . personId . creditedAuthor) `map` authorCredits ac
   people <- mapRows "id" <$> query (selectQuery personIds) personIds
-  return $ ac { authorCredits = (expandCredit people)  `map` (authorCredits ac) }
+  return $ ac { authorCredits = expandCredit people `map` authorCredits ac }
   where selectQuery ids = unlines [ "SELECT *"
                                   , "FROM person"
-                                  , "WHERE id IN " ++ (surround "(" ")" $ intercalate ", " $ replicate (length ids) "?")
+                                  , "WHERE id IN " ++ surround "(" ")" (intercalate ", " $ replicate (length ids) "?")
                                   ]
         surround a b x = a ++ x ++ b
         mapRows key rows = fromList $ (\row -> ((fromSql $ row ! key)::PersonId, fromRow row)) `map` rows
@@ -26,4 +26,4 @@ loadForAuthorCredits ac = do
                               , personId = fromSql $ row ! "id"
                               , personGid = fromSql $ row ! "gid"
                               }
-        expandCredit people credit = credit { creditedAuthor = people ! (personId $ creditedAuthor credit) }
+        expandCredit people credit = credit { creditedAuthor = people ! personId (creditedAuthor credit) }

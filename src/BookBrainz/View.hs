@@ -9,7 +9,7 @@ import Data.Text (Text)
 import Text.Blaze.Html5
 
 genericError :: Text -> Html
-genericError message = do
+genericError message =
   pageLayout $ do
     h1 "Oops!"
     p $ toHtml message

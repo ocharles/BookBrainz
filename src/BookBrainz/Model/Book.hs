@@ -22,12 +22,12 @@ bookFromRow row = Book { bookId           = BookId $ fromSql $ row ! "id"
                        }
 
 listAllBooks :: Model [Book]
-listAllBooks = (map bookFromRow) `fmap` query "SELECT * FROM book" [ ]
+listAllBooks = map bookFromRow `fmap` query "SELECT * FROM book" [ ]
 
 getBook :: UUID -> Model (Maybe Book)
 getBook gid = do
   results <- query selectQuery [ toSql gid ]
-  return $ (listToMaybe results) >>= (return . bookFromRow)
+  return $ bookFromRow `fmap` listToMaybe results
   where selectQuery = unlines  [ "SELECT *"
                                , "FROM book"
                                , "WHERE gid = ?" ]
@@ -57,7 +57,7 @@ findBookEditions book = do
                               , editionBarcode = fromSql $ row ! "barcode"
                               , editionIndex = fromSql $ row ! "edition_index"
                               }
-        maybeReference row column constructor = (fromSql $ row ! column) >>= (return . constructor)
+        maybeReference row column constructor = constructor `fmap` fromSql (row ! column)
 
 loadAuthorCredit :: Book -> Model Book
 loadAuthorCredit book = case bookAuthorCredit book of
