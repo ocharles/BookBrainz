@@ -3,6 +3,7 @@
 module BookBrainz.View.Book
        ( pageLayout
        , showBook
+       , showBooks
        ) where
 
 import BookBrainz.Types
@@ -31,3 +32,10 @@ showBook book editions =
               H.tr $ do
                 H.td $ toHtml $ linkEdition edition
                 H.td $ toHtml $ maybe "-" show $ editionYear edition
+
+showBooks :: [Book] -> Html
+showBooks books =
+  pageLayout $ do
+    H.h1 "Books"
+    H.ul $ bookLink `mapM_` books
+    where bookLink book = H.li $ toHtml $ bookName book
