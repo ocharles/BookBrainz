@@ -3,10 +3,11 @@ module BookBrainz.View.Edition
        ) where
 
 import BookBrainz.Types
+import Data.Copointed
 import Data.UUID (toString)
 import Text.Blaze.Html5
 import Text.Blaze.Html5.Attributes
 
-linkEdition :: Edition -> Html
-linkEdition edition = a ! href (uri edition) $ toHtml $ editionName edition
-  where uri = toValue . ("/edition/" ++) . toString . editionGid
+linkEdition :: WithGid Edition -> Html
+linkEdition edition = a ! href (uri edition) $ toHtml $ editionName $ copoint edition
+  where uri = toValue . ("/edition/" ++) . toString . gid

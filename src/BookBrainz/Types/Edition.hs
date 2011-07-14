@@ -11,7 +11,6 @@ import BookBrainz.Types.Person
 import BookBrainz.Types.Publisher
 import BookBrainz.Types.Ref
 import Data.Text (Text)
-import Data.UUID (UUID)
 
 data EditionFormat = EditionFormat
                      { editionFormatId :: Int
@@ -21,7 +20,6 @@ data EditionFormat = EditionFormat
 
 data Edition = Edition
                { editionName        :: Text
-               , editionGid         :: UUID
                , editionId          :: Int
                , editionFormat      :: Maybe (Ref EditionFormat)
                , editionBook        :: Book

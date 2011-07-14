@@ -4,6 +4,7 @@ module BookBrainz.Types.AuthorCredit
        ) where
 
 import BookBrainz.Types.Person
+import BookBrainz.Types.WithGid
 import Data.Text (Text)
 
 data AuthorCredit = AuthorCredit
@@ -13,7 +14,7 @@ data AuthorCredit = AuthorCredit
                   deriving Show
 
 data Credit = Credit { creditedName :: Text
-                     , creditedAuthor :: Person
+                     , creditedAuthor :: WithGid Person
                      , creditedJoinPhrase :: Text
                      , creditedPosition :: Int
                      }

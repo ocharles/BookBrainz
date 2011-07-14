@@ -14,5 +14,5 @@ linkAuthorCredit authorCredit =
     where formatCredit credit = do
             H.a ! href (uri credit) $ toHtml $ creditedName credit
             toHtml $ creditedJoinPhrase credit
-          uri credit = toValue $ "/person/" ++ toString (personGid $ creditedAuthor credit)
+          uri credit = toValue $ "/person/" ++ toString (gid $ creditedAuthor credit)
 
