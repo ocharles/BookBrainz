@@ -31,7 +31,9 @@ Executable bookbrainz-server
     snap-core >= 0.5.1.4,
     snap-server >= 0.5.1.4,
     blaze-html >= 0.4.0.0,
-    pointed >= 1.8.0
+    pointed >= 1.8.0,
+    random >= 1.0.0.3,
+    transformers >= 0.2.2.0
 
   extensions: TypeSynonymInstances MultiParamTypeClasses
 

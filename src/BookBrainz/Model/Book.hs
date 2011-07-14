@@ -1,6 +1,7 @@
 module BookBrainz.Model.Book
        ( getBook
        , findBookEditions
+       , insertBook
        , listAllBooks
        ) where
 
@@ -8,8 +9,22 @@ import BookBrainz.Model
 import BookBrainz.Types
 import Data.Map (Map, (!))
 import Data.Maybe
+import System.Random
 import Data.UUID (UUID)
 import Database.HDBC (SqlValue, toSql, fromSql)
+
+insertBook :: Book -> Model (LoadedCoreEntity Book)
+insertBook bookSpec = do
+  bookGid <- modelIO randomIO :: Model UUID
+  bookRow <- head `fmap` query insertQuery [ toSql $ bookName bookSpec
+                                           , toSql $ bookAuthorCredit bookSpec
+                                           , toSql   bookGid
+                                           ]
+  return $ bookFromRow bookRow
+  where insertQuery = unlines [ "INSERT INTO book (name, author_credit, gid)"
+                              , "VALUES (?, ?, ?)"
+                              , "RETURNING *"
+                              ]
 
 bookFromRow :: Map String SqlValue -> LoadedCoreEntity Book
 bookFromRow row = let book = Book { bookName         = fromSql $ row ! "name"

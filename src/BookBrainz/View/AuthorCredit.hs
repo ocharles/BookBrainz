@@ -11,7 +11,7 @@ import Data.UUID (toString)
 
 linkAuthorCredit :: LoadedEntity AuthorCredit -> Html
 linkAuthorCredit authorCredit =
-  formatCredit `mapM_` (authorCredits $ copoint authorCredit)
+  formatCredit `mapM_` authorCredits (copoint authorCredit)
     where formatCredit credit = do
             H.a ! href (uri credit) $ toHtml $ creditedName credit
             toHtml $ creditedJoinPhrase credit

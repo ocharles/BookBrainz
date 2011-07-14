@@ -26,6 +26,8 @@ main = do
 
 serve :: Connection -> Snap ()
 serve conn = route routes where
-  routes = [("/book/:gid", run bookResource)
-           ,("/books", run books)]
+  routes = [ ("/books/add", run $ methods [POST, GET] addBook)
+           , ("/books/", run books)
+           , ("/books/:gid", run bookResource)
+           ]
   run = runHandler conn

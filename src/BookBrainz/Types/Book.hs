@@ -8,6 +8,6 @@ import Data.Text (Text)
 
 data Book = Book
             { bookName :: Text
-            , bookAuthorCredit :: Ref AuthorCredit
+            , bookAuthorCredit :: Ref (LoadedEntity AuthorCredit)
             }
           deriving Show

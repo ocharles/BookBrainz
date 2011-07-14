@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module BookBrainz.View.Book
-       ( pageLayout
+       ( addBook
        , showBook
        , showBooks
        ) where
@@ -13,7 +13,7 @@ import BookBrainz.View.Edition (linkEdition)
 import Data.Copointed
 import qualified Text.Blaze.Html5 as H
 import Text.Blaze.Html5 (toHtml, toValue, Html, (!))
-import Text.Blaze.Html5.Attributes
+import Text.Blaze.Html5.Attributes as A
 import Data.UUID (toString)
 
 showBook :: (LoadedCoreEntity Book, LoadedEntity AuthorCredit) -> [LoadedCoreEntity Edition] -> Html
@@ -46,3 +46,18 @@ showBooks books =
     where bookLink book =
             let uri = "/book/" ++ toString (gid book) in
             H.a ! href (toValue uri) $ toHtml $ bookName $ copoint book
+
+addBook :: Html
+addBook =
+  pageLayout $ do
+    H.h1 "Add Book"
+    H.form ! method "POST" $
+      H.fieldset $ do
+        H.legend "Book details"
+        H.p $ do
+          H.label ! for "book.name" $ "Name:"
+          H.input ! A.id "book.name" ! name "book.name"
+        H.p $ do
+          H.label ! for "book.author" $ "Author:"
+          H.input ! A.id "book.author" ! name "book.author"
+        H.input ! A.type_ "submit" ! value "Add book"

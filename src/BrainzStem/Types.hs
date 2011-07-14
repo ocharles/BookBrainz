@@ -7,11 +7,16 @@ module BrainzStem.Types
 
 import Data.Copointed
 import Data.UUID
+import Data.Convertible
+import Database.HDBC (SqlValue, toSql)
 
 -- |Represents a reference in a database. @entity@ is a phantom type which
 -- tracks what type of entity this reference refers to.
 data Ref entity = Ref { rid :: Int }
                 deriving Show
+
+instance Convertible (Ref a) SqlValue where
+  safeConvert = Right . toSql . rid
 
 class InDatabase entity where
   rowKey :: entity -> Int

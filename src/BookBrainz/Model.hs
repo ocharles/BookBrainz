@@ -2,6 +2,7 @@ module BookBrainz.Model
        ( Model
        , query
        , model
+       , modelIO
        ) where
 
 import BookBrainz.Types.MVC
@@ -19,10 +20,13 @@ model action = do
 query :: String -> [SqlValue] -> Model [Map String SqlValue]
 query queryString bind = do
   conn <- env modelStateConn
-  Model $ ReaderT (\_ -> do
-                      stmt <- prepare conn queryString
-                      execute stmt bind
-                      fetchAllRowsMap stmt)
+  modelIO $ do
+    stmt <- prepare conn queryString
+    execute stmt bind
+    fetchAllRowsMap stmt
+
+modelIO :: IO a -> Model a
+modelIO action = Model $ ReaderT (\_ -> action)
 
 env :: MonadReader env m => (env -> val) -> m val
 env = asks
