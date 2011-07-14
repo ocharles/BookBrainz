@@ -12,7 +12,9 @@ import BookBrainz.View.AuthorCredit (linkAuthorCredit)
 import BookBrainz.View.Edition (linkEdition)
 import Data.Copointed
 import qualified Text.Blaze.Html5 as H
-import Text.Blaze.Html5 (toHtml, Html)
+import Text.Blaze.Html5 (toHtml, toValue, Html, (!))
+import Text.Blaze.Html5.Attributes
+import Data.UUID (toString)
 
 showBook :: (WithGid Book, AuthorCredit) -> [WithGid Edition] -> Html
 showBook (book, authorCredit) editions =
@@ -40,5 +42,7 @@ showBooks :: [WithGid Book] -> Html
 showBooks books =
   pageLayout $ do
     H.h1 "Books"
-    H.ul $ bookLink `mapM_` books
-    where bookLink book = H.li $ toHtml $ bookName $ copoint book
+    H.ul $ (H.li . bookLink) `mapM_` books
+    where bookLink book =
+            let uri = "/book/" ++ toString (gid book) in
+            H.a ! href (toValue uri) $ toHtml $ bookName $ copoint book
