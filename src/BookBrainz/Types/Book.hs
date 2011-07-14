@@ -3,16 +3,14 @@ module BookBrainz.Types.Book
   ) where
 
 import BookBrainz.Types.AuthorCredit
-import BookBrainz.Types.Newtypes (BookId)
+import BookBrainz.Types.Ref
 import Data.Text (Text)
 import Data.UUID (UUID)
 
 data Book = Book
             { bookName :: Text
             , bookGid :: UUID
-            , bookId :: BookId
-            , bookAuthorCredit :: AuthorCredit
+            , bookId :: Int
+            , bookAuthorCredit :: Ref AuthorCredit
             }
-          | BookReference
-            { bookId :: BookId
-            } deriving Show
+          deriving Show

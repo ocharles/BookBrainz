@@ -3,16 +3,12 @@ module BookBrainz.Types.AuthorCredit
        , Credit(..)
        ) where
 
-import BookBrainz.Types.Newtypes (AuthorCreditId)
 import BookBrainz.Types.Person
 import Data.Text (Text)
 
 data AuthorCredit = AuthorCredit
-                    { authorCreditId :: AuthorCreditId
+                    { authorCreditId :: Int
                     , authorCredits :: [Credit]
-                    }
-                  | AuthorCreditReference
-                    { authorCreditId :: AuthorCreditId
                     }
                   deriving Show
 

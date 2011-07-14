@@ -7,4 +7,7 @@ import BookBrainz.Types.Edition      as X
 import BookBrainz.Types.Language     as X
 import BookBrainz.Types.Person       as X
 import BookBrainz.Types.Publisher    as X
+import BookBrainz.Types.Ref          as X
 
+-- Import for type class instances
+import BookBrainz.Types.Newtypes ()

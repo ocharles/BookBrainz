@@ -1,24 +1,21 @@
 module BookBrainz.Model.Book
        ( getBook
-       , loadAuthorCredit
        , findBookEditions
        , listAllBooks
        ) where
 
-import BookBrainz.Model (query)
+import BookBrainz.Model
 import BookBrainz.Types
-import BookBrainz.Types.MVC (Model)
-import BookBrainz.Types.Newtypes
 import Data.Map (Map, (!))
 import Data.Maybe
 import Data.UUID (UUID)
 import Database.HDBC (SqlValue, toSql, fromSql)
 
 bookFromRow :: Map String SqlValue -> Book
-bookFromRow row = Book { bookId           = BookId $ fromSql $ row ! "id"
+bookFromRow row = Book { bookId           = fromSql $ row ! "id"
                        , bookName         = fromSql $ row ! "name"
                        , bookGid          = fromSql $ row ! "gid"
-                       , bookAuthorCredit = AuthorCreditReference $ AuthorCreditId $ fromSql $ row ! "author_credit"
+                       , bookAuthorCredit = Ref $ fromSql $ row ! "author_credit"
                        }
 
 listAllBooks :: Model [Book]
@@ -41,39 +38,20 @@ findBookEditions book = do
                               , "WHERE book = ?"
                               , "ORDER BY year, edition_index NULLS LAST"
                               ]
-        fromRow row = Edition { editionId = fromSql $ row ! "id"
-                              , editionGid = fromSql $ row ! "gid"
-                              , editionName = fromSql $ row ! "name"
-                              , editionFormat = maybeReference row "format" EditionFormatReference
-                              , editionBook = book
-                              , editionYear = fromSql $ row ! "year"
-                              , editionPublisher = maybeReference row "publisher" PublisherReference
-                              , editionCountry = maybeReference row "country" CountryReference
-                              , editionIllustrator = maybeReference row "illustrator" PersonReference
-                              , editionTranslator = maybeReference row "translator" PersonReference
-                              , editionAuthor = AuthorCreditReference $ fromSql $ row ! "author"
-                              , editionLanguage = maybeReference row "language" LanguageReference
-                              , editionIsbn = fromSql $ row ! "isbn"
-                              , editionBarcode = fromSql $ row ! "barcode"
-                              , editionIndex = fromSql $ row ! "edition_index"
+        fromRow row = Edition { editionId          = fromSql $ row ! "id"
+                              , editionGid         = fromSql $ row ! "gid"
+                              , editionName        = fromSql $ row ! "name"
+                              , editionFormat      = maybeReference row "format"
+                              , editionBook        = book
+                              , editionYear        = fromSql $ row ! "year"
+                              , editionPublisher   = maybeReference row "publisher"
+                              , editionCountry     = maybeReference row "country"
+                              , editionIllustrator = maybeReference row "illustrator"
+                              , editionTranslator  = maybeReference row "translator"
+                              , editionAuthor      = Ref $ fromSql $ row ! "author"
+                              , editionLanguage    = maybeReference row "language"
+                              , editionIsbn        = fromSql $ row ! "isbn"
+                              , editionBarcode     = fromSql $ row ! "barcode"
+                              , editionIndex       = fromSql $ row ! "edition_index"
                               }
-        maybeReference row column constructor = constructor `fmap` fromSql (row ! column)
-
-loadAuthorCredit :: Book -> Model Book
-loadAuthorCredit book = case bookAuthorCredit book of
-  AuthorCreditReference orig@(AuthorCreditId acid) -> do
-    credits <- query selectQuery [ toSql acid ]
-    return book { bookAuthorCredit = AuthorCredit { authorCreditId = orig
-                                                  , authorCredits = fromRows credits }
-                }
-  _ -> return book
-  where selectQuery = unlines [ "SELECT *"
-                              , "FROM author_credit_person"
-                              , "WHERE author_credit = ?"
-                              , "ORDER BY position" ]
-        fromRows = map fromRow
-        fromRow row = Credit { creditedName = fromSql $ row ! "credited_name"
-                             , creditedAuthor = PersonReference $ PersonId $ fromSql $ row ! "person"
-                             , creditedJoinPhrase = fromSql $ row ! "join_phrase"
-                             , creditedPosition = fromSql $ row ! "position"
-                             }
+        maybeReference row column = Ref `fmap` fromSql (row ! column)

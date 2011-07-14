@@ -30,8 +30,7 @@ Executable bookbrainz-server
     HDBC-postgresql >= 2.2.3.3,
     snap-core >= 0.5.1.4,
     snap-server >= 0.5.1.4,
-    blaze-html >= 0.4.0.0,
-    fclabels >= 0.11.1.1
+    blaze-html >= 0.4.0.0
 
   extensions: TypeSynonymInstances MultiParamTypeClasses
 
