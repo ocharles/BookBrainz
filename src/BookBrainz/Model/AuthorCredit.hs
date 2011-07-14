@@ -8,12 +8,12 @@ import BookBrainz.Types
 import Data.Map ((!))
 import Database.HDBC (toSql, fromSql)
 
-getAuthorCredit :: Ref AuthorCredit -> Model AuthorCredit
+getAuthorCredit :: Ref AuthorCredit -> Model (LoadedEntity AuthorCredit)
 getAuthorCredit acid = do
   credits <- query selectQuery [ toSql $ rid acid ]
-  return AuthorCredit { authorCreditId = rid acid
-                      , authorCredits = fromRows credits
-                      }
+  return Entity { entityId = rid acid
+                , entityInfo = AuthorCredit { authorCredits = fromRows credits }
+                }
   where selectQuery = unlines [ "SELECT *"
                               , "FROM author_credit_person"
                               , "JOIN person ON person.id = author_credit_person.person"

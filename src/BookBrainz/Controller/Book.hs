@@ -23,7 +23,7 @@ bookResource = do
   gid  <- (fromString . unpack . fromJust <$> getParam "gid") `onNothing` "Invalid BBID"
   book <- model (getBook gid) `onNothing` "Book not found"
   author <- model $ getAuthorCredit $ bookAuthorCredit $ copoint book
-  editions <- model $ findBookEditions $ copoint book
+  editions <- model $ findBookEditions book
   output $ showBook (book, author) editions
 
 books :: Controller ()

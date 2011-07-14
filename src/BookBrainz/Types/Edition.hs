@@ -9,7 +9,7 @@ import BookBrainz.Types.Country
 import BookBrainz.Types.Language
 import BookBrainz.Types.Person
 import BookBrainz.Types.Publisher
-import BookBrainz.Types.Ref
+import BrainzStem.Types
 import Data.Text (Text)
 
 data EditionFormat = EditionFormat
@@ -20,9 +20,8 @@ data EditionFormat = EditionFormat
 
 data Edition = Edition
                { editionName        :: Text
-               , editionId          :: Int
                , editionFormat      :: Maybe (Ref EditionFormat)
-               , editionBook        :: Book
+               , editionBook        :: Ref (LoadedCoreEntity Book)
                , editionYear        :: Maybe Int
                , editionPublisher   :: Maybe (Ref Publisher)
                , editionCountry     :: Maybe (Ref Country)

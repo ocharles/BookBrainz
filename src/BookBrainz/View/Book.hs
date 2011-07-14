@@ -16,7 +16,7 @@ import Text.Blaze.Html5 (toHtml, toValue, Html, (!))
 import Text.Blaze.Html5.Attributes
 import Data.UUID (toString)
 
-showBook :: (WithGid Book, AuthorCredit) -> [WithGid Edition] -> Html
+showBook :: (LoadedCoreEntity Book, LoadedEntity AuthorCredit) -> [LoadedCoreEntity Edition] -> Html
 showBook (book, authorCredit) editions =
   pageLayout $ do
     let book' = copoint book
@@ -38,7 +38,7 @@ showBook (book, authorCredit) editions =
                 H.td $ toHtml $ linkEdition edition
                 H.td $ toHtml $ maybe "-" show $ editionYear edition'
 
-showBooks :: [WithGid Book] -> Html
+showBooks :: [LoadedCoreEntity Book] -> Html
 showBooks books =
   pageLayout $ do
     H.h1 "Books"

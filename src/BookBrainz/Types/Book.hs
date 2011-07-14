@@ -3,12 +3,11 @@ module BookBrainz.Types.Book
   ) where
 
 import BookBrainz.Types.AuthorCredit
-import BookBrainz.Types.Ref
+import BrainzStem.Types
 import Data.Text (Text)
 
 data Book = Book
             { bookName :: Text
-            , bookId :: Int
             , bookAuthorCredit :: Ref AuthorCredit
             }
           deriving Show

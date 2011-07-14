@@ -6,7 +6,6 @@ import Data.Text (Text)
 
 data Person = Person
               { personName :: Text
-              , personId :: Int
               }
             deriving Show
 
