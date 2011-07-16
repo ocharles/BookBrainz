@@ -7,7 +7,6 @@ import BookBrainz.Model
 import BookBrainz.Model.Person (insertPerson)
 import qualified BookBrainz.Model.Person as P
 import BookBrainz.Types
-import BrainzStem.Types
 import Control.Applicative
 import Database.HDBC (toSql, fromSql)
 import Data.Map ((!))
@@ -26,7 +25,7 @@ getAuthorCredit acid = do
                               , "ORDER BY position" ]
         fromRows = map fromRow
         fromRow row = Credit { creditedName = fromSql $ row ! "credited_name"
-                             , creditedAuthor = P.fromRow row
+                             , creditedAuthor = P.personFromRow row
                              , creditedJoinPhrase = fromSql $ row ! "join_phrase"
                              , creditedPosition = fromSql $ row ! "position"
                              }
