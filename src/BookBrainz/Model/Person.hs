@@ -1,18 +1,19 @@
 module BookBrainz.Model.Person
-       ( fromRow
+       ( personFromRow
        , insertPerson
+       , getPerson
        ) where
 
 import BookBrainz.Model
 import BookBrainz.Types
-import BrainzStem.Types
 import Data.Map (Map, (!))
+import Data.Maybe
 import Data.UUID
 import Database.HDBC (SqlValue, fromSql, toSql)
 import System.Random
 
-fromRow :: Map String SqlValue -> LoadedCoreEntity Person
-fromRow row = let person = Person { personName = fromSql $ row ! "name"
+personFromRow :: Map String SqlValue -> LoadedCoreEntity Person
+personFromRow row = let person = Person { personName = fromSql $ row ! "name"
                                   } in
               CoreEntity { gid            = fromSql $ row ! "gid"
                          , coreEntityInfo = person
@@ -25,8 +26,16 @@ insertPerson personSpec = do
   personRow <- head `fmap` query insertQuery [ toSql $ personName personSpec
                                              , toSql   personGid
                                              ]
-  return $ fromRow personRow
+  return $ personFromRow personRow
   where insertQuery = unlines [ "INSERT INTO person (name, gid)"
                               , "VALUES (?, ?)"
                               , "RETURNING *"
                               ]
+
+getPerson :: UUID -> Model (Maybe (LoadedCoreEntity Person))
+getPerson bbid = do
+  results <- query selectQuery [ toSql bbid ]
+  return $ personFromRow `fmap` listToMaybe results
+  where selectQuery = unlines  [ "SELECT *"
+                               , "FROM person"
+                               , "WHERE gid = ?" ]

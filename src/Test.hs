@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import BookBrainz.Controller.Book
+import BookBrainz.Controller.Person
 import BookBrainz.Types.MVC
 import Control.Monad.Reader
 import Control.Monad.Error
@@ -28,6 +29,7 @@ serve :: Connection -> Snap ()
 serve conn = route routes where
   routes = [ ("/books/add", run $ methods [POST, GET] addBook)
            , ("/books/", run books)
-           , ("/books/:gid", run bookResource)
+           , ("/book/:gid", run bookResource)
+           , ("/person/:gid", run personResource)
            ]
   run = runHandler conn
