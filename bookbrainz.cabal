@@ -25,7 +25,7 @@ Executable bookbrainz-server
     time >= 1.1 && < 1.3,
     uuid >= 1.2.2,
     HDBC >= 2.2.7.0,
-    containers ==0.3.0.0,
+    containers >= 0.3.0.0,
     convertible >= 1.0.10.0,
     HDBC-postgresql >= 2.2.3.3,
     snap-core >= 0.5.1.4,
