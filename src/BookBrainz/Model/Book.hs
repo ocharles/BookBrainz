@@ -17,22 +17,20 @@ insertBook :: Book -> Model (LoadedCoreEntity Book)
 insertBook bookSpec = do
   bookGid <- modelIO randomIO :: Model UUID
   bookRow <- head `fmap` query insertQuery [ toSql $ bookName bookSpec
-                                           , toSql $ bookAuthorCredit bookSpec
                                            , toSql   bookGid
                                            ]
   return $ bookFromRow bookRow
-  where insertQuery = unlines [ "INSERT INTO book (name, author_credit, gid)"
-                              , "VALUES (?, ?, ?)"
+  where insertQuery = unlines [ "INSERT INTO book (name, gid)"
+                              , "VALUES (?, ?)"
                               , "RETURNING *"
                               ]
 
 bookFromRow :: Map String SqlValue -> LoadedCoreEntity Book
 bookFromRow row = let book = Book { bookName         = fromSql $ row ! "name"
-                                  , bookAuthorCredit = Ref $ fromSql $ row ! "author_credit"
                                   } in
-                  CoreEntity { gid            = fromSql $ row ! "gid"
-                             , coreEntityId   = fromSql $ row ! "id"
-                             , coreEntityInfo = book }
+                  CoreEntity { gid               = fromSql $ row ! "gid"
+                             , coreEntityVersion = fromSql $ row ! "version"
+                             , coreEntityInfo    = book }
 
 listAllBooks :: Model [LoadedCoreEntity Book]
 listAllBooks = map bookFromRow `fmap` query "SELECT * FROM book" [ ]
@@ -54,9 +52,9 @@ findBookEditions book = do
                               , "WHERE book = ?"
                               , "ORDER BY year, edition_index NULLS LAST"
                               ]
-        fromRow row = CoreEntity { gid            = fromSql $ row ! "gid"
-                                 , coreEntityInfo = editionFromRow row
-                                 , coreEntityId   = fromSql $ row ! "id"
+        fromRow row = CoreEntity { gid               = fromSql $ row ! "gid"
+                                 , coreEntityInfo    = editionFromRow row
+                                 , coreEntityVersion = fromSql $ row ! "version"
                                  }
         editionFromRow row = Edition { editionName        = fromSql $ row ! "name"
                                      , editionFormat      = maybeReference row "format"
@@ -64,9 +62,6 @@ findBookEditions book = do
                                      , editionYear        = fromSql $ row ! "year"
                                      , editionPublisher   = maybeReference row "publisher"
                                      , editionCountry     = maybeReference row "country"
-                                     , editionIllustrator = maybeReference row "illustrator"
-                                     , editionTranslator  = maybeReference row "translator"
-                                     , editionAuthor      = Ref $ fromSql $ row ! "author"
                                      , editionLanguage    = maybeReference row "language"
                                      , editionIsbn        = fromSql $ row ! "isbn"
                                      , editionBarcode     = fromSql $ row ! "barcode"

@@ -15,9 +15,9 @@ import System.Random
 personFromRow :: Map String SqlValue -> LoadedCoreEntity Person
 personFromRow row = let person = Person { personName = fromSql $ row ! "name"
                                   } in
-              CoreEntity { gid            = fromSql $ row ! "gid"
-                         , coreEntityInfo = person
-                         , coreEntityId   = fromSql $ row ! "id"
+              CoreEntity { gid               = fromSql $ row ! "gid"
+                         , coreEntityInfo    = person
+                         , coreEntityVersion = fromSql $ row ! "version"
                          }
 
 insertPerson :: Person -> Model (LoadedCoreEntity Person)

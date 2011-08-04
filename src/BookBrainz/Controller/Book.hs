@@ -19,9 +19,8 @@ import Snap.Types
 bookResource :: UUID -> Controller ()
 bookResource bbid = do
   book <- model (getBook bbid) `onNothing` "Book not found"
-  author <- model $ getAuthorCredit $ bookAuthorCredit $ copoint book
   editions <- model $ findBookEditions book
-  output $ V.showBook (book, author) editions
+  output $ V.showBook book editions
 
 books :: Controller ()
 books = do
@@ -41,6 +40,5 @@ addBook = do
           name   <- E.decodeUtf8 <$> getParam "book.name" `onNothing` "No book name"
           author <- E.decodeUtf8 <$> getParam "book.author" `onNothing` "No book author"
           credit <- model $ insertSimpleAuthorCredit author
-          book   <- model $ insertBook Book { bookName = name
-                                            , bookAuthorCredit = toRef credit }
+          book   <- model $ insertBook Book { bookName = name }
           redirect $ pack $ toString $ gid book

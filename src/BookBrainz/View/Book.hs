@@ -16,15 +16,11 @@ import Text.Blaze.Html5 (toHtml, toValue, Html, (!))
 import Text.Blaze.Html5.Attributes as A
 import Data.UUID (toString)
 
-showBook :: (LoadedCoreEntity Book, LoadedEntity AuthorCredit) -> [LoadedCoreEntity Edition] -> Html
-showBook (book, authorCredit) editions =
+showBook :: LoadedCoreEntity Book -> [LoadedCoreEntity Edition] -> Html
+showBook book editions =
   pageLayout $ do
     let book' = copoint book
     H.h1 $ toHtml $ bookName book'
-    H.h2 $ do
-      H.span "~"
-      " "
-      linkAuthorCredit authorCredit
     H.h3 "Editions"
     H.table $ do
       H.thead $

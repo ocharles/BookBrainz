@@ -22,9 +22,9 @@ class InDatabase entity where
   rowKey :: entity -> Int
   toRef  :: entity -> Ref entity
 
-data LoadedCoreEntity a = CoreEntity { gid            :: UUID
-                                     , coreEntityId   :: Int
-                                     , coreEntityInfo :: a
+data LoadedCoreEntity a = CoreEntity { gid               :: UUID
+                                     , coreEntityVersion :: Int
+                                     , coreEntityInfo    :: a
                                      }
                         deriving Show
 
@@ -32,7 +32,7 @@ instance Copointed LoadedCoreEntity where
   copoint = coreEntityInfo
 
 instance InDatabase (LoadedCoreEntity a) where
-  rowKey = coreEntityId
+  rowKey = coreEntityVersion
   toRef entity = Ref { rid = rowKey entity }
 
 data LoadedEntity a = Entity { entityId   :: Int
