@@ -9,11 +9,10 @@ import qualified BookBrainz.View.Person as V
 import Control.Applicative
 import Data.ByteString.Char8 (unpack)
 import Data.Maybe (fromJust)
-import Data.UUID (fromString)
+import Data.UUID (toString, fromString, UUID)
 import Snap.Types
 
-personResource :: Controller ()
-personResource = do
-  bbid  <- (fromString . unpack . fromJust <$> getParam "gid") `onNothing` "Invalid BBID"
+personResource :: UUID -> Controller ()
+personResource bbid = do
   person <- model (getPerson bbid) `onNothing` "Person not found"
   output $ V.showPerson person
