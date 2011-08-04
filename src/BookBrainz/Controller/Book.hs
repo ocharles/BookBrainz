@@ -13,12 +13,11 @@ import Data.ByteString.Char8 (pack, unpack)
 import Data.Copointed
 import Data.Maybe (fromJust)
 import Data.Text.Encoding as E
-import Data.UUID (fromString, toString)
+import Data.UUID (fromString, toString, UUID)
 import Snap.Types
 
-bookResource :: Controller ()
-bookResource = do
-  bbid  <- (fromString . unpack . fromJust <$> getParam "gid") `onNothing` "Invalid BBID"
+bookResource :: UUID -> Controller ()
+bookResource bbid = do
   book <- model (getBook bbid) `onNothing` "Book not found"
   author <- model $ getAuthorCredit $ bookAuthorCredit $ copoint book
   editions <- model $ findBookEditions book

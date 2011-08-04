@@ -1,14 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import BookBrainz.Controller.Book
-import BookBrainz.Controller.Person
-import BookBrainz.Types.MVC
 import Control.Monad.Reader
 import Control.Monad.Error
-
+import Data.ByteString.Char8 (unpack)
 import Database.HDBC.PostgreSQL (connectPostgreSQL, Connection)
 import Snap.Http.Server           hiding (Config)
 import Snap.Types
+import Web.Routes (runSite)
+
+import BookBrainz.Sitemap (routeSite)
+import BookBrainz.Types.MVC
 
 runHandler :: Connection -> Controller () -> Snap ()
 runHandler conn controller = do
@@ -26,10 +27,10 @@ main = do
  where server = defaultConfig
 
 serve :: Connection -> Snap ()
-serve conn = route routes where
-  routes = [ ("/books/add", run $ methods [POST, GET] addBook)
-           , ("/books/", run books)
-           , ("/book/:gid", run bookResource)
-           , ("/person/:gid", run personResource)
-           ]
-  run = runHandler conn
+serve conn = do
+    p <- getRequest >>= maybe pass return . urlDecode . rqPathInfo
+    let f = runSite "/" routeSite $ unpack p
+    case f of
+      Right handler -> run handler
+      Left e -> error e
+  where run = runHandler conn
