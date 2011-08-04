@@ -26,9 +26,8 @@ $(derivePrinterParsers ''Sitemap)
 
 sitemap :: Router Sitemap
 sitemap =
-  (  rHome
+     rHome
   <> rBook . ("book" </> uuid)
-  )
 
 uuid = xmaph (fromJust . fromString) (Just . toString) anyString
 

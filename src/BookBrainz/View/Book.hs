@@ -8,7 +8,6 @@ module BookBrainz.View.Book
 
 import BookBrainz.Types
 import BookBrainz.View (pageLayout)
-import BookBrainz.View.AuthorCredit (linkAuthorCredit)
 import BookBrainz.View.Edition (linkEdition)
 import Data.Copointed
 import qualified Text.Blaze.Html5 as H

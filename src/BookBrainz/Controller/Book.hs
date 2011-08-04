@@ -9,11 +9,9 @@ import BookBrainz.Types.MVC (Controller)
 import BookBrainz.Types
 import qualified BookBrainz.View.Book as V
 import Control.Applicative
-import Data.ByteString.Char8 (pack, unpack)
-import Data.Copointed
-import Data.Maybe (fromJust)
+import Data.ByteString.Char8 (pack)
 import Data.Text.Encoding as E
-import Data.UUID (fromString, toString, UUID)
+import Data.UUID (toString, UUID)
 import Snap.Types
 
 bookResource :: UUID -> Controller ()
