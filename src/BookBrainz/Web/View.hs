@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module BookBrainz.View
+module BookBrainz.Web.View
        ( genericError
        , pageLayout
        ) where

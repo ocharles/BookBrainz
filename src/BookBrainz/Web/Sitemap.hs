@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings, TypeOperators #-}
-module BookBrainz.Sitemap
+module BookBrainz.Web.Sitemap
        ( Sitemap(..)
        , sitemap
        , routeSite
@@ -14,9 +14,9 @@ import Text.Boomerang.TH (derivePrinterParsers)
 import Web.Routes (RouteT, liftRouteT)
 import Web.Routes.Boomerang
 
-import BookBrainz.Types.MVC (Controller)
-import BookBrainz.Controller.Book as Book
-import BookBrainz.Controller.Person as Person
+import BookBrainz.Web.Handler.Book
+import BookBrainz.Web.Handler.Person
+import BookBrainz.Web.Snaplet (BookBrainzHandler)
 
 data Sitemap
      = Home
@@ -34,10 +34,10 @@ sitemap =
 
 uuid = xmaph (fromJust . fromString) (Just . toString) anyString
 
-route :: Sitemap -> RouteT Sitemap Controller ()
-route url = case url of
-  Home -> liftRouteT books
-  Book bbid -> liftRouteT $ bookResource bbid
-  Person bbid -> liftRouteT $ personResource bbid
+route :: Sitemap -> RouteT Sitemap BookBrainzHandler ()
+route url = liftRouteT $ case url of
+  Home        -> listBooks
+  Book bbid   -> showBook bbid
+  Person bbid -> showPerson bbid
 
 routeSite = boomerangSiteRouteT route sitemap

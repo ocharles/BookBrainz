@@ -5,17 +5,19 @@ module BookBrainz.Model.Book
        , listAllBooks
        ) where
 
-import BookBrainz.Model
-import BookBrainz.Types
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Map (Map, (!))
 import Data.Maybe
 import System.Random
 import Data.UUID (UUID)
 import Database.HDBC (SqlValue, toSql, fromSql)
 
-insertBook :: Book -> Model (LoadedCoreEntity Book)
+import BookBrainz.Database (HasDatabase, query)
+import BookBrainz.Types
+
+insertBook :: (Functor m, HasDatabase m) => Book -> m (LoadedCoreEntity Book)
 insertBook bookSpec = do
-  bookGid <- modelIO randomIO :: Model UUID
+  bookGid <- liftIO randomIO :: MonadIO m => m UUID
   bookRow <- head `fmap` query insertQuery [ toSql $ bookName bookSpec
                                            , toSql   bookGid
                                            ]
@@ -32,10 +34,10 @@ bookFromRow row = let book = Book { bookName         = fromSql $ row ! "name"
                              , coreEntityVersion = fromSql $ row ! "version"
                              , coreEntityInfo    = book }
 
-listAllBooks :: Model [LoadedCoreEntity Book]
+listAllBooks :: (Functor a, HasDatabase a) => a [LoadedCoreEntity Book]
 listAllBooks = map bookFromRow `fmap` query "SELECT * FROM book" [ ]
 
-getBook :: UUID -> Model (Maybe (LoadedCoreEntity Book))
+getBook :: HasDatabase m => UUID -> m (Maybe (LoadedCoreEntity Book))
 getBook bbid = do
   results <- query selectQuery [ toSql bbid ]
   return $ bookFromRow `fmap` listToMaybe results
@@ -43,7 +45,7 @@ getBook bbid = do
                                , "FROM book"
                                , "WHERE gid = ?" ]
 
-findBookEditions :: LoadedCoreEntity Book -> Model [LoadedCoreEntity Edition]
+findBookEditions :: HasDatabase m => LoadedCoreEntity Book -> m [LoadedCoreEntity Edition]
 findBookEditions book = do
   results <- query selectQuery [ toSql $ rowKey book ]
   return $ fromRow `map` results

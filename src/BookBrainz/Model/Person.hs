@@ -4,13 +4,15 @@ module BookBrainz.Model.Person
        , getPerson
        ) where
 
-import BookBrainz.Model
-import BookBrainz.Types
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Map (Map, (!))
 import Data.Maybe
 import Data.UUID
 import Database.HDBC (SqlValue, fromSql, toSql)
 import System.Random
+
+import BookBrainz.Database
+import BookBrainz.Types
 
 personFromRow :: Map String SqlValue -> LoadedCoreEntity Person
 personFromRow row = let person = Person { personName = fromSql $ row ! "name"
@@ -20,9 +22,9 @@ personFromRow row = let person = Person { personName = fromSql $ row ! "name"
                          , coreEntityVersion = fromSql $ row ! "version"
                          }
 
-insertPerson :: Person -> Model (LoadedCoreEntity Person)
+insertPerson :: (Functor m, HasDatabase m) => Person -> m (LoadedCoreEntity Person)
 insertPerson personSpec = do
-  personGid <- modelIO randomIO :: Model UUID
+  personGid <- liftIO randomIO :: MonadIO m => m UUID
   personRow <- head `fmap` query insertQuery [ toSql $ personName personSpec
                                              , toSql   personGid
                                              ]
@@ -32,7 +34,7 @@ insertPerson personSpec = do
                               , "RETURNING *"
                               ]
 
-getPerson :: UUID -> Model (Maybe (LoadedCoreEntity Person))
+getPerson :: (Functor m, HasDatabase m) => UUID -> m (Maybe (LoadedCoreEntity Person))
 getPerson bbid = do
   results <- query selectQuery [ toSql bbid ]
   return $ personFromRow `fmap` listToMaybe results

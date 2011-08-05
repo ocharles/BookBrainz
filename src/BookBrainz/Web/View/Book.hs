@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module BookBrainz.View.Book
+module BookBrainz.Web.View.Book
        ( addBook
        , showBook
        , showBooks
        ) where
 
 import BookBrainz.Types
-import BookBrainz.View (pageLayout)
-import BookBrainz.View.Edition (linkEdition)
+import BookBrainz.Web.View (pageLayout)
+import BookBrainz.Web.View.Edition (linkEdition)
 import Data.Copointed
 import qualified Text.Blaze.Html5 as H
 import Text.Blaze.Html5 (toHtml, toValue, Html, (!))

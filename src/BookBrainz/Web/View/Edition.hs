@@ -1,4 +1,4 @@
-module BookBrainz.View.Edition
+module BookBrainz.Web.View.Edition
        ( linkEdition
        ) where
 

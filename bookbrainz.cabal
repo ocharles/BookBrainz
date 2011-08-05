@@ -14,7 +14,7 @@ Flag development
 
 Executable bookbrainz-server
   hs-source-dirs: src
-  main-is: Test.hs
+  main-is: Main.hs
 
   Build-depends:
     base >= 4 && < 5,
@@ -28,6 +28,7 @@ Executable bookbrainz-server
     containers >= 0.3.0.0,
     convertible >= 1.0.10.0,
     HDBC-postgresql >= 2.2.3.3,
+    snap >= 0.5.2,
     snap-core >= 0.5.1.4,
     snap-server >= 0.5.1.4,
     blaze-html >= 0.4.0.0,
@@ -36,7 +37,8 @@ Executable bookbrainz-server
     transformers >= 0.2.2.0,
     boomerang >= 1.0.1,
     web-routes-boomerang >= 0.25.1,
-    web-routes >= 0.25.1
+    web-routes >= 0.25.1,
+    fclabels >= 0.11.1.1
 
   extensions: TypeSynonymInstances MultiParamTypeClasses
 
