@@ -6,14 +6,16 @@ module BookBrainz.Web.View.Book
        , showBooks
        ) where
 
-import BookBrainz.Types
-import BookBrainz.Web.View (pageLayout)
-import BookBrainz.Web.View.Edition (linkEdition)
 import Data.Copointed
 import qualified Text.Blaze.Html5 as H
 import Text.Blaze.Html5 (toHtml, toValue, Html, (!))
 import Text.Blaze.Html5.Attributes as A
 import Data.UUID (toString)
+import Text.Digestive.Forms.Html (FormEncType)
+
+import BookBrainz.Types
+import BookBrainz.Web.View (pageLayout)
+import BookBrainz.Web.View.Edition (linkEdition)
 
 showBook :: LoadedCoreEntity Book -> [LoadedCoreEntity Edition] -> Html
 showBook book editions =
@@ -42,17 +44,10 @@ showBooks books =
             let uri = "/book/" ++ toString (gid book) in
             H.a ! href (toValue uri) $ toHtml $ bookName $ copoint book
 
-addBook :: Html
-addBook =
+addBook :: (Html, FormEncType) -> Html
+addBook (formHtml, enctype) =
   pageLayout $ do
     H.h1 "Add Book"
-    H.form ! method "POST" $
-      H.fieldset $ do
-        H.legend "Book details"
-        H.p $ do
-          H.label ! for "book.name" $ "Name:"
-          H.input ! A.id "book.name" ! name "book.name"
-        H.p $ do
-          H.label ! for "book.author" $ "Author:"
-          H.input ! A.id "book.author" ! name "book.author"
-        H.input ! A.type_ "submit" ! value "Add book"
+    H.form ! method "POST" $ do
+      formHtml
+      H.p $ H.input ! A.type_ "submit" ! A.value "Add Book"

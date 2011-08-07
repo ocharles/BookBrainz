@@ -38,7 +38,10 @@ Executable bookbrainz-server
     boomerang >= 1.0.1,
     web-routes-boomerang >= 0.25.1,
     web-routes >= 0.25.1,
-    fclabels >= 0.11.1.1
+    fclabels >= 0.11.1.1,
+    digestive-functors >= 0.1.0.1,
+    digestive-functors-snap >= 0.1.0.0,
+    digestive-functors-blaze >= 0.1.0.1
 
   extensions: TypeSynonymInstances MultiParamTypeClasses
 

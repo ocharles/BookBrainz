@@ -22,6 +22,7 @@ data Sitemap
      = Home
      | Book UUID
      | Person UUID
+     | AddBook
      deriving (Eq, Show)
 
 $(derivePrinterParsers ''Sitemap)
@@ -29,6 +30,7 @@ $(derivePrinterParsers ''Sitemap)
 sitemap :: Router Sitemap
 sitemap =
      rHome
+  <> rAddBook . ("book" </> "add")
   <> rBook . ("book" </> uuid)
   <> rPerson . ("person" </> uuid)
 
@@ -39,5 +41,6 @@ route url = liftRouteT $ case url of
   Home        -> listBooks
   Book bbid   -> showBook bbid
   Person bbid -> showPerson bbid
+  AddBook     -> addBook
 
 routeSite = boomerangSiteRouteT route sitemap

@@ -22,7 +22,7 @@ insertBook bookSpec = do
                                            , toSql   bookGid
                                            ]
   return $ bookFromRow bookRow
-  where insertQuery = unlines [ "INSERT INTO book (name, gid)"
+  where insertQuery = unlines [ "INSERT INTO bookbrainz_v.book (name, gid)"
                               , "VALUES (?, ?)"
                               , "RETURNING *"
                               ]
