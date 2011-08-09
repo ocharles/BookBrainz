@@ -15,10 +15,8 @@ import BrainzStem.Types
 --------------------------------------------------------------------------------
 -- | The actual format of the edition that people read.
 data EditionFormat = EditionFormat
-    { -- | The internal ID of the edition format (handled by the database).
-      editionFormatId :: Int
-      -- | The human readable name of the format.
-    , editionFormatName :: Text
+    { -- | The human readable name of the format.
+      editionFormatName :: Text
     } deriving Show
 
 --------------------------------------------------------------------------------
