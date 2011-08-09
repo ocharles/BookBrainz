@@ -1,17 +1,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | View's for 'Person's.
 module BookBrainz.Web.View.Person
-       ( showPerson
+       ( -- * Pages
+         showPerson
        ) where
 
 import Data.Copointed
+import Text.Blaze.Html5    (toHtml, Html)
 import qualified Text.Blaze.Html5 as H
-import Text.Blaze.Html5 (toHtml, Html)
 
 import BookBrainz.Types
 import BookBrainz.Web.View (pageLayout)
 
-showPerson :: LoadedCoreEntity Person -> Html
+--------------------------------------------------------------------------------
+-- | Display a single 'Person'.
+showPerson :: LoadedCoreEntity Person  -- ^ The 'Person' to display
+           -> Html
 showPerson person =
   pageLayout $ do
     let person' = copoint person

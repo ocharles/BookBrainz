@@ -1,21 +1,29 @@
+-- | Functions for working with 'BookBrainz.Types.Book.Book' entities.
 module BookBrainz.Model.Book
-       ( getBook
-       , findBookEditions
-       , insertBook
+       ( -- * Working With Books
+         getBook
        , listAllBooks
+       , insertBook
        ) where
 
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Map (Map, (!))
 import Data.Maybe
-import System.Random
-import Data.UUID (UUID)
-import Database.HDBC (SqlValue, toSql, fromSql)
 
-import BookBrainz.Database (HasDatabase, query)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.Map               (Map, (!))
+import Data.UUID              (UUID)
+import Database.HDBC          (SqlValue, toSql, fromSql)
+import System.Random
+
+import BookBrainz.Database    (HasDatabase, query)
 import BookBrainz.Types
 
-insertBook :: (Functor m, HasDatabase m) => Book -> m (LoadedCoreEntity Book)
+--------------------------------------------------------------------------------
+-- | Insert and version a new 'Book'.
+insertBook :: (Functor m, HasDatabase m)
+           => Book                       {-^ The information about the book to
+                                             insert. -}
+           -> m (LoadedCoreEntity Book)  {-^ The book, loaded from the database
+                                             (complete with GID). -}
 insertBook bookSpec = do
   bookGid <- liftIO randomIO :: MonadIO m => m UUID
   bookRow <- head `fmap` query insertQuery [ toSql $ bookName bookSpec
@@ -27,46 +35,32 @@ insertBook bookSpec = do
                               , "RETURNING *"
                               ]
 
-bookFromRow :: Map String SqlValue -> LoadedCoreEntity Book
+--------------------------------------------------------------------------------
+{-| Create a 'Book' value, from a row in the database. The book is wrapped in
+'LoadedCoreEntity' context, and will be complete with GID. -}
+bookFromRow :: Map String SqlValue    -- ^ A 'Map' of attribute names to values.
+            -> LoadedCoreEntity Book
 bookFromRow row = let book = Book { bookName         = fromSql $ row ! "name"
                                   } in
                   CoreEntity { gid               = fromSql $ row ! "gid"
                              , coreEntityVersion = fromSql $ row ! "version"
                              , coreEntityInfo    = book }
 
+--------------------------------------------------------------------------------
+-- | List the latest version of all known books.
 listAllBooks :: (Functor a, HasDatabase a) => a [LoadedCoreEntity Book]
 listAllBooks = map bookFromRow `fmap` query "SELECT * FROM book" [ ]
 
-getBook :: HasDatabase m => UUID -> m (Maybe (LoadedCoreEntity Book))
+--------------------------------------------------------------------------------
+-- | Get a single book by GID.
+getBook :: HasDatabase m
+        => UUID                               {-^ The GID of the book to load. -}
+        -> m (Maybe (LoadedCoreEntity Book))  {-^ The loaded book, or 'Nothing'
+                                                  if the book could not be
+                                                  found. -}
 getBook bbid = do
   results <- query selectQuery [ toSql bbid ]
   return $ bookFromRow `fmap` listToMaybe results
   where selectQuery = unlines  [ "SELECT *"
                                , "FROM book"
                                , "WHERE gid = ?" ]
-
-findBookEditions :: HasDatabase m => LoadedCoreEntity Book -> m [LoadedCoreEntity Edition]
-findBookEditions book = do
-  results <- query selectQuery [ toSql $ rowKey book ]
-  return $ fromRow `map` results
-  where selectQuery = unlines [ "SELECT * "
-                              , "FROM edition"
-                              , "WHERE book = ?"
-                              , "ORDER BY year, edition_index NULLS LAST"
-                              ]
-        fromRow row = CoreEntity { gid               = fromSql $ row ! "gid"
-                                 , coreEntityInfo    = editionFromRow row
-                                 , coreEntityVersion = fromSql $ row ! "version"
-                                 }
-        editionFromRow row = Edition { editionName        = fromSql $ row ! "name"
-                                     , editionFormat      = maybeReference row "format"
-                                     , editionBook        = toRef book
-                                     , editionYear        = fromSql $ row ! "year"
-                                     , editionPublisher   = maybeReference row "publisher"
-                                     , editionCountry     = maybeReference row "country"
-                                     , editionLanguage    = maybeReference row "language"
-                                     , editionIsbn        = fromSql $ row ! "isbn"
-                                     , editionBarcode     = fromSql $ row ! "barcode"
-                                     , editionIndex       = fromSql $ row ! "edition_index"
-                                     }
-        maybeReference row column = Ref `fmap` fromSql (row ! column)

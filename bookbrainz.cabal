@@ -1,6 +1,21 @@
 Name:                bookbrainz
 Version:             0.1
 License:             AllRightsReserved
+
+Description:
+  BookBrainz is a system for recording information about books - authors,
+  books and their various editions, publishing houses, and much much more. This
+  documentation is about the code behind BookBrainz and is intended for
+  developers.
+  .
+  There are 2 main areas of BookBrainz:
+  .
+    1. The BookBrainz namespace itself, which consists of a context-agnostic
+       API for working with a BookBrainz database
+  .
+    2. BookBrainz.Web, which handles the BookBrainz website itself that users
+       interact with
+
 Author:              Oliver Charles
 Maintainer:          bookbrainz@ocharles.org.uk
 Stability:           Experimental
@@ -28,9 +43,9 @@ Executable bookbrainz-server
     containers >= 0.3.0.0,
     convertible >= 1.0.10.0,
     HDBC-postgresql >= 2.2.3.3,
-    snap >= 0.5.2,
-    snap-core >= 0.5.1.4,
-    snap-server >= 0.5.1.4,
+    snap >= 0.6,
+    snap-core >= 0.6,
+    snap-server >= 0.6,
     blaze-html >= 0.4.0.0,
     pointed >= 1.8.0,
     random >= 1.0.0.3,

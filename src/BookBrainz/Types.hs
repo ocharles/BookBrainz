@@ -1,6 +1,6 @@
+-- | Types of data used within BookBrainz
 module BookBrainz.Types (module X) where
 
-import BookBrainz.Types.AuthorCredit as X
 import BookBrainz.Types.Book         as X
 import BookBrainz.Types.Country      as X
 import BookBrainz.Types.Edition      as X
