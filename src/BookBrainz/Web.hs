@@ -9,6 +9,7 @@ import Control.Monad.CatchIO           (tryJust)
 import Data.ByteString.Char8           (unpack)
 import Snap.Snaplet
 import Snap.Types
+import Snap.Util.FileServe
 import Web.Routes                      (runSite, RouteT, liftRouteT)
 import Web.Routes.Site                 (Site)
 import Web.Routes.Boomerang
@@ -37,7 +38,8 @@ routeSite = boomerangSiteRouteT routeUrl sitemap
 bookbrainz :: SnapletInit BookBrainz BookBrainz
 bookbrainz = makeSnaplet "bookbrainz" "BookBrainz" Nothing $ do
     db <- nestSnaplet "database" database databaseInit
-    addRoutes [ ("", site) ]
+    addRoutes [ ("/static", serveDirectory "resources")
+              , ("", site) ]
     return $ makeBbSnaplet db
   where site = do
           p <- getRequest >>= maybe pass return . urlDecode . rqPathInfo
