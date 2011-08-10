@@ -1,10 +1,15 @@
 -- | Functions for working with 'BookBrainz.Types.Edition.Edition' entities.
 module BookBrainz.Model.Edition
-       ( findBookEditions
+       ( -- * Working With Editions
+         findBookEditions
+       , getEdition
        ) where
 
-import Data.Map            ((!))
-import Database.HDBC       (toSql, fromSql)
+import Data.Maybe
+
+import Data.Map            (Map, (!))
+import Data.UUID           (UUID)
+import Database.HDBC       (SqlValue, toSql, fromSql)
 
 import BookBrainz.Database (HasDatabase, query)
 import BookBrainz.Types
@@ -19,25 +24,44 @@ findBookEditions :: HasDatabase m
                                                       editions -}
 findBookEditions book = do
   results <- query selectQuery [ toSql $ rowKey book ]
-  return $ fromRow `map` results
+  return $ editionFromRow `map` results
   where selectQuery = unlines [ "SELECT * "
                               , "FROM edition"
                               , "WHERE book = ?"
                               , "ORDER BY year, edition_index NULLS LAST"
                               ]
-        fromRow row = CoreEntity { gid               = fromSql $ row ! "gid"
-                                 , coreEntityInfo    = editionFromRow row
-                                 , coreEntityVersion = fromSql $ row ! "version"
-                                 }
-        editionFromRow row = Edition { editionName        = fromSql $ row ! "name"
-                                     , editionFormat      = maybeReference row "format"
-                                     , editionBook        = toRef book
-                                     , editionYear        = fromSql $ row ! "year"
-                                     , editionPublisher   = maybeReference row "publisher"
-                                     , editionCountry     = maybeReference row "country"
-                                     , editionLanguage    = maybeReference row "language"
-                                     , editionIsbn        = fromSql $ row ! "isbn"
-                                     , editionBarcode     = fromSql $ row ! "barcode"
-                                     , editionIndex       = fromSql $ row ! "edition_index"
-                                     }
-        maybeReference row column = Ref `fmap` fromSql (row ! column)
+
+editionFromRow :: Map String SqlValue
+               -> LoadedCoreEntity Edition
+editionFromRow row =
+  let edition = Edition { editionName        = fromSql $ row ! "name"
+                        , editionFormat      = ref "format"
+                        , editionBook        = fromSql $ row ! "book"
+                        , editionYear        = fromSql $ row ! "year"
+                        , editionPublisher   = ref "publisher"
+                        , editionCountry     = ref "country"
+                        , editionLanguage    = ref "language"
+                        , editionIsbn        = fromSql $ row ! "isbn"
+                        , editionBarcode     = fromSql $ row ! "barcode"
+                        , editionIndex       = fromSql $ row ! "edition_index"
+                        } in
+  CoreEntity { gid               = fromSql $ row ! "gid"
+             , coreEntityInfo    = edition
+             , coreEntityVersion = fromSql $ row ! "version"
+             }
+    where ref column = Ref `fmap` fromSql (row ! column)
+
+--------------------------------------------------------------------------------
+-- | Get a single edition by GID.
+getEdition :: HasDatabase m
+           => UUID
+           -- ^ The GID of the edition to load.
+           -> m (Maybe (LoadedCoreEntity Edition))
+           {-^ The loaded edition, or 'Nothing' if the edition could not be
+           found. -}
+getEdition bbid = do
+  results <- query selectQuery [ toSql bbid ]
+  return $ editionFromRow `fmap` listToMaybe results
+  where selectQuery = unlines  [ "SELECT *"
+                               , "FROM edition"
+                               , "WHERE gid = ?" ]

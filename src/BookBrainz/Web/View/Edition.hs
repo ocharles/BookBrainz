@@ -1,22 +1,27 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- | View's for 'Edition's.
 module BookBrainz.Web.View.Edition
-       ( -- * Components
-         linkEdition
+       ( -- * Pages
+         showEdition
        ) where
 
-import Data.Copointed
-import Text.Blaze.Html5
-import Text.Blaze.Html5.Attributes
+import           Data.Monoid         (mappend)
 
-import BookBrainz.Types
-import BookBrainz.Web.Sitemap as Sitemap (Sitemap(..), showURL)
+import           Data.Copointed
+import           Text.Blaze.Html5
+import qualified Text.Blaze.Html5 as H
+
+import           BookBrainz.Types
+import           BookBrainz.Web.View (pageLayout, linkBook)
 
 --------------------------------------------------------------------------------
--- | Link to an edition.
-linkEdition :: LoadedCoreEntity Edition  {-^ The 'Edition' to link to. Must be a
-                                         'LoadedCoreEntity' in order to have a
-                                         GID. -}
+-- | Display a single 'Edition'.
+showEdition :: LoadedCoreEntity Edition  -- ^ The 'Edition' to display.
+            -> LoadedCoreEntity Book     -- ^ The 'Book' this is an edition of.
             -> Html
-linkEdition edition =
-  let uri = showURL $ Sitemap.Edition (gid edition) in
-  a ! href (toValue uri) $ toHtml $ (editionName . copoint) edition
+showEdition edition book =
+  pageLayout $ do
+    let edition' = copoint edition
+    H.h1 $ toHtml $ editionName edition'
+    H.h2 $ "A version of " `mappend` linkBook book

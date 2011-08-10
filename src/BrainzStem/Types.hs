@@ -9,7 +9,7 @@ module BrainzStem.Types
 import Data.Convertible
 import Data.Copointed
 import Data.UUID
-import Database.HDBC (SqlValue, toSql)
+import Database.HDBC (SqlValue, toSql, fromSql)
 
 --------------------------------------------------------------------------------
 -- | Represents a reference in a database. @entity@ is a phantom type which
@@ -19,6 +19,9 @@ data Ref entity = Ref { rid :: Int }
 
 instance Convertible (Ref a) SqlValue where
   safeConvert = Right . toSql . rid
+
+instance Convertible SqlValue (Ref a) where
+  safeConvert id' = Right Ref { rid = fromSql id' }
 
 --------------------------------------------------------------------------------
 {-| A typeclass specifying that some data is currently stored in database,

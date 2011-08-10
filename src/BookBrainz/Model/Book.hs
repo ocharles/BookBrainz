@@ -2,6 +2,7 @@
 module BookBrainz.Model.Book
        ( -- * Working With Books
          getBook
+       , getBookVersion
        , listAllBooks
        , insertBook
        ) where
@@ -64,3 +65,19 @@ getBook bbid = do
   where selectQuery = unlines  [ "SELECT *"
                                , "FROM book"
                                , "WHERE gid = ?" ]
+
+--------------------------------------------------------------------------------
+-- | Get an exact version of a book. This is guaranteed to return a book, as
+-- you can only get a 'Ref' to a 'Book' by fetching data from the database.
+getBookVersion :: HasDatabase m
+               => Ref (LoadedCoreEntity Book)
+               {-^  A reference to the book version to load. -}
+               -> m (LoadedCoreEntity Book)
+               -- ^ The loaded book, or 'Nothing' if the book could not be
+               -- found.
+getBookVersion version = do
+  results <- query selectQuery [ toSql $ rid version ]
+  return . bookFromRow $ head results
+  where selectQuery = unlines  [ "SELECT *"
+                               , "FROM book"
+                               , "WHERE version = ?" ]

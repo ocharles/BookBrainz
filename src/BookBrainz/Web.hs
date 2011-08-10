@@ -16,6 +16,7 @@ import Web.Routes.Boomerang
 
 import BookBrainz.Web.Handler          (HttpError(..), output)
 import BookBrainz.Web.Handler.Book
+import BookBrainz.Web.Handler.Edition
 import BookBrainz.Web.Handler.Person
 import BookBrainz.Web.Sitemap          (Sitemap(..), sitemap)
 import BookBrainz.Web.Snaplet
@@ -24,10 +25,11 @@ import qualified BookBrainz.Web.View as V
 
 routeUrl :: Sitemap -> RouteT Sitemap BookBrainzHandler ()
 routeUrl url = liftRouteT $ case url of
-  Home        -> listBooks
-  Book bbid   -> showBook bbid
-  Person bbid -> showPerson bbid
-  AddBook     -> addBook
+  Home         -> listBooks
+  Book bbid    -> showBook bbid
+  AddBook      -> addBook
+  Person bbid  -> showPerson bbid
+  Edition bbid -> showEdition bbid
 
 -- | A handler than routes the entire BookBrainz website.
 routeSite :: Site Sitemap (BookBrainzHandler ())
