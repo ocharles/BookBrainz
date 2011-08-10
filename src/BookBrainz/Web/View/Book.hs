@@ -6,14 +6,19 @@ module BookBrainz.Web.View.Book
          addBook
        , showBook
        , showBooks
+
+         -- * Components
+       , linkBook
        ) where
 
 import           Data.Copointed
-import           Data.UUID                   (toString)
 import           Text.Blaze.Html5            (toHtml, toValue, Html, (!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive.Forms.Html   (FormEncType)
+
+import           BookBrainz.Web.Sitemap (showURL)
+import qualified BookBrainz.Web.Sitemap as Sitemap
 
 import BookBrainz.Types
 import BookBrainz.Web.View         (pageLayout)
@@ -48,10 +53,17 @@ showBooks :: [LoadedCoreEntity Book]  -- ^ The 'Book's to display.
 showBooks books =
   pageLayout $ do
     H.h1 "Books"
-    H.ul $ (H.li . bookLink) `mapM_` books
-    where bookLink book =
-            let uri = "/book/" ++ toString (gid book) in
-            H.a ! A.href (toValue uri) $ toHtml $ bookName $ copoint book
+    H.ul $ (H.li . linkBook) `mapM_` books
+
+--------------------------------------------------------------------------------
+-- | Link to a book.
+linkBook :: LoadedCoreEntity Book  {-^ The 'Edition' to link to. Must be a
+                                   'LoadedCoreEntity' in order to have a
+                                   GID. -}
+         -> Html
+linkBook book =
+  let uri = showURL $ Sitemap.Book (gid book) in
+  H.a ! A.href (toValue uri) $ toHtml $ bookName $ copoint book
 
 --------------------------------------------------------------------------------
 -- | A form for adding new 'Book's.

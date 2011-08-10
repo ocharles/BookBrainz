@@ -1,30 +1,36 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, TypeOperators #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 {-| The URL routing table for BookBrainz, defining which handlers respond to
 which URLs, and how parameters are extracted. -}
 module BookBrainz.Web.Sitemap
-       ( routeSite
+       ( Sitemap(..)
+       , sitemap
+       , showURL
        ) where
 
 import Prelude hiding                 ((.))
 import Control.Category               ((.))
-
 import Data.Maybe                     (fromJust)
+
 import Data.UUID                      (UUID, fromString, toString)
 import Text.Boomerang.TH              (derivePrinterParsers)
-import Web.Routes                     (RouteT, liftRouteT)
-import Web.Routes.Site                (Site)
+import Web.Routes.Base                (encodePathInfo)
 import Web.Routes.Boomerang
-
-import BookBrainz.Web.Handler.Book
-import BookBrainz.Web.Handler.Person
-import BookBrainz.Web.Snaplet         (BookBrainzHandler)
 
 data Sitemap
      = Home
+       -- /book
      | Book UUID
-     | Person UUID
      | AddBook
+
+       -- /person
+     | Person UUID
+
+       -- /edition
+     | Edition UUID
      deriving (Eq, Show)
 
 $(derivePrinterParsers ''Sitemap)
@@ -32,20 +38,29 @@ $(derivePrinterParsers ''Sitemap)
 sitemap :: Router Sitemap
 sitemap =
      rHome
+
   <> rAddBook . ("book" </> "add")
   <> rBook . ("book" </> uuid)
+
   <> rPerson . ("person" </> uuid)
+
+  <> rEdition . ("edition" </> uuid)
 
 uuid :: PrinterParser StringsError [String] o (UUID :- o)
 uuid = xmaph (fromJust . fromString) (Just . toString) anyString
 
-route :: Sitemap -> RouteT Sitemap BookBrainzHandler ()
-route url = liftRouteT $ case url of
-  Home        -> listBooks
-  Book bbid   -> showBook bbid
-  Person bbid -> showPerson bbid
-  AddBook     -> addBook
+--------------------------------------------------------------------------------
+-- | Turn a 'Sitemap' value into a string URL with query parameters
+showURLParams :: Sitemap             -- ^ The path to convert into a URL
+              -> [(String, String)]  -- ^ An association list of query
+                                     --   parameters
+              -> String
+showURLParams url q = case unparseStrings sitemap url of
+  Nothing -> error ("Could not route " ++ show url)
+  Just ps -> encodePathInfo ps q
 
--- | A handler than routes the entire BookBrainz website.
-routeSite :: Site Sitemap (BookBrainzHandler ())
-routeSite = boomerangSiteRouteT route sitemap
+--------------------------------------------------------------------------------
+-- | Turn a 'Sitemap' value into a string, using no query parameters
+showURL :: Sitemap             -- ^ The path to convert into a URL
+        -> String
+showURL u = showURLParams u []
