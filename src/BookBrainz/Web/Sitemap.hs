@@ -57,7 +57,7 @@ showURLParams :: Sitemap             -- ^ The path to convert into a URL
               -> String
 showURLParams url q = case unparseStrings sitemap url of
   Nothing -> error ("Could not route " ++ show url)
-  Just ps -> encodePathInfo ps q
+  Just ps -> ("/" ++) $ encodePathInfo ps q
 
 --------------------------------------------------------------------------------
 -- | Turn a 'Sitemap' value into a string, using no query parameters
