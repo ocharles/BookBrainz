@@ -36,7 +36,7 @@ pageLayout = H.docTypeHtml
 
 --------------------------------------------------------------------------------
 -- | Link to a book.
-linkBook :: LoadedCoreEntity Book  {-^ The 'Edition' to link to. Must be a
+linkBook :: LoadedCoreEntity Book  {-^ The 'Book' to link to. Must be a
                                    'LoadedCoreEntity' in order to have a
                                    GID. -}
          -> Html

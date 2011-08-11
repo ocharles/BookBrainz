@@ -1,4 +1,4 @@
-{-| Connect to a BookBrainz PostgreSQL and interact with it.
+{-| Connect to a BookBrainz PostgreSQL database and interact with it.
 
 This module is very low level, and deals with executing arbitrary SQL. You are
 likely more interested in the various 'BookBrainz.Model' modules. -}
@@ -30,7 +30,7 @@ type Row = Map String SqlValue
 -- | Holds a connection to the database.
 data Database = Database
     { {-| Extract the 'Connection' from a 'Database'. You will commonly not
-      need to call this, most functions in this module operate on anything that
+      need to call this. Most functions in this module operate on anything that
       is an instance of the 'HasDatabase' class. -}
       connectionHandle :: Connection
     }
@@ -38,19 +38,19 @@ data Database = Database
 --------------------------------------------------------------------------------
 -- | A monad that has a connection to the BookBrainz database.
 class MonadIO m => HasDatabase m where
-  -- | Get the @Connection@ to PostgreSQL
+  -- | Get the @Connection@ to PostgreSQL.
   askConnection :: m Connection
 
 --------------------------------------------------------------------------------
 {-| Perform a SQL query on the database, and return a 'Map' for each row to
-access the values in an order independant manner. -}
+access the values in an order-independent manner. -}
 query :: HasDatabase m
       => String                  {-^ The raw SQL to execute. Use @?@ to
                                      indicate placeholders. -}
-      -> [SqlValue]              {-^ Values for each placeholder, according
+      -> [SqlValue]              {-^ Values for each placeholder according
                                      to its position in the SQL statement. -}
-      -> m [Row]                 {-^ A Map of attribute name to attribute value
-                                     for each row. May be the empty list. -}
+      -> m [Row]                 {-^ A 'Map' of attribute name to attribute value
+                                     for each row. Can be the empty list. -}
 query sql bind = do
   conn <- askConnection
   liftIO $ do

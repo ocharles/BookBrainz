@@ -14,7 +14,7 @@ import           BookBrainz.Web.Snaplet  (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Person as V
 
 --------------------------------------------------------------------------------
-{-| Show a single 'Book', searching by it's GID. If the book cannot be found,
+{-| Show a single 'Person', searching by its GID. If the person cannot be found,
 a 404 page is displayed. -}
 showPerson :: UUID -> BookBrainzHandler ()
 showPerson bbid = do

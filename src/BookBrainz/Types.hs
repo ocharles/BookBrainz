@@ -1,4 +1,4 @@
--- | Types of data used within BookBrainz
+-- | Types of data used within BookBrainz.
 module BookBrainz.Types (module X) where
 
 import BookBrainz.Types.Book         as X

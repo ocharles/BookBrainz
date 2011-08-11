@@ -1,4 +1,4 @@
--- | Definition of what a book edition is.
+-- | Definition of an edition.
 module BookBrainz.Types.Edition
   ( Edition(..)
   , EditionFormat(..)
@@ -15,7 +15,7 @@ import BrainzStem.Types
 --------------------------------------------------------------------------------
 -- | The actual format of the edition that people read.
 data EditionFormat = EditionFormat
-    { -- | The human readable name of the format.
+    { -- | The human-readable name of the format.
       editionFormatName :: Text
     } deriving Show
 
@@ -38,7 +38,7 @@ data Edition = Edition
     , editionLanguage    :: Maybe (Ref Language)
       -- | The ISBN code of this edition.
     , editionIsbn        :: Maybe String
-      {-| The barcode (EAN, UPC, etc) of the edition. This is commonly the same
+      {-| The barcode (EAN, UPC, etc.) of the edition. This is commonly the same
       as the ISBN, though there are cases when it is not. -}
     , editionBarcode     :: Maybe String
       -- | An index used for sorting this edition.

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | View's for 'Book's.
+-- | Views for 'Book's.
 module BookBrainz.Web.View.Book
        ( -- * Pages
          addBook
@@ -25,7 +25,7 @@ showBook :: LoadedCoreEntity Book
          -> [( LoadedCoreEntity Edition
              , Maybe (LoadedCoreEntity Publisher)
              )]
-         -- ^ A list of this 'Book's 'Edition's.
+         -- ^ A list of 'Edition's for this 'Book'.
          -> Html
 showBook book editions =
   pageLayout $ do
@@ -61,7 +61,7 @@ showBooks books =
 
 --------------------------------------------------------------------------------
 -- | A form for adding new 'Book's.
-addBook :: (Html, FormEncType)  -- ^ The form 'Html', and the encoding of it
+addBook :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
         -> Html
 addBook (formHtml, enctype) =
   pageLayout $ do

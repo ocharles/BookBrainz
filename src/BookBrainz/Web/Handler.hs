@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
--- | BookBrainz handlers, which are executed on page requests by users
+-- | BookBrainz handlers, which are executed on page requests by users.
 module BookBrainz.Web.Handler
        ( BookBrainz
        , BookBrainzHandler
@@ -22,7 +22,7 @@ import Text.Blaze.Renderer.Text (renderHtml)
 
 import BookBrainz.Web.Snaplet
 
-{-| A HTTP client or server error, that can be thrown in order to stop
+{-| A HTTP client or server error that can be thrown in order to stop
 processing a 'BookBrainzHandler'. -}
 data HttpError = Http404 Text
   deriving (Show, Typeable)
@@ -36,12 +36,12 @@ output :: Html -- ^ The 'Html' to display.
 output = writeText . toStrict . renderHtml
 
 --------------------------------------------------------------------------------
-{-| Run a action with a 'Maybe' result, and if it returns 'Nothing' then a
+{-| Run an action with a 'Maybe' result, and if it returns 'Nothing', then a
 'Http404' will be thrown with a specific message. This will terminate
 execution of the current handler. -}
 onNothing :: MonadIO m
           => m (Maybe b)  {-^ The action that could potentially return
                           'Nothing'. -}
-          -> Text         -- ^ The message to display to users on this 404.
+          -> Text         -- ^ The message to display to users with this 404.
           -> m b
 action `onNothing` msg = action >>= maybe (throw $ Http404 msg) return

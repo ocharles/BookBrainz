@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | The BookBrainz web frontend
+-- | The BookBrainz web frontend.
 module BookBrainz.Web
        ( bookbrainz
        ) where
@@ -31,12 +31,12 @@ routeUrl url = liftRouteT $ case url of
   Person bbid  -> showPerson bbid
   Edition bbid -> showEdition bbid
 
--- | A handler than routes the entire BookBrainz website.
+-- | A handler that routes the entire BookBrainz website.
 routeSite :: Site Sitemap (BookBrainzHandler ())
 routeSite = boomerangSiteRouteT routeUrl sitemap
 
 --------------------------------------------------------------------------------
--- | Initialize the 'BookBrainz' 'Snap.Snaplet'
+-- | Initialize the 'BookBrainz' 'Snap.Snaplet'.
 bookbrainz :: SnapletInit BookBrainz BookBrainz
 bookbrainz = makeSnaplet "bookbrainz" "BookBrainz" Nothing $ do
     db <- nestSnaplet "database" database databaseInit

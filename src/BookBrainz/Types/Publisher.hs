@@ -1,4 +1,4 @@
--- | The definition of a publisher
+-- | Definition of a publisher.
 module BookBrainz.Types.Publisher
   ( Publisher(..)
   ) where
@@ -6,8 +6,8 @@ module BookBrainz.Types.Publisher
 import Data.Text (Text)
 
 --------------------------------------------------------------------------------
--- | A publisher
+-- | An organization or company which publishes books.
 data Publisher = Publisher
-    { -- | The name of the publisher
+    { -- | The name of the publisher.
       publisherName :: Text
     } deriving Show

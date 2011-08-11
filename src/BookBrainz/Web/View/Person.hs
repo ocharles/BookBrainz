@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | View's for 'Person's.
+-- | Views for 'Person's.
 module BookBrainz.Web.View.Person
        ( -- * Pages
          showPerson
@@ -15,7 +15,7 @@ import BookBrainz.Web.View (pageLayout)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Person'.
-showPerson :: LoadedCoreEntity Person  -- ^ The 'Person' to display
+showPerson :: LoadedCoreEntity Person  -- ^ The 'Person' to display.
            -> Html
 showPerson person =
   pageLayout $ do

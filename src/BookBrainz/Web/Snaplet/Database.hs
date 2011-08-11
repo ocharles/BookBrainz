@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeOperators     #-}
 
--- | A Snaplet giving access to the BookBrainz 'Database'.
+-- | A snaplet giving access to the BookBrainz 'Database'.
 module BookBrainz.Web.Snaplet.Database
     ( databaseInit
     , Database
@@ -19,7 +19,7 @@ import BookBrainz.Database ( Database, HasDatabase(..), connectionHandle
                            , openConnection)
 
 --------------------------------------------------------------------------------
--- | Initialize the database Snaplet with a new connection.
+-- | Initialize the database snaplet with a new connection.
 databaseInit :: SnapletInit b Database
 databaseInit =
   makeSnaplet "database" "PostgreSQL database connection" Nothing openConnection
@@ -29,8 +29,8 @@ instance HasDatabase (Handler b Database) where
 
 --------------------------------------------------------------------------------
 -- | Run a handler action within the scope of a transaction.
-withTransaction :: (b :-> Snaplet Database)  -- ^ A lens to the database snaplet
-                -> Handler b v a             -- ^ The handler to execute
+withTransaction :: (b :-> Snaplet Database)  -- ^ A lens to the database snaplet.
+                -> Handler b v a             -- ^ The handler to execute.
                 -> Handler b v a
 withTransaction l h = do
   a <- h

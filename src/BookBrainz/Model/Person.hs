@@ -1,4 +1,4 @@
--- | Functions for working with 'BookBrainz.Types.Person.Person' entities
+-- | Functions for working with 'BookBrainz.Types.Person.Person' entities.
 module BookBrainz.Model.Person
        ( insertPerson
        ) where
@@ -23,10 +23,10 @@ instance CoreEntity Person
 --------------------------------------------------------------------------------
 -- | Insert and version a new 'Person'.
 insertPerson :: (Functor m, HasDatabase m)
-             => Person                      {-^ The person to store and
-                                            version -}
-             -> m (LoadedCoreEntity Person) {-^ The now versioned Person,
-                                            complete with GID -}
+             => Person                      {-^ The information about the person to
+                                            insert. -}
+             -> m (LoadedCoreEntity Person) {-^ The person, loaded from the database
+                                            (complete with GID). -}
 insertPerson personSpec = do
   personGid <- liftIO randomIO :: MonadIO m => m UUID
   personRow <- head `fmap` query insertQuery [ toSql $ personName personSpec

@@ -29,12 +29,12 @@ instance CoreEntity Edition where
 
 --------------------------------------------------------------------------------
 -- | Find all editions of a specific 'Book'.
--- The book must be a 'LoadedCoreEntity', ensuring it exists in the database
+-- The book must be a 'LoadedCoreEntity', ensuring it exists in the database.
 findBookEditions :: HasDatabase m
                  => LoadedCoreEntity Book         {-^ The book to find editions
-                                                      of -}
+                                                      of. -}
                  -> m [LoadedCoreEntity Edition]  {-^ A (possibly empty) list of
-                                                      editions -}
+                                                      editions. -}
 findBookEditions book = do
   results <- query selectQuery [ rowKey book ]
   return $ coreEntityFromRow `map` results
