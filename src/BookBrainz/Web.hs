@@ -18,6 +18,7 @@ import BookBrainz.Web.Handler          (HttpError(..), output)
 import BookBrainz.Web.Handler.Book
 import BookBrainz.Web.Handler.Edition
 import BookBrainz.Web.Handler.Person
+import BookBrainz.Web.Handler.Publisher
 import BookBrainz.Web.Sitemap          (Sitemap(..), sitemap)
 import BookBrainz.Web.Snaplet
 import BookBrainz.Web.Snaplet.Database
@@ -30,6 +31,7 @@ routeUrl url = liftRouteT $ case url of
   AddBook      -> addBook
   Person bbid  -> showPerson bbid
   Edition bbid -> showEdition bbid
+  Publisher bbid -> showPublisher bbid
 
 -- | A handler than routes the entire BookBrainz website.
 routeSite :: Site Sitemap (BookBrainzHandler ())
