@@ -6,14 +6,21 @@ module BookBrainz.Model.Book
        ) where
 
 import Control.Monad.IO.Class  (liftIO, MonadIO)
-import Data.Map                ((!))
 import Data.UUID               (UUID)
-import Database.HDBC           (fromSql, toSql)
+import Database.HDBC           (toSql)
 import System.Random           (randomIO)
 
 import BookBrainz.Database     (HasDatabase, query)
-import BookBrainz.Model        (CoreEntity(..), coreEntityFromRow, TableName(..))
+import BookBrainz.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
+                               ,TableName(..), (!))
 import BookBrainz.Types
+
+instance HasTable Book where
+  tableName = TableName "book"
+  newFromRow row = Book { bookName = row ! "name"
+                        }
+
+instance CoreEntity Book
 
 --------------------------------------------------------------------------------
 -- | Insert and version a new 'Book'.
@@ -33,12 +40,8 @@ insertBook bookSpec = do
                               , "RETURNING *"
                               ]
 
-instance CoreEntity Book where
-  tableName = TableName "book"
-  newFromRow row = Book { bookName = fromSql $ row ! "name"
-                        }
-
 --------------------------------------------------------------------------------
 -- | List the latest version of all known books.
-listAllBooks :: (Functor a, HasDatabase a) => a [LoadedCoreEntity Book]
+listAllBooks :: (Functor a, HasDatabase a)
+             => a [LoadedCoreEntity Book]
 listAllBooks = map coreEntityFromRow `fmap` query "SELECT * FROM book" [ ]

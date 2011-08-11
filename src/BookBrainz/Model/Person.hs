@@ -4,19 +4,21 @@ module BookBrainz.Model.Person
        ) where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Map               ((!))
 import Data.UUID
-import Database.HDBC          (fromSql, toSql)
+import Database.HDBC          (toSql)
 import System.Random
 
 import BookBrainz.Database
-import BookBrainz.Model        (CoreEntity(..), coreEntityFromRow, TableName(..))
+import BookBrainz.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
+                               ,TableName(..), (!))
 import BookBrainz.Types
 
-instance CoreEntity Person where
-  newFromRow row = Person { personName = fromSql $ row ! "name"
+instance HasTable Person where
+  newFromRow row = Person { personName = row ! "name"
                           }
   tableName = TableName "person"
+
+instance CoreEntity Person
 
 --------------------------------------------------------------------------------
 -- | Insert and version a new 'Person'.

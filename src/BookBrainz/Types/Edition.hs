@@ -27,7 +27,7 @@ data Edition = Edition
       -- | A reference to the format of the edition.
     , editionFormat      :: Maybe (Ref EditionFormat)
       -- | The 'Book' that this edition is an edition of.
-    , editionBook        :: Ref (LoadedCoreEntity Book)
+    , editionBook        :: Ref Book
       -- | The year the edition was released.
     , editionYear        :: Maybe Int
       -- | The 'Publisher' that published the edition.

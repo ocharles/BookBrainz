@@ -1,30 +1,47 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-| Common functions for accessing entities. -}
 module BookBrainz.Model
-       ( CoreEntity(..)
-       , coreEntityFromRow
+       ( -- * Entity Manpulation
+         CoreEntity(..)
+       , Entity(..)
+
+         -- * Entity Definition
+       , HasTable(..)
+       , InDatabase(..)
+
+         -- * Low level functions and types
        , TableName(TableName)
+       , Key(Key)
+       , (!)
        ) where
 
 import Data.Maybe          (listToMaybe)
 
-import Data.Map            ((!))
+import Data.Convertible    (Convertible)
+import Data.Copointed      (copoint)
+import Data.Map            (findWithDefault)
 import Data.UUID           (UUID)
-import Database.HDBC       (fromSql, toSql)
+import Database.HDBC       (SqlValue, fromSql, toSql)
 
 import BookBrainz.Database (HasDatabase, query, Row)
-import BookBrainz.Types    (LoadedCoreEntity(..), Ref, rid)
+import BookBrainz.Types    (LoadedCoreEntity(..), LoadedEntity(..), Ref(..))
 
+{-| Represents the table name for an entity. @a@ is the type of entity this
+is a table name for. -}
 newtype TableName a = TableName { getTableName :: String }
 
+{-| Represents the name of the primary key column for an entity. @a@ is the type
+of entity this is a key name for. -}
+newtype Key a = Key { getKey :: String }
+
 --------------------------------------------------------------------------------
-{-| A "core" entity is an entity that has both a GID (BookBrainz identifier)
-and is also versioned. This type class defines how they can be interacted with
-via the database.
+{-| A basic type class for any entity that appears in the database, whether
+it's core or not.
 
 The minimal complete definition is 'tableName', and 'newFromRow'. -}
-class CoreEntity a where
+class HasTable a where
   {-| The name of this core entity's table in the PostgreSQL database.
 
   This has to wrapped in 'TableName' in order to make it polymorphic. -}
@@ -34,6 +51,27 @@ class CoreEntity a where
   will make use of this function, in order to create a 'LoadedCoreEntity'. -}
   newFromRow      :: Row -> a
 
+--------------------------------------------------------------------------------
+{-| A typeclass specifying that some data is currently stored in database,
+and may have a primary key extracted. -}
+class InDatabase a where
+  {-| Extract the primary key for this value. -}
+  rowKey :: a -> SqlValue
+
+instance InDatabase (LoadedCoreEntity a) where
+  rowKey = toSql . coreEntityVersion
+
+instance InDatabase e => InDatabase (LoadedEntity e) where
+  rowKey = rowKey . copoint
+
+instance InDatabase (Ref a) where
+  rowKey = rkey
+
+--------------------------------------------------------------------------------
+{-| A "core" entity is an entity that has both a GID (BookBrainz identifier)
+and is also versioned. This type class defines how they can be interacted with
+via the database. -}
+class HasTable a => CoreEntity a where
   -- | Get a core entity by it's GID
   getByGid :: HasDatabase m
            => UUID
@@ -52,29 +90,75 @@ class CoreEntity a where
   -- | Get a specific version of this core entity. You have to use a 'Ref'
   -- here, because it's impossible to get a version of an entity without
   -- already knowing it's in the database.
-  getVersion :: HasDatabase m
-             => Ref (LoadedCoreEntity a)
+  getVersion :: (HasDatabase m, CoreEntity a)
+             => Ref a
              -- ^ A reference to the version of the core entity.
              -> m (LoadedCoreEntity a)
   getVersion version = do
-    results <- query selectQuery [ toSql $ rid version ]
+    results <- query selectQuery [ rowKey version ]
     return . coreEntityFromRow $ head results
     where table = getTableName (tableName :: TableName a)
           selectQuery = unlines  [ "SELECT *"
                                  , "FROM " ++ table
                                  , "WHERE version = ?" ]
 
---------------------------------------------------------------------------------
-{-| Turn a 'Row' into a full 'LoadedCoreEntity'.
+  {-| Turn a 'Row' into a full 'LoadedCoreEntity'.
 
-You should use this with care, as it is possible for a runtime exception here.
-This could happen if the 'Row' map doesn't contain sufficient columns to create
-the entity. -}
-coreEntityFromRow :: CoreEntity a
-                  => Row
-                  -- ^ The 'Row' - from the result of a SELECT.
-                  -> LoadedCoreEntity a
-coreEntityFromRow row =
-  CoreEntity { gid               = fromSql $ row ! "gid"
-             , coreEntityVersion = fromSql $ row ! "version"
-             , coreEntityInfo    = newFromRow row }
+  You should use this with care, as it is possible for a runtime exception here.
+  This could happen if the 'Row' map doesn't contain sufficient columns to create
+  the entity. -}
+  coreEntityFromRow :: CoreEntity a
+                    => Row
+                    -- ^ The 'Row' - from the result of a SELECT.
+                    -> LoadedCoreEntity a
+  coreEntityFromRow row =
+    CoreEntity { gid               = row ! "gid"
+               , coreEntityVersion = row ! "version"
+               , coreEntityInfo    = newFromRow row }
+
+--------------------------------------------------------------------------------
+{-| An entity is anything that is stored in the database, but is not a core
+entity. -}
+class HasTable a => Entity a where
+  {-| The name of the primary key for this entity. By default this is @id@, but
+  some tables (for example, country and language) may use other column names. -}
+  key :: Key a
+  key = Key "id"
+
+  {-| Get this entity by it's primary key. -}
+  getByKey :: (HasDatabase m, Entity a, InDatabase r)
+           => r
+           -- ^ Some sort of reference to the entity to be fetched. Commonly,
+           -- this will be 'Ref'
+           -> m (LoadedEntity a)
+  getByKey ref = do
+    results <- query selectQuery [ rowKey ref ]
+    return . entityFromRow $ head results
+    where table = getTableName (tableName :: TableName a)
+          key' = getKey (key :: Key a)
+          selectQuery = unlines  [ "SELECT *"
+                                 , "FROM " ++ table
+                                 , "WHERE " ++ key' ++ " = ?" ]
+
+  {-| Turn a 'Row' into a 'LoadedEntity'.
+
+  You should use this with care, as it is possible for a runtime exception here.
+  This could happen if the 'Row' map doesn't contain sufficient columns to
+  create the entity. -}
+  entityFromRow :: Entity a
+                => Row
+                -- ^ The 'Row' - from the result of a SELECT.
+                -> LoadedEntity a
+  entityFromRow row = Entity $ newFromRow row
+
+--------------------------------------------------------------------------------
+-- | Attempt to find the value of a column, throwing an exception if it can't
+-- be found
+(!) :: (Convertible SqlValue a)
+    => Row    -- ^ The row to lookup a column value from
+    -> String -- ^ The name of the column to find a value for
+    -> a
+row ! k = fromSql $ findWithDefault (notFound k) k row
+  where notFound = error . (("IN " ++ show row ++ " could not find: ") ++)
+
+infixl 9 !
