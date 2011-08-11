@@ -4,8 +4,10 @@ This module is very low level, and deals with executing arbitrary SQL. You are
 likely more interested in the various 'BookBrainz.Model' modules. -}
 module BookBrainz.Database
        (
+         Row
+
          -- * Database Operations
-         query
+       , query
 
          -- * Connection Handling
        , HasDatabase(..)
@@ -20,6 +22,9 @@ import Control.Monad.IO.Class   (MonadIO, liftIO)
 import Data.Map                 (Map)
 import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL)
+
+-- | A row is a mapping of column names to 'SqlValue's.
+type Row = Map String SqlValue
 
 --------------------------------------------------------------------------------
 -- | Holds a connection to the database.
@@ -44,7 +49,7 @@ query :: HasDatabase m
                                      indicate placeholders. -}
       -> [SqlValue]              {-^ Values for each placeholder, according
                                      to its position in the SQL statement. -}
-      -> m [Map String SqlValue] {-^ A Map of attribute name to attribute value
+      -> m [Row]                 {-^ A Map of attribute name to attribute value
                                      for each row. May be the empty list. -}
 query sql bind = do
   conn <- askConnection

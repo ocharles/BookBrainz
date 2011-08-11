@@ -5,11 +5,12 @@ module BookBrainz.Web.Handler.Person
        ( showPerson
        ) where
 
-import           Data.UUID (UUID)
+import           Data.UUID               (UUID)
 
-import           BookBrainz.Model.Person
-import           BookBrainz.Web.Handler (output, onNothing)
-import           BookBrainz.Web.Snaplet (BookBrainzHandler)
+import           BookBrainz.Model
+import           BookBrainz.Model.Person ()
+import           BookBrainz.Web.Handler  (output, onNothing)
+import           BookBrainz.Web.Snaplet  (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Person as V
 
 --------------------------------------------------------------------------------
@@ -17,5 +18,5 @@ import qualified BookBrainz.Web.View.Person as V
 a 404 page is displayed. -}
 showPerson :: UUID -> BookBrainzHandler ()
 showPerson bbid = do
-  person <- getPerson bbid `onNothing` "Person not found"
+  person <- getByGid bbid `onNothing` "Person not found"
   output $ V.showPerson person

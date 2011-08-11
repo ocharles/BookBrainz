@@ -1,21 +1,18 @@
 -- | Functions for working with 'BookBrainz.Types.Book.Book' entities.
 module BookBrainz.Model.Book
        ( -- * Working With Books
-         getBook
-       , getBookVersion
-       , listAllBooks
+         listAllBooks
        , insertBook
        ) where
 
-import Data.Maybe
+import Control.Monad.IO.Class  (liftIO, MonadIO)
+import Data.Map                ((!))
+import Data.UUID               (UUID)
+import Database.HDBC           (fromSql, toSql)
+import System.Random           (randomIO)
 
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Map               (Map, (!))
-import Data.UUID              (UUID)
-import Database.HDBC          (SqlValue, toSql, fromSql)
-import System.Random
-
-import BookBrainz.Database    (HasDatabase, query)
+import BookBrainz.Database     (HasDatabase, query)
+import BookBrainz.Model        (CoreEntity(..), coreEntityFromRow, TableName(..))
 import BookBrainz.Types
 
 --------------------------------------------------------------------------------
@@ -30,54 +27,18 @@ insertBook bookSpec = do
   bookRow <- head `fmap` query insertQuery [ toSql $ bookName bookSpec
                                            , toSql   bookGid
                                            ]
-  return $ bookFromRow bookRow
+  return $ coreEntityFromRow bookRow
   where insertQuery = unlines [ "INSERT INTO bookbrainz_v.book (name, gid)"
                               , "VALUES (?, ?)"
                               , "RETURNING *"
                               ]
 
---------------------------------------------------------------------------------
-{-| Create a 'Book' value, from a row in the database. The book is wrapped in
-'LoadedCoreEntity' context, and will be complete with GID. -}
-bookFromRow :: Map String SqlValue    -- ^ A 'Map' of attribute names to values.
-            -> LoadedCoreEntity Book
-bookFromRow row = let book = Book { bookName         = fromSql $ row ! "name"
-                                  } in
-                  CoreEntity { gid               = fromSql $ row ! "gid"
-                             , coreEntityVersion = fromSql $ row ! "version"
-                             , coreEntityInfo    = book }
+instance CoreEntity Book where
+  tableName = TableName "book"
+  newFromRow row = Book { bookName = fromSql $ row ! "name"
+                        }
 
 --------------------------------------------------------------------------------
 -- | List the latest version of all known books.
 listAllBooks :: (Functor a, HasDatabase a) => a [LoadedCoreEntity Book]
-listAllBooks = map bookFromRow `fmap` query "SELECT * FROM book" [ ]
-
---------------------------------------------------------------------------------
--- | Get a single book by GID.
-getBook :: HasDatabase m
-        => UUID                               {-^ The GID of the book to load. -}
-        -> m (Maybe (LoadedCoreEntity Book))  {-^ The loaded book, or 'Nothing'
-                                                  if the book could not be
-                                                  found. -}
-getBook bbid = do
-  results <- query selectQuery [ toSql bbid ]
-  return $ bookFromRow `fmap` listToMaybe results
-  where selectQuery = unlines  [ "SELECT *"
-                               , "FROM book"
-                               , "WHERE gid = ?" ]
-
---------------------------------------------------------------------------------
--- | Get an exact version of a book. This is guaranteed to return a book, as
--- you can only get a 'Ref' to a 'Book' by fetching data from the database.
-getBookVersion :: HasDatabase m
-               => Ref (LoadedCoreEntity Book)
-               {-^  A reference to the book version to load. -}
-               -> m (LoadedCoreEntity Book)
-               -- ^ The loaded book, or 'Nothing' if the book could not be
-               -- found.
-getBookVersion version = do
-  results <- query selectQuery [ toSql $ rid version ]
-  return . bookFromRow $ head results
-  where selectQuery = unlines  [ "SELECT *"
-                               , "FROM book"
-                               , "WHERE version = ?" ]
+listAllBooks = map coreEntityFromRow `fmap` query "SELECT * FROM book" [ ]

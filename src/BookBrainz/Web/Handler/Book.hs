@@ -14,6 +14,7 @@ import           Text.Digestive.Forms.Snap
 import           Text.Digestive.Blaze.Html5
 
 import qualified BookBrainz.Forms as Forms
+import           BookBrainz.Model
 import           BookBrainz.Model.Book
 import           BookBrainz.Model.Edition
 import           BookBrainz.Web.Handler (output, onNothing)
@@ -34,7 +35,7 @@ listBooks = do
 a 404 page is displayed. -}
 showBook :: UUID -> BookBrainzHandler ()
 showBook bbid = do
-  book <- getBook bbid `onNothing` "Book not found"
+  book <- getByGid bbid `onNothing` "Book not found"
   editions <- findBookEditions book
   output $ V.showBook book editions
 

@@ -1,32 +1,22 @@
 -- | Functions for working with 'BookBrainz.Types.Person.Person' entities
 module BookBrainz.Model.Person
-       ( personFromRow
-       , insertPerson
-       , getPerson
+       ( insertPerson
        ) where
 
-import Data.Maybe
-
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Map               (Map, (!))
+import Data.Map               ((!))
 import Data.UUID
-import Database.HDBC          (SqlValue, fromSql, toSql)
+import Database.HDBC          (fromSql, toSql)
 import System.Random
 
 import BookBrainz.Database
+import BookBrainz.Model        (CoreEntity(..), coreEntityFromRow, TableName(..))
 import BookBrainz.Types
 
---------------------------------------------------------------------------------
-{-| Create a 'Person' value from a row in the database. The Person is wrapped in
-'LoadedCoreEntity' context, and will be complete with GID. -}
-personFromRow :: Map String SqlValue  -- ^ A 'Map' of attribute names to values.
-              -> LoadedCoreEntity Person
-personFromRow row = let person = Person { personName = fromSql $ row ! "name"
-                                  } in
-              CoreEntity { gid               = fromSql $ row ! "gid"
-                         , coreEntityInfo    = person
-                         , coreEntityVersion = fromSql $ row ! "version"
-                         }
+instance CoreEntity Person where
+  newFromRow row = Person { personName = fromSql $ row ! "name"
+                          }
+  tableName = TableName "person"
 
 --------------------------------------------------------------------------------
 -- | Insert and version a new 'Person'.
@@ -40,23 +30,8 @@ insertPerson personSpec = do
   personRow <- head `fmap` query insertQuery [ toSql $ personName personSpec
                                              , toSql   personGid
                                              ]
-  return $ personFromRow personRow
+  return $ coreEntityFromRow personRow
   where insertQuery = unlines [ "INSERT INTO person (name, gid)"
                               , "VALUES (?, ?)"
                               , "RETURNING *"
                               ]
-
---------------------------------------------------------------------------------
--- | Get a single 'Person' by GID.
-getPerson :: (Functor m, HasDatabase m)
-          => UUID                                {-^ The GID of the person to
-                                                 load -}
-          -> m (Maybe (LoadedCoreEntity Person)) {-^ The loaded person, or
-                                                 'Nothing' if the person could
-                                                 not be found. -}
-getPerson bbid = do
-  results <- query selectQuery [ toSql bbid ]
-  return $ personFromRow `fmap` listToMaybe results
-  where selectQuery = unlines  [ "SELECT *"
-                               , "FROM person"
-                               , "WHERE gid = ?" ]
