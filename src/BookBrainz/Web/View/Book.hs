@@ -15,12 +15,17 @@ import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive.Forms.Html (FormEncType)
 
 import BookBrainz.Types
-import BookBrainz.Web.View                 (pageLayout, linkEdition, linkBook)
+import BookBrainz.Web.View                 (pageLayout, linkEdition, linkBook
+                                           ,linkPublisher)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Book'.
-showBook :: LoadedCoreEntity Book      -- ^ The 'Book' to display.
-         -> [LoadedCoreEntity Edition] -- ^ A list of this 'Book's 'Edition's.
+showBook :: LoadedCoreEntity Book
+         -- ^ The 'Book' to display.
+         -> [( LoadedCoreEntity Edition
+             , Maybe (LoadedCoreEntity Publisher)
+             )]
+         -- ^ A list of this 'Book's 'Edition's.
          -> Html
 showBook book editions =
   pageLayout $ do
@@ -32,12 +37,18 @@ showBook book editions =
         H.tr $ do
           H.th "Name"
           H.th "Year"
+          H.th "ISBN"
+          H.th "Publisher"
       H.tbody $ editionRow `mapM_` editions
-      where editionRow edition =
+      where
+        maybeCell f = H.td . toHtml . maybe "-" f
+        editionRow (edition, publisher) =
               let edition' = copoint edition in
               H.tr $ do
                 H.td $ toHtml $ linkEdition edition
-                H.td $ toHtml $ maybe "-" show $ editionYear edition'
+                maybeCell toHtml $ editionYear edition'
+                maybeCell toHtml $ editionIsbn edition'
+                maybeCell linkPublisher publisher
 
 --------------------------------------------------------------------------------
 -- | Display a list of many 'Book's.
