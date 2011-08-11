@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
--- | Handlers for the @/edition@ resource
+-- | Handlers for the @/edition@ resource.
 module BookBrainz.Web.Handler.Edition
        ( showEdition
        ) where
@@ -27,7 +27,7 @@ import           BookBrainz.Web.Snaplet         (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Edition as V
 
 --------------------------------------------------------------------------------
-{-| Show a single 'Edition', searching by it's GID. If the edition cannot be
+{-| Show a single 'Edition', searching by its GID. If the edition cannot be
 found, a 404 page is displayed. -}
 showEdition :: UUID -> BookBrainzHandler ()
 showEdition bbid = do

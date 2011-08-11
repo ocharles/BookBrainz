@@ -1,4 +1,4 @@
--- | Definition of a person
+-- | Definition of a person.
 module BookBrainz.Types.Person
   ( Person(..)
   ) where
@@ -6,10 +6,10 @@ module BookBrainz.Types.Person
 import Data.Text (Text)
 
 --------------------------------------------------------------------------------
-{-| A person involved within a book, be it author, publishing, illustration,
-etc -}
+{-| A person involved with a book, be it author, editor, illustrator,
+etc. -}
 data Person = Person
-    { -- | The name of this person
+    { -- | The name of the person.
       personName :: Text
     } deriving Show
 

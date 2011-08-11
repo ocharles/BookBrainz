@@ -55,17 +55,17 @@ uuid :: PrinterParser StringsError [String] o (UUID :- o)
 uuid = xmaph (fromJust . fromString) (Just . toString) anyString
 
 --------------------------------------------------------------------------------
--- | Turn a 'Sitemap' value into a string URL with query parameters
-showURLParams :: Sitemap             -- ^ The path to convert into a URL
+-- | Turn a 'Sitemap' value into a string URL with query parameters.
+showURLParams :: Sitemap             -- ^ The path to convert into a URL.
               -> [(String, String)]  -- ^ An association list of query
-                                     --   parameters
+                                     --   parameters.
               -> String
 showURLParams url q = case unparseStrings sitemap url of
   Nothing -> error ("Could not route " ++ show url)
   Just ps -> ("/" ++) $ encodePathInfo ps q
 
 --------------------------------------------------------------------------------
--- | Turn a 'Sitemap' value into a string, using no query parameters
-showURL :: Sitemap             -- ^ The path to convert into a URL
+-- | Turn a 'Sitemap' value into a string, using no query parameters.
+showURL :: Sitemap             -- ^ The path to convert into a URL.
         -> String
 showURL u = showURLParams u []

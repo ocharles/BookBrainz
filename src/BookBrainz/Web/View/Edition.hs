@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | View's for 'Edition's.
+-- | Views for 'Edition's.
 module BookBrainz.Web.View.Edition
        ( -- * Pages
          showEdition

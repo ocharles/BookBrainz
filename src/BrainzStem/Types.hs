@@ -1,4 +1,4 @@
--- | Types overlooking the whole BrainzStem architecture
+-- | Types overlooking the whole BrainzStem architecture.
 module BrainzStem.Types
        ( LoadedCoreEntity(..)
        , LoadedEntity(..)

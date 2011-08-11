@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
--- | Handlers for the @/book@ resource
+-- | Handlers for the @/book@ resource.
 module BookBrainz.Web.Handler.Book
        ( listBooks
        , showBook
@@ -37,7 +37,7 @@ listBooks = do
   output $ V.showBooks bs
 
 --------------------------------------------------------------------------------
-{-| Show a single 'Book', searching by it's GID. If the book cannot be found,
+{-| Show a single 'Book', searching by its GID. If the book cannot be found,
 a 404 page is displayed. -}
 showBook :: UUID -> BookBrainzHandler ()
 showBook bbid = do
@@ -48,7 +48,7 @@ showBook bbid = do
           (e, ) <$> traverse getVersion (editionPublisher . copoint $ e)
 
 --------------------------------------------------------------------------------
-{-| Display a form for adding 'Book's, and on submission add that book and
+{-| Display a form for adding 'Book's, and on submission, add that book and
 redirect to view it. -}
 addBook :: BookBrainzHandler ()
 addBook = do

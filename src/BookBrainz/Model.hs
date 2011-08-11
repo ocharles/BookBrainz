@@ -40,7 +40,7 @@ newtype Key a = Key { getKey :: String }
 {-| A basic type class for any entity that appears in the database, whether
 it's core or not.
 
-The minimal complete definition is 'tableName', and 'newFromRow'. -}
+The minimal complete definition is 'tableName' and 'newFromRow'. -}
 class HasTable a where
   {-| The name of this core entity's table in the PostgreSQL database.
 
@@ -52,7 +52,7 @@ class HasTable a where
   newFromRow      :: Row -> a
 
 --------------------------------------------------------------------------------
-{-| A typeclass specifying that some data is currently stored in database,
+{-| A type class specifying that some data is currently stored in database,
 and may have a primary key extracted. -}
 class InDatabase a where
   {-| Extract the primary key for this value. -}
@@ -72,10 +72,10 @@ instance InDatabase (Ref a) where
 and is also versioned. This type class defines how they can be interacted with
 via the database. -}
 class HasTable a => CoreEntity a where
-  -- | Get a core entity by it's GID
+  -- | Get a core entity by its GID.
   getByGid :: HasDatabase m
            => UUID
-           -- ^ The GID of the core entity
+           -- ^ The GID of the core entity.
            -> m (Maybe (LoadedCoreEntity a))
            -- ^ The 'LoadedCoreEntity' contextual representation of this core
            -- entity, or 'Nothing' if there was no entity with this GID. -}
@@ -104,7 +104,7 @@ class HasTable a => CoreEntity a where
 
   {-| Turn a 'Row' into a full 'LoadedCoreEntity'.
 
-  You should use this with care, as it is possible for a runtime exception here.
+  You should use this with care, as it is possible to get a runtime exception here.
   This could happen if the 'Row' map doesn't contain sufficient columns to create
   the entity. -}
   coreEntityFromRow :: CoreEntity a
@@ -117,7 +117,7 @@ class HasTable a => CoreEntity a where
                , coreEntityInfo    = newFromRow row }
 
 --------------------------------------------------------------------------------
-{-| An entity is anything that is stored in the database, but is not a core
+{-| An entity is anything which is stored in the database, but is not a core
 entity. -}
 class HasTable a => Entity a where
   {-| The name of the primary key for this entity. By default this is @id@, but
@@ -125,11 +125,11 @@ class HasTable a => Entity a where
   key :: Key a
   key = Key "id"
 
-  {-| Get this entity by it's primary key. -}
+  {-| Get this entity by its primary key. -}
   getByKey :: (HasDatabase m, Entity a, InDatabase r)
            => r
            -- ^ Some sort of reference to the entity to be fetched. Commonly,
-           -- this will be 'Ref'
+           -- this will be a 'Ref'.
            -> m (LoadedEntity a)
   getByKey ref = do
     results <- query selectQuery [ rowKey ref ]
@@ -142,7 +142,7 @@ class HasTable a => Entity a where
 
   {-| Turn a 'Row' into a 'LoadedEntity'.
 
-  You should use this with care, as it is possible for a runtime exception here.
+  You should use this with care, as it is possible to get a runtime exception here.
   This could happen if the 'Row' map doesn't contain sufficient columns to
   create the entity. -}
   entityFromRow :: Entity a
@@ -153,10 +153,10 @@ class HasTable a => Entity a where
 
 --------------------------------------------------------------------------------
 -- | Attempt to find the value of a column, throwing an exception if it can't
--- be found
+-- be found.
 (!) :: (Convertible SqlValue a)
-    => Row    -- ^ The row to lookup a column value from
-    -> String -- ^ The name of the column to find a value for
+    => Row    -- ^ The row to look up a column value from.
+    -> String -- ^ The name of the column to find a value for.
     -> a
 row ! k = fromSql $ findWithDefault (notFound k) k row
   where notFound = error . (("IN " ++ show row ++ " could not find: ") ++)
