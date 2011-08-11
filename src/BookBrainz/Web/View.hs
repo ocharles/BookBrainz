@@ -9,7 +9,12 @@ module BookBrainz.Web.View
        , linkBook
        , linkEdition
        , linkPublisher
+
+         -- * Components
+       , optionalDl
        ) where
+
+import           Data.Monoid                       (mempty)
 
 import           Data.Copointed
 import           Data.Text                         (Text)
@@ -63,3 +68,14 @@ linkPublisher :: LoadedCoreEntity Publisher
 linkPublisher p =
   let uri = showURL $ Sitemap.Publisher (gid p) in
   H.a ! A.href (toValue uri) $ toHtml $ publisherName $ copoint p
+
+--------------------------------------------------------------------------------
+-- | Takes a list of sidebar captions, and possible values for them. If the
+-- value is 'Nothing', then the sidebar property is ommited.
+optionalDl :: [(Text, Maybe Html)] -> Html
+optionalDl values = showDef `mapM_` values
+  where
+    showDef (_, Nothing) = mempty
+    showDef (caption, Just html) = do
+      H.dt $ toHtml caption
+      H.dd html
