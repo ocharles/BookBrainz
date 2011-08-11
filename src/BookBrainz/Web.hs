@@ -26,11 +26,11 @@ import qualified BookBrainz.Web.View as V
 
 routeUrl :: Sitemap -> RouteT Sitemap BookBrainzHandler ()
 routeUrl url = liftRouteT $ case url of
-  Home         -> listBooks
-  Book bbid    -> showBook bbid
-  AddBook      -> addBook
-  Person bbid  -> showPerson bbid
-  Edition bbid -> showEdition bbid
+  Home           -> listBooks
+  Book bbid      -> showBook bbid
+  AddBook        -> addBook
+  Person bbid    -> showPerson bbid
+  Edition bbid   -> showEdition bbid
   Publisher bbid -> showPublisher bbid
 
 -- | A handler than routes the entire BookBrainz website.

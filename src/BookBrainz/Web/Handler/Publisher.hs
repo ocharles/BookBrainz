@@ -14,9 +14,9 @@ import           BookBrainz.Web.Snaplet  (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Publisher as V
 
 --------------------------------------------------------------------------------
-{-| Show a single 'Publisher', searching by it's GID. If the publisher cannot be found,
-a 404 page is displayed. -}
+{-| Show a single 'Publisher', searching by it's GID. If the publisher cannot be 
+found, a 404 page is displayed. -}
 showPublisher :: UUID -> BookBrainzHandler ()
 showPublisher bbid = do
-  person <- getByGid bbid `onNothing` "Publisher not found"
-  output $ V.showPublisher person
+  publisher <- getByGid bbid `onNothing` "Publisher not found"
+  output $ V.showPublisher publisher
