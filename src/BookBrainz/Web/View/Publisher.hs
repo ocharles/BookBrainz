@@ -18,6 +18,6 @@ import BookBrainz.Web.View (pageLayout)
 showPublisher :: LoadedCoreEntity Publisher  -- ^ The 'Publisher' to display
            -> Html
 showPublisher publisher =
-  pageLayout $ do
+  pageLayout Nothing $ do
     let publisher' = copoint publisher
     H.h1 $ toHtml $ publisherName publisher'

@@ -16,7 +16,7 @@ import           Text.Digestive.Forms.Html (FormEncType)
 
 import BookBrainz.Types
 import BookBrainz.Web.View                 (pageLayout, linkEdition, linkBook
-                                           ,linkPublisher)
+                                           ,linkPublisher, detailTable)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Book'.
@@ -28,34 +28,32 @@ showBook :: LoadedCoreEntity Book
          -- ^ A list of 'Edition's for this 'Book'.
          -> Html
 showBook book editions =
-  pageLayout $ do
+  pageLayout Nothing $ do
     let book' = copoint book
     H.h1 $ toHtml $ bookName book'
     H.h3 "Editions"
-    H.table $ do
-      H.thead $
-        H.tr $ do
-          H.th "Name"
-          H.th "Year"
-          H.th "ISBN"
-          H.th "Publisher"
-      H.tbody $ editionRow `mapM_` editions
+    detailTable
+      [("Name", [])
+      ,("Year", [])
+      ,("ISBN", [])
+      ,("Publisher",[])]
+      (editionRow `map` editions)
       where
-        maybeCell f = H.td . toHtml . maybe "-" f
+        maybeCell f = toHtml . maybe "-" f
         editionRow (edition, publisher) =
               let edition' = copoint edition in
-              H.tr $ do
-                H.td $ toHtml $ linkEdition edition
-                maybeCell toHtml $ editionYear edition'
-                maybeCell toHtml $ editionIsbn edition'
-                maybeCell linkPublisher publisher
+              [ toHtml $ linkEdition edition
+              , maybeCell toHtml $ editionYear edition'
+              , maybeCell toHtml $ editionIsbn edition'
+              , maybeCell linkPublisher publisher
+              ]
 
 --------------------------------------------------------------------------------
 -- | Display a list of many 'Book's.
 showBooks :: [LoadedCoreEntity Book]  -- ^ The 'Book's to display.
           -> Html
 showBooks books =
-  pageLayout $ do
+  pageLayout Nothing $ do
     H.h1 "Books"
     H.ul $ (H.li . linkBook) `mapM_` books
 
@@ -64,7 +62,7 @@ showBooks books =
 addBook :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
         -> Html
 addBook (formHtml, enctype) =
-  pageLayout $ do
+  pageLayout Nothing $ do
     H.h1 "Add Book"
     H.form ! A.method "POST" $ do
       formHtml

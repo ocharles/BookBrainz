@@ -30,17 +30,20 @@ showEdition :: ( LoadedCoreEntity Edition
             -- ^ The 'Edition' to display, with all necessary metadata
             -> Html
 showEdition (edition, book, format, country, language, publisher) =
-  pageLayout $ do
+  pageLayout (Just sidebar) $ do
     H.h1 $ do
       linkEdition edition
       let year = (editionYear . copoint) edition
       when (isJust year) $
         mconcat [" (", (toHtml . fromJust) year, ")"]
     H.h2 $ "A version of " `mappend` linkBook book
-    optionalDl [("Format",    fmap (toHtml.editionFormatName.copoint) format)
-               ,("Country",   fmap (toHtml.countryName.copoint) country)
-               ,("Language",  fmap (toHtml.languageName.copoint) language)
-               ,("ISBN",      fmap toHtml (editionIsbn $ copoint edition))
-               ,("Barcode",   fmap toHtml (editionBarcode $ copoint edition))
-               ,("Publisher", fmap linkPublisher publisher)
-               ]
+  where sidebar = do
+          H.h2 "Edition information"
+          optionalDl
+            [("Format:",    fmap (toHtml.editionFormatName.copoint) format)
+            ,("Country:",   fmap (toHtml.countryName.copoint) country)
+            ,("Language:",  fmap (toHtml.languageName.copoint) language)
+            ,("ISBN:",      fmap toHtml (editionIsbn $ copoint edition))
+            ,("Barcode:",   fmap toHtml (editionBarcode $ copoint edition))
+            ,("Publisher:", fmap linkPublisher publisher)
+            ]

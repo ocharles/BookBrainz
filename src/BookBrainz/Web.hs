@@ -27,6 +27,7 @@ import qualified BookBrainz.Web.View as V
 routeUrl :: Sitemap -> RouteT Sitemap BookBrainzHandler ()
 routeUrl url = liftRouteT $ case url of
   Home           -> listBooks
+  Resource _     -> error "Resource should have been served by Snap"
   Book bbid      -> showBook bbid
   AddBook        -> addBook
   Person bbid    -> showPerson bbid

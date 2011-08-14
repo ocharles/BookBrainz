@@ -22,6 +22,10 @@ import Web.Routes.Boomerang
 
 data Sitemap
      = Home
+
+       -- /static
+     | Resource String
+
        -- /book
      | Book UUID
      | AddBook
@@ -41,6 +45,7 @@ $(derivePrinterParsers ''Sitemap)
 sitemap :: Router Sitemap
 sitemap =
      rHome
+  <> rResource . ("static" </> anyString)
 
   <> rAddBook . ("book" </> "add")
   <> rBook . ("book" </> uuid)

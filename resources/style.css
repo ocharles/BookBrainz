@@ -1,0 +1,114 @@
+body {
+    padding: 0 10px;
+    margin: 0;
+    background-color: #E7E7E7;
+    color: black;
+    font-family: 'Bitstream Vera Sans', Verdana, Arial, sans-serif;
+    font-size: 12px;
+    min-width: 780px;
+    margin: auto;
+}
+
+body a, a:visited {
+    text-decoration: none;
+    color: #002BBA;
+}
+
+body a:hover {
+    text-decoration: underline;
+}
+
+#header {
+    width: 100%;
+}
+
+#header-logo {
+    background: #736DAB;
+    height: 58px;
+    color: white;
+}
+
+#header-menu {
+    background: #FFBA58;
+    position: relative;
+    font-size: 95%;
+    font-weight: bold;
+    z-index: 9;
+    border-radius: 0px 5px;
+}
+
+#header-menu ul {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    list-style-type: none;
+    list-style-image: none;
+}
+
+#header-menu > div {
+    overflow: hidden;
+    padding: 0 1em;
+}
+
+#header-menu ul li {
+    float: left;
+}
+
+#header-menu ul li a {
+    padding: 0.4em 0.5em;
+    display: block;
+    color: #333;
+}
+
+#page {
+    margin-top: 1em;
+    padding: 1em;
+    padding: 16px;
+    background: white;
+    overflow: hidden;
+    position: relative;
+    border-radius: 5px;
+}
+
+#sidebar {
+    float: right;
+    width: 200px;
+    border-left: 1px dotted #aaa;
+    padding: 1em;
+}
+
+dl.properties dt {
+    float: left;
+    clear: left;
+    font-weight: bold;
+    margin-right: 0.5em;
+}
+dl.properties dd {
+    margin: 0 0 0.5em 1em;
+}
+
+table.details {
+    border-collapse: collapse;
+    width: 100%;
+    border-top: solid 1px #999;
+    border-bottom: solid 1px #999;
+}
+
+table.details th:first-child {
+    border-left: none;
+}
+
+table.details th {
+    border-bottom: solid 1px #999;
+    border-left: solid 1px #CCC;
+}
+
+table.details td,
+table.details th {
+    padding: 0.2em 0.4em;
+    text-align: left;
+}
+
+table.details tr.even td {
+    background: #F2F2F2;
+}

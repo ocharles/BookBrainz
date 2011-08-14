@@ -18,6 +18,6 @@ import BookBrainz.Web.View (pageLayout)
 showPerson :: LoadedCoreEntity Person  -- ^ The 'Person' to display.
            -> Html
 showPerson person =
-  pageLayout $ do
+  pageLayout Nothing $ do
     let person' = copoint person
     H.h1 $ toHtml $ personName person'
