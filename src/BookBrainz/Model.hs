@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-| Common functions for accessing entities. -}
@@ -19,13 +18,11 @@ module BookBrainz.Model
 
 import Data.Maybe          (listToMaybe)
 
-import Data.Convertible    (Convertible)
 import Data.Copointed      (copoint)
-import Data.Map            (findWithDefault)
 import Data.UUID           (UUID)
-import Database.HDBC       (SqlValue, fromSql, toSql)
+import Database.HDBC       (SqlValue, toSql)
 
-import BookBrainz.Database (HasDatabase, query, Row)
+import BookBrainz.Database (HasDatabase, query, Row, (!))
 import BookBrainz.Types    (LoadedCoreEntity(..), LoadedEntity(..), Ref(..))
 
 {-| Represents the table name for an entity. @a@ is the type of entity this
@@ -150,15 +147,3 @@ class HasTable a => Entity a where
                 -- ^ The 'Row' - from the result of a SELECT.
                 -> LoadedEntity a
   entityFromRow row = Entity $ newFromRow row
-
---------------------------------------------------------------------------------
--- | Attempt to find the value of a column, throwing an exception if it can't
--- be found.
-(!) :: (Convertible SqlValue a)
-    => Row    -- ^ The row to look up a column value from.
-    -> String -- ^ The name of the column to find a value for.
-    -> a
-row ! k = fromSql $ findWithDefault (notFound k) k row
-  where notFound = error . (("IN " ++ show row ++ " could not find: ") ++)
-
-infixl 9 !

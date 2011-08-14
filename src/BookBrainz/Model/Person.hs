@@ -10,7 +10,7 @@ import System.Random
 
 import BookBrainz.Database
 import BookBrainz.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
-                               ,TableName(..), (!))
+                               ,TableName(..))
 import BookBrainz.Types
 
 instance HasTable Person where

@@ -5,12 +5,14 @@ module BookBrainz.Model.Book
        , insertBook
        ) where
 
+import Data.Maybe              (fromJust)
+
 import Control.Monad.IO.Class  (liftIO, MonadIO)
 import Data.UUID               (UUID)
 import Database.HDBC           (toSql)
 import System.Random           (randomIO)
 
-import BookBrainz.Database     (HasDatabase, query)
+import BookBrainz.Database     (HasDatabase, query, queryOne)
 import BookBrainz.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
                                ,TableName(..), (!))
 import BookBrainz.Types
@@ -24,7 +26,7 @@ instance CoreEntity Book
 
 --------------------------------------------------------------------------------
 -- | Insert and version a new 'Book'.
-insertBook :: (Functor m, HasDatabase m)
+insertBook :: (Functor m, HasDatabase m, MonadIO m)
            => Book                       {-^ The information about the book to
                                              insert. -}
            -> m (LoadedCoreEntity Book)  {-^ The book, loaded from the database
@@ -34,10 +36,31 @@ insertBook bookSpec = do
   bookRow <- head `fmap` query insertQuery [ toSql $ bookName bookSpec
                                            , toSql   bookGid
                                            ]
-  return $ coreEntityFromRow bookRow
+  let book = coreEntityFromRow bookRow
+  revisionId <- fromJust `fmap` queryOne revisionQuery [] :: (HasDatabase m, Functor m) => m (Maybe Int)
+  query bookRevQuery [ toSql   revisionId
+                     , toSql $ coreEntityVersion book
+                     ]
+  query branchQuery [ toSql True
+                    , toSql revisionId
+                    , toSql bookGid
+                    ]
+  return book
   where insertQuery = unlines [ "INSERT INTO bookbrainz_v.book (name, gid)"
                               , "VALUES (?, ?)"
                               , "RETURNING *"
+                              ]
+        revisionQuery = unlines [ "INSERT INTO bookbrainz_v.revision"
+                                , "DEFAULT VALUES"
+                                , "RETURNING rev_id"
+                                ]
+        bookRevQuery = unlines [ "INSERT INTO bookbrainz_v.book_revision"
+                               , "(rev_id, version)"
+                               , "VALUES (?, ?)"
+                               ]
+        branchQuery = unlines [ "INSERT INTO bookbrainz_v.branch"
+                              , "(master, rev_id, gid)"
+                              , "VALUES (?, ?, ?)"
                               ]
 
 --------------------------------------------------------------------------------

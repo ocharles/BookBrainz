@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 {-| Connect to a BookBrainz PostgreSQL database and interact with it.
 
 This module is very low level, and deals with executing arbitrary SQL. You are
@@ -5,9 +7,11 @@ likely more interested in the various 'BookBrainz.Model' modules. -}
 module BookBrainz.Database
        (
          Row
+       , (!)
 
          -- * Database Operations
        , query
+       , queryOne
 
          -- * Connection Handling
        , HasDatabase(..)
@@ -19,8 +23,10 @@ module BookBrainz.Database
 import Control.Applicative      ((<$>))
 
 import Control.Monad.IO.Class   (MonadIO, liftIO)
-import Data.Map                 (Map)
-import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue)
+import Data.Convertible         (Convertible)
+import Data.Map                 (Map, findWithDefault)
+import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue
+                                ,fromSql, fetchRow)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL)
 
 -- | A row is a mapping of column names to 'SqlValue's.
@@ -59,7 +65,35 @@ query sql bind = do
     fetchAllRowsMap stmt
 
 --------------------------------------------------------------------------------
+{-| Perform a SQL query on the database, and return the first column of the
+first row. -}
+queryOne :: (HasDatabase m, Convertible SqlValue v, Functor m)
+         => String                  {-^ The raw SQL to execute. Use @?@ to
+                                        indicate placeholders. -}
+         -> [SqlValue]              {-^ Values for each placeholder according
+                                        to its position in the SQL statement. -}
+         -> m (Maybe v)             {-^ The column value. -}
+queryOne sql bind = do
+  conn <- askConnection
+  (fmap (fromSql . head)) `fmap` (liftIO $ do
+    stmt <- prepare conn sql
+    execute stmt bind
+    fetchRow stmt)
+
+--------------------------------------------------------------------------------
 -- | Open a connection to the BookBrainz PostgreSQL database.
 openConnection :: MonadIO m => m Database  -- ^ A connected 'Database'.
 openConnection =
   liftIO $ Database <$> connectPostgreSQL "dbname=bookbrainz user=bookbrainz"
+
+--------------------------------------------------------------------------------
+-- | Attempt to find the value of a column, throwing an exception if it can't
+-- be found.
+(!) :: (Convertible SqlValue a)
+    => Row    -- ^ The row to look up a column value from.
+    -> String -- ^ The name of the column to find a value for.
+    -> a
+row ! k = fromSql $ findWithDefault (notFound k) k row
+  where notFound = error . (("IN " ++ show row ++ " could not find: ") ++)
+
+infixl 9 !
