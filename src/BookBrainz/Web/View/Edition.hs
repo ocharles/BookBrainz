@@ -17,6 +17,7 @@ import qualified Text.Blaze.Html5 as H
 import           BookBrainz.Types
 import           BookBrainz.Web.View (pageLayout, linkBook, linkEdition
                                      ,linkPublisher, optionalDl)
+import qualified BookBrainz.Web.View.Sidebar as Sidebar
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Edition'.
@@ -26,10 +27,11 @@ showEdition :: ( LoadedCoreEntity Edition
                , Maybe (LoadedEntity Country)
                , Maybe (LoadedEntity Language)
                , Maybe (LoadedCoreEntity Publisher)
+               , [(LoadedEntity Role, LoadedCoreEntity Person)]
                )
             -- ^ The 'Edition' to display, with all necessary metadata
             -> Html
-showEdition (edition, book, format, country, language, publisher) =
+showEdition (edition, book, format, country, language, publisher, roles) =
   pageLayout (Just sidebar) $ do
     H.h1 $ do
       linkEdition edition
@@ -47,3 +49,4 @@ showEdition (edition, book, format, country, language, publisher) =
             ,("Barcode:",   fmap toHtml (editionBarcode $ copoint edition))
             ,("Publisher:", fmap linkPublisher publisher)
             ]
+          Sidebar.roles roles

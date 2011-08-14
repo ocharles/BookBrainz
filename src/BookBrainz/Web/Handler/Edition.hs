@@ -19,6 +19,7 @@ import           BookBrainz.Model.Edition       ()
 import           BookBrainz.Model.EditionFormat ()
 import           BookBrainz.Model.Language      ()
 import           BookBrainz.Model.Publisher     ()
+import           BookBrainz.Model.Role          (findRoles)
 import           BookBrainz.Types               (editionBook, editionFormat
                                                 ,editionCountry, editionLanguage
                                                 ,editionPublisher)
@@ -33,9 +34,10 @@ showEdition :: UUID -> BookBrainzHandler ()
 showEdition bbid = do
   edition <- getByGid bbid `onNothing` "Edition not found"
   output =<< V.showEdition
-    <$> do (edition, , , , , )
+    <$> do (edition, , , , , , )
              <$> getVersion (editionBook   . copoint $ edition)
              <*> traverse getByKey (editionFormat . copoint $ edition)
              <*> traverse getByKey (editionCountry . copoint $ edition)
              <*> traverse getByKey (editionLanguage . copoint $ edition)
              <*> traverse getVersion (editionPublisher . copoint $ edition)
+             <*> findRoles edition

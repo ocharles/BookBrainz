@@ -14,10 +14,10 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive.Forms.Html (FormEncType)
 
-import BookBrainz.Types
-import BookBrainz.Web.View                 (pageLayout, linkEdition, linkBook
-                                           ,linkPublisher, detailTable
-                                           ,linkPerson)
+import           BookBrainz.Types
+import           BookBrainz.Web.View       (pageLayout, linkEdition, linkBook
+                                           ,linkPublisher, detailTable)
+import qualified BookBrainz.Web.View.Sidebar as Sidebar
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Book'.
@@ -50,13 +50,7 @@ showBook (book, roles) editions =
       , maybeCell toHtml $ editionIsbn edition'
       , maybeCell linkPublisher publisher
       ]
-    sidebar = do
-      H.h2 "Roles"
-      H.dl ! A.class_ "properties" $
-        showRole `mapM_` roles
-    showRole (r, p) = do
-      H.dt $ (toHtml . roleName . copoint) r
-      H.dl $ linkPerson p
+    sidebar = Sidebar.roles roles
 
 --------------------------------------------------------------------------------
 -- | Display a list of many 'Book's.

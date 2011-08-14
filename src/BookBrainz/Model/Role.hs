@@ -31,18 +31,27 @@ class HasRoles entity where
             -- ^ A list of (role, person) tuples.
 
 instance HasRoles Book where
-  findRoles book = do
-    rows <- query roleSql [ toSql $ coreEntityVersion book ]
-    return $ personRoleFromRow `map` rows
-    where roleSql =
-            unlines [ "SELECT person.*, bpr.role_id AS r_id, role.name AS r_name"
-                    , "FROM book_person_role bpr"
-                    , "JOIN person ON person.version = bpr.person"
-                    , "JOIN person_role role USING (role_id)"
-                    , "WHERE bpr.book = ?"
-                    ]
-          personRoleFromRow r =
-            ( roleFromRow r
-            , coreEntityFromRow r :: LoadedCoreEntity Person
-            )
-          roleFromRow = entityFromRow . prefixedRow "r_"
+  findRoles = findRoles' "book"
+
+instance HasRoles Edition where
+  findRoles = findRoles' "edition"
+
+-- Internal implementation with nasty string munging. Woohoo!
+findRoles' :: HasDatabase m
+           => String -> LoadedCoreEntity a
+           -> m [(LoadedEntity Role, LoadedCoreEntity Person)]
+findRoles' tableName' ent = do
+  rows <- query roleSql [ toSql $ coreEntityVersion ent ]
+  return $ personRoleFromRow `map` rows
+  where roleSql =
+          unlines [ "SELECT person.*, role.role_id AS r_id, role.name AS r_name"
+                  , "FROM " ++ tableName' ++ "_person_role pr"
+                  , "JOIN person ON person.version = pr.person"
+                  , "JOIN person_role role USING (role_id)"
+                  , "WHERE pr." ++ tableName' ++ " = ?"
+                  ]
+        personRoleFromRow r =
+          ( roleFromRow r
+          , coreEntityFromRow r :: LoadedCoreEntity Person
+          )
+        roleFromRow = entityFromRow . prefixedRow "r_"
