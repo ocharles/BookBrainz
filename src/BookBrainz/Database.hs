@@ -77,10 +77,10 @@ queryOne :: (HasDatabase m, Convertible SqlValue v, Functor m)
          -> m (Maybe v)             {-^ The column value. -}
 queryOne sql bind = do
   conn <- askConnection
-  (fmap (fromSql . head)) `fmap` (liftIO $ do
-    stmt <- prepare conn sql
-    execute stmt bind
-    fetchRow stmt)
+  fmap (fromSql . head) `fmap`
+    liftIO (do stmt <- prepare conn sql
+               execute stmt bind
+               fetchRow stmt)
 
 --------------------------------------------------------------------------------
 -- | Open a connection to the BookBrainz PostgreSQL database.
@@ -106,5 +106,5 @@ prefixedRow :: String -- ^ The prefix to find and filter.
             -> Row    -- ^ The row to manipulate.
             -> Row    -- ^ The filtered and transformed row.
 prefixedRow pre r = rewriteKey `mapKeys` (hasPrefix `filterWithKey` r)
-  where hasPrefix k _ = isPrefixOf pre k
+  where hasPrefix k _ = pre `isPrefixOf` k
         rewriteKey = drop (length pre)

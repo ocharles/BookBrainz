@@ -16,7 +16,6 @@ module BookBrainz.Web.View
        , detailTable
        ) where
 
-import           Data.List                         (intercalate)
 import           Data.Monoid                       (mempty)
 
 import           Data.Copointed
@@ -39,7 +38,7 @@ genericError message =
 --------------------------------------------------------------------------------
 {-| The common layout for most BookBrainz pages, complete with heading, footer,
 navigation links, etc. -}
-pageLayout :: Maybe (Html) -- ^ Optional 'Html' for the sidebar.
+pageLayout :: Maybe Html   -- ^ Optional 'Html' for the sidebar.
            -> Html         -- ^ The main content of the page.
            -> Html
 pageLayout sidebar body = H.docTypeHtml $ do
@@ -54,7 +53,7 @@ pageLayout sidebar body = H.docTypeHtml $ do
         H.div ! A.id "header-search" $ mempty -- TODO Search form
       H.div ! A.id "header-menu" $
         H.div $
-          H.ul $ do
+          H.ul $
             H.li $ linkHome "BookBrainz" -- TODO Navigation menu
     H.div ! A.id "page" $ do
       showSidebar sidebar
@@ -127,9 +126,9 @@ detailTable headers rows =
     H.thead $ H.tr $ header `mapM_` headers
     H.tbody $ mapEven_ (row "odd") (row "even") rows
   where header (caption, classes) =
-          H.th ! A.class_ (toValue $ intercalate " " classes) $ caption
+          H.th ! A.class_ (toValue $ unwords classes) $ caption
         row c cells = H.tr ! A.class_ c $ H.td `mapM_` cells
-        mapEven o e (x:y:xs) = [o x, e y] ++ (mapEven o e xs)
+        mapEven o e (x:y:xs) = [o x, e y] ++ mapEven o e xs
         mapEven o _ [x] = [o x]
         mapEven _ _ [] = []
         mapEven_ o e as = sequence_ (mapEven o e as)
