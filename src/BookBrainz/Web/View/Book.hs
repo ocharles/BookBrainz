@@ -16,19 +16,22 @@ import           Text.Digestive.Forms.Html (FormEncType)
 
 import BookBrainz.Types
 import BookBrainz.Web.View                 (pageLayout, linkEdition, linkBook
-                                           ,linkPublisher, detailTable)
+                                           ,linkPublisher, detailTable
+                                           ,linkPerson)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Book'.
-showBook :: LoadedCoreEntity Book
+showBook :: (LoadedCoreEntity Book
+            ,[(LoadedEntity Role, LoadedCoreEntity Person)]
+            )
          -- ^ The 'Book' to display.
          -> [( LoadedCoreEntity Edition
              , Maybe (LoadedCoreEntity Publisher)
              )]
          -- ^ A list of 'Edition's for this 'Book'.
          -> Html
-showBook book editions =
-  pageLayout Nothing $ do
+showBook (book, roles) editions =
+  pageLayout (Just sidebar) $ do
     let book' = copoint book
     H.h1 $ toHtml $ bookName book'
     H.h3 "Editions"
@@ -38,15 +41,22 @@ showBook book editions =
       ,("ISBN", [])
       ,("Publisher",[])]
       (editionRow `map` editions)
-      where
-        maybeCell f = toHtml . maybe "-" f
-        editionRow (edition, publisher) =
-              let edition' = copoint edition in
-              [ toHtml $ linkEdition edition
-              , maybeCell toHtml $ editionYear edition'
-              , maybeCell toHtml $ editionIsbn edition'
-              , maybeCell linkPublisher publisher
-              ]
+  where
+    maybeCell f = toHtml . maybe "-" f
+    editionRow (edition, publisher) =
+      let edition' = copoint edition in
+      [ toHtml $ linkEdition edition
+      , maybeCell toHtml $ editionYear edition'
+      , maybeCell toHtml $ editionIsbn edition'
+      , maybeCell linkPublisher publisher
+      ]
+    sidebar = do
+      H.h2 "Roles"
+      H.dl ! A.class_ "properties" $
+        showRole `mapM_` roles
+    showRole (r, p) = do
+      H.dt $ (toHtml . roleName . copoint) r
+      H.dl $ linkPerson p
 
 --------------------------------------------------------------------------------
 -- | Display a list of many 'Book's.

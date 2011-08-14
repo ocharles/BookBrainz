@@ -23,6 +23,7 @@ import           BookBrainz.Model
 import           BookBrainz.Model.Book
 import           BookBrainz.Model.Edition
 import           BookBrainz.Model.Publisher      ()
+import           BookBrainz.Model.Role           (findRoles)
 import           BookBrainz.Types                (gid, editionPublisher)
 import           BookBrainz.Web.Handler          (output, onNothing)
 import           BookBrainz.Web.Snaplet          (BookBrainzHandler, database)
@@ -43,7 +44,8 @@ showBook :: UUID -> BookBrainzHandler ()
 showBook bbid = do
   book <- getByGid bbid `onNothing` "Book not found"
   editions <- findBookEditions book >>= mapM loadEdition
-  output $ V.showBook book editions
+  roles <- findRoles book
+  output $ V.showBook (book, roles) editions
   where loadEdition e =
           (e, ) <$> traverse getVersion (editionPublisher . copoint $ e)
 

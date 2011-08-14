@@ -8,6 +8,7 @@ module BookBrainz.Web.View
          -- * Linking
        , linkBook
        , linkEdition
+       , linkPerson
        , linkPublisher
 
          -- * Components
@@ -88,10 +89,20 @@ linkEdition edition =
 linkPublisher :: LoadedCoreEntity Publisher
               -- ^ The 'Edition' to link to. Must be a 'LoadedCoreEntity' in
               -- order to have a GID.
-         -> Html
+              -> Html
 linkPublisher p =
   let uri = showURL $ Sitemap.Publisher (gid p) in
   H.a ! A.href (toValue uri) $ toHtml $ publisherName $ copoint p
+
+--------------------------------------------------------------------------------
+-- | Link to a person.
+linkPerson :: LoadedCoreEntity Person
+           -- ^ The 'Person' to link to. Must be a 'LoadedCoreEntity' in
+           -- order to have a GID.
+           -> Html
+linkPerson p =
+  let uri = showURL $ Sitemap.Person (gid p) in
+  H.a ! A.href (toValue uri) $ toHtml $ personName $ copoint p
 
 --------------------------------------------------------------------------------
 -- | Takes a list of sidebar captions, and possible values for them. If the

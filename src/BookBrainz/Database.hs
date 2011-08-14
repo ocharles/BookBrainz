@@ -8,6 +8,7 @@ module BookBrainz.Database
        (
          Row
        , (!)
+       , prefixedRow
 
          -- * Database Operations
        , query
@@ -21,10 +22,11 @@ module BookBrainz.Database
        ) where
 
 import Control.Applicative      ((<$>))
+import Data.List                (isPrefixOf)
 
 import Control.Monad.IO.Class   (MonadIO, liftIO)
 import Data.Convertible         (Convertible)
-import Data.Map                 (Map, findWithDefault)
+import Data.Map                 (Map, findWithDefault, mapKeys, filterWithKey)
 import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue
                                 ,fromSql, fetchRow)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL)
@@ -97,3 +99,12 @@ row ! k = fromSql $ findWithDefault (notFound k) k row
   where notFound = error . (("IN " ++ show row ++ " could not find: ") ++)
 
 infixl 9 !
+
+--------------------------------------------------------------------------------
+-- | Finds all columns that match a prefix, and strips the prefix.
+prefixedRow :: String -- ^ The prefix to find and filter.
+            -> Row    -- ^ The row to manipulate.
+            -> Row    -- ^ The filtered and transformed row.
+prefixedRow pre r = rewriteKey `mapKeys` (hasPrefix `filterWithKey` r)
+  where hasPrefix k _ = isPrefixOf pre k
+        rewriteKey = drop (length pre)
