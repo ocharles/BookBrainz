@@ -11,7 +11,7 @@ module BookBrainz.Web.Snaplet.Database
 
 import           Control.Monad.State      (gets)
 import           Control.Monad.IO.Class   (liftIO)
-import           Data.Record.Label        ((:->))
+import           Data.Lens.Common         (Lens)
 import qualified Database.HDBC as HDBC
 import           Snap.Snaplet
 
@@ -29,8 +29,8 @@ instance HasDatabase (Handler b Database) where
 
 --------------------------------------------------------------------------------
 -- | Run a handler action within the scope of a transaction.
-withTransaction :: (b :-> Snaplet Database)  -- ^ A lens to the database snaplet.
-                -> Handler b v a             -- ^ The handler to execute.
+withTransaction :: (Lens b (Snaplet Database))  -- ^ A lens to the database snaplet.
+                -> Handler b v a                -- ^ The handler to execute.
                 -> Handler b v a
 withTransaction l h = do
   a <- h

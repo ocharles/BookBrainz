@@ -12,7 +12,7 @@ module BookBrainz.Web.Snaplet
        , makeBbSnaplet
        ) where
 
-import Data.Record.Label
+import Data.Lens.Template
 import Snap.Snaplet
 
 import BookBrainz.Database (HasDatabase(..))
@@ -28,7 +28,7 @@ data BookBrainz = BookBrainz
 be executed in the context of this handler. -}
 type BookBrainzHandler = Handler BookBrainz BookBrainz
 
-mkLabels [''BookBrainz]
+$( makeLenses [''BookBrainz] )
 
 instance HasDatabase BookBrainzHandler where
   askConnection = with database askConnection
