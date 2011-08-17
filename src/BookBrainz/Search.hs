@@ -23,10 +23,21 @@ instance FromJSON UUID where
     maybe (fail "Couldnt parse UUID") return (fromString $ T.unpack s)
   parseJSON v = typeMismatch "UUID" v
 
+instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where
+  parseJSON json@(Object o) = CoreEntity <$> o .: "gid"
+                                         <*> o .: "_version"
+                                         <*> parseJSON json
+  parseJSON v = typeMismatch "LoadedCoreEntity" v
+
+instance (FromJSON entity) => FromJSON (LoadedEntity entity) where
+  parseJSON json@(Object _) = Entity <$> parseJSON json
+  parseJSON v = typeMismatch "LoadedEntity" v
+
 --------------------------------------------------------------------------------
--- | A book is searchable by it's name, and all roles
+-- | A book is searchable by it's name, and all roles.
 data SearchableBook = SearchableBook
     { bookBook  :: LoadedCoreEntity Book
+    , bookRoles :: [(LoadedEntity Role, LoadedCoreEntity Person)]
     }
 
 instance Document SearchableBook where
@@ -41,16 +52,30 @@ instance ToJSON SearchableBook where
 
 instance FromJSON SearchableBook where
   parseJSON json@(Object o) =
-      SearchableBook <$> parseBook
-    where parseBook = CoreEntity <$> o .: "gid"
-                                 <*> o .: "_version"
-                                 <*> parseJSON json
+      SearchableBook <$> parseJSON json
+                     <*> (o .: "roles" >>= mapM parseRole)
+    where parseRole r = (,) <$> r .: "role"
+                            <*> r .: "person"
   parseJSON v = typeMismatch "SearchableBook" v
 
 instance FromJSON Book where
   parseJSON (Object b) = Book <$> b .: "name"
   parseJSON v = typeMismatch "Book" v
 
+instance FromJSON Role where
+  parseJSON (String r) = return $ Role r
+  parseJSON v = typeMismatch "Book" v
 
-indexBook book = do
-  indexDocument localServer "book" (SearchableBook book)
+instance FromJSON Person where
+  parseJSON (Object b) = Person <$> b .: "name"
+  parseJSON v = typeMismatch "Book" v
+
+index' :: Document d => String -> d -> IO ()
+index' = indexDocument localServer
+
+-- | Given a book and accompanying metadata, index the book.
+indexBook :: LoadedCoreEntity Book
+          -> [(LoadedEntity Role, LoadedCoreEntity Person)]
+          -> IO ()
+indexBook = (index' "book" .) . SearchableBook
+
