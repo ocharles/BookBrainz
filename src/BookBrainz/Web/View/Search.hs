@@ -1,11 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-}
 module BookBrainz.Web.View.Search where
 
-import Data.Monoid         (mempty)
-
+import Search.ElasticSearch (Document, SearchResults, getResults)
 import Text.Blaze          (Html)
 
-import BookBrainz.Search
-import BookBrainz.Web.View (pageLayout)
+import qualified BookBrainz.Search as S
+import BookBrainz.Web.View (pageLayout, detailTable, linkBook)
 
-searchResults :: Html
-searchResults = pageLayout Nothing mempty
+searchResults :: SearchResults S.SearchableBook -> Html
+searchResults results = pageLayout Nothing $
+  detailTable [("Book", [])] $ formatResult `map` getResults results
+  where formatResult r = [ linkBook $ S.bookResult r ]
