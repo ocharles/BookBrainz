@@ -17,8 +17,13 @@ import Snap.Types
 
 import BookBrainz.Types.Book
 
+data SearchQuery = SearchQuery { query :: Text }
+
 bookForm :: (Monad m, MonadSnap m) => SnapForm m Html BlazeFormHtml Book
 bookForm = Book <$> inputText (Just "")
+
+searchForm :: (Monad m, MonadSnap m) => SnapForm m Html BlazeFormHtml SearchQuery
+searchForm = SearchQuery <$> inputText (Just "")
 
 inputText :: (Monad m, Functor m, FormInput i f)
           => Formlet m i e BlazeFormHtml Text

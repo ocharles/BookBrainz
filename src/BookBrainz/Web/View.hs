@@ -50,7 +50,10 @@ pageLayout sidebar body = H.docTypeHtml $ do
     H.div ! A.id "header" $ do
       H.div ! A.id "header-logo" $ do
         linkHome H.img
-        H.div ! A.id "header-search" $ mempty -- TODO Search form
+        H.div ! A.id "header-search" $
+          H.form ! A.method "GET" ! A.action (toValue $ showURL Search) $ do
+            H.input ! A.name "search-fval[0]" ! A.placeholder "search"
+            H.input ! A.type_ "submit"
       H.div ! A.id "header-menu" $
         H.div $
           H.ul $

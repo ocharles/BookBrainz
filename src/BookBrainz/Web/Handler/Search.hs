@@ -3,6 +3,7 @@ module BookBrainz.Web.Handler.Search
        ( search
        ) where
 
+import qualified BookBrainz.Forms as Forms
 import qualified BookBrainz.Search as S
 import           BookBrainz.Search      ()
 import           BookBrainz.Web.Handler (BookBrainzHandler, output)
