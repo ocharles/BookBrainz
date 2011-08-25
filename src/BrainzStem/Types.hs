@@ -11,6 +11,9 @@ import Data.Copointed
 import Data.UUID
 import Database.HDBC    (SqlValue)
 
+-- Import for type class instances
+import BrainzStem.Types.Newtypes ()
+
 --------------------------------------------------------------------------------
 -- | Represents a reference in a database. @entity@ is a phantom type which
 -- tracks what type of entity this reference refers to.

@@ -5,7 +5,7 @@ module BookBrainz.Model.Edition
        ) where
 
 import BrainzStem.Database (HasDatabase, query)
-import BookBrainz.Model    (CoreEntity(..), HasTable(..), coreEntityFromRow
+import BrainzStem.Model    (CoreEntity(..), HasTable(..), coreEntityFromRow
                            ,TableName(..), (!), rowKey)
 import BookBrainz.Types
 

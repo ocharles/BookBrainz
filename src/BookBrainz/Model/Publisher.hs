@@ -1,7 +1,7 @@
 -- | Functions for working with 'BookBrainz.Types.Publisher.Publisher' entities.
 module BookBrainz.Model.Publisher where
 
-import BookBrainz.Model    (CoreEntity(..), HasTable(..)
+import BrainzStem.Model    (CoreEntity(..), HasTable(..)
                            ,TableName(..), (!))
 import BookBrainz.Types
 

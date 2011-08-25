@@ -1,8 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-| Common functions for accessing entities. -}
-module BookBrainz.Model
-       ( -- * Entity Manpulation
+module BrainzStem.Model
+       (
+         -- * Entity Manipulation
          CoreEntity(..)
        , Entity(..)
 
@@ -10,7 +11,7 @@ module BookBrainz.Model
        , HasTable(..)
        , InDatabase(..)
 
-         -- * Low level functions and types
+         -- * Low Level Functions and Types
        , TableName(TableName)
        , Key(Key)
        , (!)
@@ -23,7 +24,7 @@ import Data.UUID           (UUID)
 import Database.HDBC       (SqlValue, toSql)
 
 import BrainzStem.Database (HasDatabase, query, Row, (!))
-import BookBrainz.Types    (LoadedCoreEntity(..), LoadedEntity(..), Ref(..))
+import BrainzStem.Types    (LoadedCoreEntity(..), LoadedEntity(..), Ref(..))
 
 {-| Represents the table name for an entity. @a@ is the type of entity this
 is a table name for. -}

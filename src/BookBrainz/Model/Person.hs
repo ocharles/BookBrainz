@@ -9,7 +9,7 @@ import Database.HDBC          (toSql)
 import System.Random
 
 import BrainzStem.Database     (HasDatabase, query, (!))
-import BookBrainz.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
+import BrainzStem.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
                                ,TableName(..))
 import BookBrainz.Types
 

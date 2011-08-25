@@ -2,7 +2,7 @@
 -- entities.
 module BookBrainz.Model.EditionFormat where
 
-import BookBrainz.Model (HasTable(..), Entity(..), TableName(..), (!))
+import BrainzStem.Model (HasTable(..), Entity(..), TableName(..), (!))
 import BookBrainz.Types
 
 instance HasTable EditionFormat where

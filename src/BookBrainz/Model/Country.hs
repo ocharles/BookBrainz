@@ -1,7 +1,7 @@
 -- | Functions for working with 'BookBrainz.Types.Country.Country' entities.
 module BookBrainz.Model.Country where
 
-import BookBrainz.Model (HasTable(..), Entity(..), TableName(..), Key(..), (!))
+import BrainzStem.Model (HasTable(..), Entity(..), TableName(..), Key(..), (!))
 import BookBrainz.Types
 
 instance HasTable Country where
