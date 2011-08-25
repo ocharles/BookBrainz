@@ -38,6 +38,9 @@ data Sitemap
 
        -- /publisher
      | Publisher UUID
+
+       -- /search
+     | Search
      deriving (Eq, Show)
 
 $(derivePrinterParsers ''Sitemap)
@@ -55,6 +58,8 @@ sitemap =
   <> rEdition . ("edition" </> uuid)
 
   <> rPublisher . ("publisher" </> uuid)
+
+  <> rSearch . "search"
 
 uuid :: PrinterParser StringsError [String] o (UUID :- o)
 uuid = xmaph (fromJust . fromString) (Just . toString) anyString
