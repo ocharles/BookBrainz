@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 {-| New types of atomic data and type classes for attributes used in other,
 larger sum types. -}
 module BookBrainz.Types.Newtypes () where

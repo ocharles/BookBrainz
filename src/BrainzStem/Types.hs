@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 -- | Types overlooking the whole BrainzStem architecture.
 module BrainzStem.Types
        ( LoadedCoreEntity(..)
