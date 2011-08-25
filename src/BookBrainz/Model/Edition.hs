@@ -4,7 +4,7 @@ module BookBrainz.Model.Edition
          findBookEditions
        ) where
 
-import BookBrainz.Database (HasDatabase, query)
+import BrainzStem.Database (HasDatabase, query)
 import BookBrainz.Model    (CoreEntity(..), HasTable(..), coreEntityFromRow
                            ,TableName(..), (!), rowKey)
 import BookBrainz.Types

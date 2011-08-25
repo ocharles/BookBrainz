@@ -22,7 +22,7 @@ import Data.Copointed      (copoint)
 import Data.UUID           (UUID)
 import Database.HDBC       (SqlValue, toSql)
 
-import BookBrainz.Database (HasDatabase, query, Row, (!))
+import BrainzStem.Database (HasDatabase, query, Row, (!))
 import BookBrainz.Types    (LoadedCoreEntity(..), LoadedEntity(..), Ref(..))
 
 {-| Represents the table name for an entity. @a@ is the type of entity this

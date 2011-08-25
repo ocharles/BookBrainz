@@ -9,7 +9,8 @@ module BookBrainz.Script
 import Control.Monad.Reader
 import Database.HDBC.PostgreSQL (Connection)
 
-import BookBrainz.Database      (openConnection, HasDatabase (..), Database (..))
+import BrainzStem.Database      (HasDatabase(..), Database(..))	
+import BookBrainz.Database      (openConnection)
 
 -- | The state accessible to the script.
 data ScriptState = ScriptState {

@@ -15,7 +15,7 @@ module BookBrainz.Web.Snaplet
 import Data.Lens.Template
 import Snap.Snaplet
 
-import BookBrainz.Database (HasDatabase(..))
+import BrainzStem.Database (HasDatabase(..))
 import BookBrainz.Web.Snaplet.Database
 
 {-| The BookBrainz snaplet. See lenses below in order to access child

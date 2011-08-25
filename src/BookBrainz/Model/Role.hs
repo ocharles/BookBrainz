@@ -7,7 +7,7 @@ module BookBrainz.Model.Role
 
 import Database.HDBC           (toSql)
 
-import BookBrainz.Database     (HasDatabase, prefixedRow, query, (!))
+import BrainzStem.Database     (HasDatabase, prefixedRow, query, (!))
 import BookBrainz.Model        (Entity(..), coreEntityFromRow, HasTable(..)
                                ,TableName(..))
 import BookBrainz.Model.Person ()

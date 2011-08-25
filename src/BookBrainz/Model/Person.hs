@@ -8,7 +8,7 @@ import Data.UUID
 import Database.HDBC          (toSql)
 import System.Random
 
-import BookBrainz.Database
+import BrainzStem.Database     (HasDatabase, query, (!))
 import BookBrainz.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
                                ,TableName(..))
 import BookBrainz.Types
