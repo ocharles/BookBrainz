@@ -7,7 +7,7 @@ module BookBrainz.Web.Handler.Publisher
 
 import           Data.UUID               (UUID)
 
-import           BookBrainz.Model
+import           BrainzStem.Model
 import           BookBrainz.Model.Publisher ()
 import           BookBrainz.Web.Handler  (output, onNothing)
 import           BookBrainz.Web.Snaplet  (BookBrainzHandler)

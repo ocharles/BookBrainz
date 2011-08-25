@@ -12,8 +12,8 @@ import Data.UUID               (UUID)
 import Database.HDBC           (toSql)
 import System.Random           (randomIO)
 
-import BookBrainz.Database     (HasDatabase, query, queryOne)
-import BookBrainz.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
+import BrainzStem.Database     (HasDatabase, query, queryOne)
+import BrainzStem.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
                                ,TableName(..), (!))
 import BookBrainz.Types
 

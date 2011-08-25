@@ -2,7 +2,7 @@
 
 {-| New types of atomic data and type classes for attributes used in other,
 larger sum types. -}
-module BookBrainz.Types.Newtypes () where
+module BrainzStem.Types.Newtypes () where
 
 import Data.Convertible (Convertible(..), convError)
 import Data.UUID        (UUID, fromString, toString)

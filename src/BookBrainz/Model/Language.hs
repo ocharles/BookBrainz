@@ -1,7 +1,7 @@
 -- | Functions for working with 'BookBrainz.Types.Language.Language' entities.
 module BookBrainz.Model.Language where
 
-import BookBrainz.Model (HasTable(..), Entity(..), TableName(..), Key(..), (!))
+import BrainzStem.Model (HasTable(..), Entity(..), TableName(..), Key(..), (!))
 import BookBrainz.Types
 
 instance HasTable Language where

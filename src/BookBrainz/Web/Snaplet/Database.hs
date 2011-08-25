@@ -15,8 +15,8 @@ import           Data.Lens.Common         (Lens)
 import qualified Database.HDBC as HDBC
 import           Snap.Snaplet
 
-import BookBrainz.Database ( Database, HasDatabase(..), connectionHandle
-                           , openConnection)
+import BrainzStem.Database (Database, HasDatabase(..), connectionHandle)
+import BookBrainz.Database (openConnection)
 
 --------------------------------------------------------------------------------
 -- | Initialize the database snaplet with a new connection.

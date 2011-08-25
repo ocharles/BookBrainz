@@ -18,8 +18,8 @@ import           Snap.Types
 import           Text.Digestive.Forms.Snap
 import           Text.Digestive.Blaze.Html5
 
+import           BrainzStem.Model
 import qualified BookBrainz.Forms as Forms
-import           BookBrainz.Model
 import           BookBrainz.Model.Book
 import           BookBrainz.Model.Edition
 import           BookBrainz.Model.Publisher      ()

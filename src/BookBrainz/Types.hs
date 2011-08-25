@@ -9,7 +9,4 @@ import BookBrainz.Types.Person       as X
 import BookBrainz.Types.Publisher    as X
 import BookBrainz.Types.Role         as X
 
--- Import for type class instances
-import BookBrainz.Types.Newtypes ()
-
 import BrainzStem.Types              as X
