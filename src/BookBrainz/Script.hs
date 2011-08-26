@@ -7,10 +7,10 @@ module BookBrainz.Script
        ) where
 
 import Control.Monad.Reader
+import Data.Configurator        (load, lookup, Worth (..))
 import Database.HDBC.PostgreSQL (Connection)
 
-import BrainzStem.Database      (HasDatabase(..), Database(..))	
-import BookBrainz.Database      (openConnection)
+import BrainzStem.Database      (HasDatabase(..), Database(..), openConnection)
 
 -- | The state accessible to the script.
 data ScriptState = ScriptState {
@@ -26,5 +26,8 @@ instance HasDatabase Script where
   askConnection = asks (connectionHandle . modelStateConn)
 
 runScript action = do
-  conn <- openConnection
+  config <- load [Required "bookbrainz.cfg"]
+  dbName <- require config "database.database"
+  dbUser <- require config "database.user"
+  conn <- openConnection dbName dbUser
   runReaderT (unScript action) $ ScriptState conn

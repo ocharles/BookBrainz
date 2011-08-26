@@ -9,20 +9,29 @@ module BookBrainz.Web.Snaplet.Database
     , withTransaction
     ) where
 
-import           Control.Monad.State      (gets)
-import           Control.Monad.IO.Class   (liftIO)
-import           Data.Lens.Common         (Lens)
-import qualified Database.HDBC as HDBC
+import           Control.Applicative    ((<*>))
+
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.State    (gets)
+import           Data.Configurator      (require, display)
+import           Data.Lens.Common       (Lens)
+import qualified Database.HDBC          as HDBC
 import           Snap.Snaplet
 
-import BrainzStem.Database (Database, HasDatabase(..), connectionHandle)
-import BookBrainz.Database (openConnection)
+import BrainzStem.Database (Database, HasDatabase(..), connectionHandle
+                           ,openConnection)
 
 --------------------------------------------------------------------------------
 -- | Initialize the database snaplet with a new connection.
 databaseInit :: SnapletInit b Database
-databaseInit =
-  makeSnaplet "database" "PostgreSQL database connection" Nothing openConnection
+databaseInit = makeSnaplet "database" "PostgreSQL database connection"
+                           Nothing $ do
+    config <- getSnapletConfig
+    liftIO $ conn config
+  where conn config = do db <- require config "database"
+                         user <- require config "user"
+                         openConnection db user
+
 
 instance HasDatabase (Handler b Database) where
   askConnection = gets connectionHandle

@@ -16,19 +16,20 @@ module BrainzStem.Database
        , queryOne
 
          -- * Connection Handling
+       , openConnection
        , HasDatabase(..)
        , Database(Database)
        , connectionHandle
        ) where
 
-import Data.List                (isPrefixOf)
+import Data.List                (isPrefixOf, intercalate)
 
 import Control.Monad.IO.Class   (MonadIO, liftIO)
 import Data.Convertible         (Convertible)
 import Data.Map                 (Map, findWithDefault, mapKeys, filterWithKey)
 import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue
                                 ,fromSql, fetchRow)
-import Database.HDBC.PostgreSQL (Connection)
+import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL)
 
 -- | A row is a mapping of column names to 'SqlValue's.
 type Row = Map String SqlValue
@@ -101,3 +102,16 @@ prefixedRow :: String -- ^ The prefix to find and filter.
 prefixedRow pre r = rewriteKey `mapKeys` (hasPrefix `filterWithKey` r)
   where hasPrefix k _ = pre `isPrefixOf` k
         rewriteKey = drop (length pre)
+
+--------------------------------------------------------------------------------
+-- | Open a connection to the BookBrainz PostgreSQL database.
+openConnection :: MonadIO m
+               => String      -- ^ The database name.
+               -> String      -- ^ The user to connect as.
+               -> m Database  -- ^ A connected 'Database'.
+openConnection dbName dbUser = liftIO $ do
+  conn <- connectPostgreSQL $ connStr [ ("dbname", dbName), ("user", dbUser) ]
+  return $ Database conn
+  where connStr = intercalate " " . map stringPair
+        stringPair (k, v) = k ++ "=" ++ v
+
