@@ -15,16 +15,21 @@ module BrainzStem.Model
        , TableName(TableName)
        , Key(Key)
        , (!)
+       , findMasterBranch
        ) where
 
-import Data.Maybe          (listToMaybe)
+import Control.Monad          (when)
+import Control.Monad.IO.Class (liftIO, MonadIO)
+import Data.Maybe             (listToMaybe, isJust, fromJust)
 
-import Data.Copointed      (copoint)
-import Data.UUID           (UUID)
-import Database.HDBC       (SqlValue, toSql)
+import Data.Copointed         (copoint)
+import Data.UUID              (UUID)
+import Database.HDBC          (SqlValue, toSql)
+import System.Random          (randomIO)
 
-import BrainzStem.Database (HasDatabase, query, Row, (!))
-import BrainzStem.Types    (LoadedCoreEntity (..), LoadedEntity (..), Ref (..))
+import BrainzStem.Database    (HasDatabase, query, Row, (!))
+import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
+                              ,Ref (..), Revision (..), Branch (..))
 
 {-| Represents the table name for an entity. @a@ is the type of entity this
 is a table name for. -}
@@ -115,6 +120,50 @@ class HasTable a => CoreEntity a where
                , coreEntityRevision = row ! "revision"
                , coreEntityInfo     = newFromRow row }
 
+  {-| Create a new version of a core entity. This version will belong to no
+  branch, but will have a revision. -}
+  addVersion :: (HasDatabase m, Functor m)
+             => a
+             -- ^ The data for this version.
+             -> UUID
+             -- ^ The UUID of this version.
+             -> Maybe (Ref (LoadedEntity Revision))
+             -- ^ The parent revision of this revision, or Nothing to create a
+             -- new revision history.
+             -> m (LoadedCoreEntity a)
+
+  -- | Insert and version a new core entity, creating a master branch at the
+  -- same time.
+  insert :: (Functor m, HasDatabase m, MonadIO m)
+         => a                       {-^ The information about the book to
+                                        insert. -}
+         -> m (LoadedCoreEntity a)  {-^ The book, loaded from the database
+                                        (complete with GID). -}
+  insert spec = do
+    newGid <- liftIO randomIO :: MonadIO m => m UUID
+    newEntity <- addVersion spec newGid Nothing
+    insertBranch newEntity True
+    return newEntity
+
+  {-| Update an existing core entity by creating a new version, and forking the
+  existing revision. If this is done in the context of an existing branch, that
+  branch will be updated, otherwise a new branch will be created. -}
+  update :: (HasDatabase m, Functor m)
+         => LoadedCoreEntity a
+         -> a
+         -> Maybe (LoadedEntity Branch)
+         -> m (LoadedCoreEntity a)
+  update orig spec branchContext = do
+    newV <- addVersion spec (gid orig) (Just $ coreEntityRevision orig)
+    when (isJust branchContext) $
+      query updateBranchQuery [ toSql $ coreEntityRevision orig
+                              , rowKey (fromJust branchContext)
+                              ] >> return ()
+    return newV
+    where updateBranchQuery = unlines [ "UPDATE bookbrainz_v.branch"
+                                      , "SET rev_id = ?"
+                                      , "WHERE id = ?" ]
+
 --------------------------------------------------------------------------------
 {-| An entity is anything which is stored in the database, but is not a core
 entity. -}
@@ -149,3 +198,46 @@ class HasTable a => Entity a where
                 -- ^ The 'Row' - from the result of a SELECT.
                 -> LoadedEntity a
   entityFromRow row = Entity $ newFromRow row
+
+--------------------------------------------------------------------------------
+-- | Find the master branch of a given entity.
+findMasterBranch :: (HasDatabase m, Functor m)
+                 => LoadedCoreEntity a
+                 -> m (LoadedEntity Branch)
+findMasterBranch ent = (entityFromRow . head) `fmap` query branchQuery
+                                                        [ toSql $ gid ent ]
+  where branchQuery = unlines [ "SELECT * FROM bookbrainz_v.branch"
+                              , "WHERE gid = ? AND master = TRUE"
+                              ]
+
+--------------------------------------------------------------------------------
+-- | Create a new branch.
+insertBranch :: HasDatabase m
+             => LoadedCoreEntity a
+             -- ^ The book revision to make the tip of the branch.
+             -> Bool
+             -- ^ Whether or not this branch should be considered the master
+             -- branch.
+             -> m ()
+insertBranch book asMaster =
+  query branchQuery [ toSql   asMaster
+                    , toSql $ coreEntityRevision book
+                    , toSql $ gid book
+                    ]
+    >> return ()
+  where branchQuery = unlines [ "INSERT INTO bookbrainz_v.branch"
+                              , "(master, rev_id, gid)"
+                              , "VALUES (?, ?, ?)"
+                              ]
+
+--------------------------------------------------------------------------------
+instance HasTable Branch where
+  tableName = TableName "bookbrainz_v.branch"
+  newFromRow r = Branch { branchIsMaster = r ! "master"
+                        , branchId = r ! "id"
+                        }
+
+instance Entity Branch
+
+instance InDatabase Branch where
+  rowKey = toSql . branchId

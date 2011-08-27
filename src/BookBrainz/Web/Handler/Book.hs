@@ -58,5 +58,5 @@ addBook = do
   case r of
     Left form' -> output $ V.addBook $ renderFormHtml form'
     Right submission -> do
-      book <- withTransaction database $ insertBook submission
+      book <- withTransaction database $ insert submission
       redirect $ pack . ("/book/" ++) . toString . gid $ book
