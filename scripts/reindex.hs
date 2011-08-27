@@ -1,4 +1,4 @@
-import           BookBrainz.Model
+import           BrainzStem.Model
 import           BookBrainz.Model.Book
 import           BookBrainz.Model.Role
 import           BookBrainz.Script
