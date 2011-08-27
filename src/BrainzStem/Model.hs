@@ -24,7 +24,7 @@ import Data.UUID           (UUID)
 import Database.HDBC       (SqlValue, toSql)
 
 import BrainzStem.Database (HasDatabase, query, Row, (!))
-import BrainzStem.Types    (LoadedCoreEntity(..), LoadedEntity(..), Ref(..))
+import BrainzStem.Types    (LoadedCoreEntity (..), LoadedEntity (..), Ref (..))
 
 {-| Represents the table name for an entity. @a@ is the type of entity this
 is a table name for. -}
@@ -110,9 +110,10 @@ class HasTable a => CoreEntity a where
                     -- ^ The 'Row' - from the result of a SELECT.
                     -> LoadedCoreEntity a
   coreEntityFromRow row =
-    CoreEntity { gid               = row ! "gid"
-               , coreEntityVersion = row ! "version"
-               , coreEntityInfo    = newFromRow row }
+    CoreEntity { gid                = row ! "gid"
+               , coreEntityVersion  = row ! "version"
+               , coreEntityRevision = row ! "revision"
+               , coreEntityInfo     = newFromRow row }
 
 --------------------------------------------------------------------------------
 {-| An entity is anything which is stored in the database, but is not a core

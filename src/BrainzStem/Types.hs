@@ -1,9 +1,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 -- | Types overlooking the whole BrainzStem architecture.
 module BrainzStem.Types
-       ( LoadedCoreEntity(..)
-       , LoadedEntity(..)
-       , Ref(..)
+       ( LoadedCoreEntity (..)
+       , LoadedEntity (..)
+       , Ref (..)
+       , Revision (..)
+       , Branch (..)
        ) where
 
 import Data.Convertible (Convertible(..))
@@ -36,6 +38,8 @@ an instance of 'Copointed'. To work directly with the underlying data, use the
 data LoadedCoreEntity a = CoreEntity
     { -- | The BrainzStem identifier of this entity.
       gid               :: UUID
+      -- | The revision tracking this data.
+    , coreEntityRevision :: Ref (LoadedEntity Revision)
       -- | The version of this data.
     , coreEntityVersion :: Int
       -- | The underlying information about this entity.
@@ -55,3 +59,13 @@ data LoadedEntity a = Entity
 
 instance Copointed LoadedEntity where
   copoint = entityInfo
+
+--------------------------------------------------------------------------------
+-- | Represents a single revision of a core entity.
+data Revision = Revision { revisionId :: Int }
+
+--------------------------------------------------------------------------------
+-- | Represents a branch.
+data Branch = Branch { branchId :: Int
+                     , branchIsMaster :: Bool
+                     }

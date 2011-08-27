@@ -22,7 +22,7 @@ module BrainzStem.Database
        , connectionHandle
        ) where
 
-import Data.List                (isPrefixOf, intercalate)
+import Data.List                (isPrefixOf)
 
 import Control.Monad.IO.Class   (MonadIO, liftIO)
 import Data.Convertible         (Convertible)
@@ -112,6 +112,6 @@ openConnection :: MonadIO m
 openConnection dbName dbUser = liftIO $ do
   conn <- connectPostgreSQL $ connStr [ ("dbname", dbName), ("user", dbUser) ]
   return $ Database conn
-  where connStr = intercalate " " . map stringPair
+  where connStr = unwords . map stringPair
         stringPair (k, v) = k ++ "=" ++ v
 

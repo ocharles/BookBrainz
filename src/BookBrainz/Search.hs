@@ -3,21 +3,22 @@
 
 module BookBrainz.Search where
 
-import Control.Applicative
+import           Control.Applicative
 
-import Control.Monad.IO.Class (liftIO, MonadIO)
-import qualified Data.Text as T
-import Data.Aeson           ((.=), ToJSON(..), FromJSON(..), object, (.:)
-                            ,Value(..))
-import Data.Aeson.Types     (typeMismatch)
-import Data.Copointed       (copoint)
-import Data.Map             (union)
-import Data.UUID            (fromString, toString, UUID)
-import qualified Search.ElasticSearch as ES
-import Search.ElasticSearch (Document(..), DocumentType(..), localServer
-                            ,indexDocument, Index)
+import           Control.Monad.IO.Class (liftIO, MonadIO)
+import           Data.Aeson             ((.=), ToJSON(..), FromJSON(..), object
+                                        ,(.:), Value(..))
+import qualified Data.Text              as T
+import           Database.HDBC          (toSql, fromSql)
+import           Data.Aeson.Types       (typeMismatch)
+import           Data.Copointed         (copoint)
+import           Data.Map               (union)
+import           Data.UUID              (fromString, toString, UUID)
+import qualified Search.ElasticSearch   as ES
+import           Search.ElasticSearch   (Document(..), DocumentType(..)
+                                        ,localServer, indexDocument, Index)
 
-import BookBrainz.Types as BB
+import           BookBrainz.Types       as BB
 
 --------------------------------------------------------------------------------
 -- | The types of searches that are possible.
@@ -108,6 +109,7 @@ instance FromJSON UUID where
 
 instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where
   parseJSON json@(Object o) = CoreEntity <$> o .: "gid"
+                                         <*> o .: "_revision"
                                          <*> o .: "_version"
                                          <*> parseJSON json
   parseJSON v = typeMismatch "LoadedCoreEntity" v
@@ -115,12 +117,19 @@ instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where
 instance ToJSON ent => ToJSON (LoadedCoreEntity ent) where
   toJSON ent = object [ "gid" .= gid ent
                        , "_version" .= coreEntityVersion ent
+                       , "_revision" .= coreEntityRevision ent
                        ]
                `unionObject`
                toJSON (copoint ent)
 
 instance (FromJSON entity) => FromJSON (LoadedEntity entity) where
   parseJSON json = Entity <$> parseJSON json
+
+instance ToJSON (Ref a) where
+  toJSON ref = toJSON (fromSql $ rkey ref :: String)
+
+instance FromJSON (Ref a) where
+  parseJSON (String s) = return (Ref $ toSql $ T.unpack s)
 
 typeToIndex :: SearchType -> Index
 typeToIndex BookBrainz.Search.Book = "book"

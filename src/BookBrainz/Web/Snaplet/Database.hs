@@ -9,11 +9,9 @@ module BookBrainz.Web.Snaplet.Database
     , withTransaction
     ) where
 
-import           Control.Applicative    ((<*>))
-
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.State    (gets)
-import           Data.Configurator      (require, display)
+import           Data.Configurator      (require)
 import           Data.Lens.Common       (Lens)
 import qualified Database.HDBC          as HDBC
 import           Snap.Snaplet
