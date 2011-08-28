@@ -156,7 +156,7 @@ class HasTable a => CoreEntity a where
   update orig spec branchContext = do
     newV <- addVersion spec (gid orig) (Just $ coreEntityRevision orig)
     when (isJust branchContext) $
-      query updateBranchQuery [ toSql $ coreEntityRevision orig
+      query updateBranchQuery [ toSql $ coreEntityRevision newV
                               , rowKey (fromJust branchContext)
                               ] >> return ()
     return newV
