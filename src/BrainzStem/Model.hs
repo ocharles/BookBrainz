@@ -117,7 +117,7 @@ class HasTable a => CoreEntity a where
   coreEntityFromRow row =
     CoreEntity { gid                = row ! "gid"
                , coreEntityVersion  = row ! "version"
-               , coreEntityRevision = row ! "revision"
+               , coreEntityRevision = row ! "rev_id"
                , coreEntityInfo     = newFromRow row }
 
   {-| Create a new version of a core entity. This version will belong to no

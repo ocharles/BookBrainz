@@ -41,7 +41,7 @@ instance CoreEntity Book where
                                 ]
           revisionQuery = unlines [ "INSERT INTO bookbrainz_v.revision"
                                   , "DEFAULT VALUES"
-                                  , "RETURNING rev_id AS revision"
+                                  , "RETURNING rev_id"
                                   ]
           parentQuery = unlines [ "INSERT INTO bookbrainz_v.revision_parent"
                                 , "(parent_id, rev_id) VALUES (?, ?)"
