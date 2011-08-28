@@ -6,6 +6,7 @@ module BookBrainz.Web.Handler.Book
        ( listBooks
        , showBook
        , addBook
+       , editBook
        ) where
 
 import           Control.Applicative             ((<$>))
@@ -54,9 +55,24 @@ showBook bbid = do
 redirect to view it. -}
 addBook :: BookBrainzHandler ()
 addBook = do
-  r <- eitherSnapForm Forms.bookForm "book"
+  r <- eitherSnapForm (Forms.bookForm Nothing) "book"
   case r of
     Left form' -> output $ V.addBook $ renderFormHtml form'
     Right submission -> do
       book <- withTransaction database $ insert submission
+      redirect $ pack . ("/book/" ++) . toString . gid $ book
+
+--------------------------------------------------------------------------------
+{-| Display a form for editing a 'Book', and on submission, edit that book and
+redirect to view it. -}
+editBook :: UUID -> BookBrainzHandler ()
+editBook bbid = do
+  book <- getByGid bbid `onNothing` "Book not found"
+  r <- eitherSnapForm (Forms.bookForm $ Just $ copoint book) "book"
+  case r of
+    Left form' -> output $ V.addBook $ renderFormHtml form'
+    Right submission -> do
+      withTransaction database $ do
+        master <- findMasterBranch book
+        update book submission (Just master)
       redirect $ pack . ("/book/" ++) . toString . gid $ book

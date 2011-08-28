@@ -31,6 +31,7 @@ routeUrl url = liftRouteT $ case url of
   Resource _     -> error "Resource should have been served by Snap"
   Book bbid      -> showBook bbid
   AddBook        -> addBook
+  EditBook bbid  -> editBook bbid
   Person bbid    -> showPerson bbid
   Edition bbid   -> showEdition bbid
   Publisher bbid -> showPublisher bbid

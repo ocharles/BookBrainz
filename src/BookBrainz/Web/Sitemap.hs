@@ -29,6 +29,7 @@ data Sitemap
        -- /book
      | Book UUID
      | AddBook
+     | EditBook UUID
 
        -- /person
      | Person UUID
@@ -52,6 +53,7 @@ sitemap =
 
   <> rAddBook . ("book" </> "add")
   <> rBook . ("book" </> uuid)
+  <> rEditBook . ("bookedit" </> uuid)
 
   <> rPerson . ("person" </> uuid)
 

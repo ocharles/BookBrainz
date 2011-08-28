@@ -20,8 +20,10 @@ import           BookBrainz.Types.Book
 
 data SearchQuery = SearchQuery { query :: Text }
 
-bookForm :: (Monad m, MonadSnap m) => SnapForm m Html BlazeFormHtml Book
-bookForm = Book <$> inputText (Just "")
+bookForm :: (Monad m, MonadSnap m)
+         => Maybe (Book)
+         -> SnapForm m Html BlazeFormHtml Book
+bookForm book = Book <$> inputText (bookName `fmap` book)
 
 nonEmpty :: Monad m => Validator m Html Text
 nonEmpty = check "Query cannot be empty" (not . T.null)
