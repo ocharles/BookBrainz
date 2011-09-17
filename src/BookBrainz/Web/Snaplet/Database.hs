@@ -24,7 +24,7 @@ import BrainzStem.Database (Database, HasDatabase(..), connectionHandle
 databaseInit :: SnapletInit b Database
 databaseInit = makeSnaplet "database" "PostgreSQL database connection"
                            Nothing $ do
-    config <- getSnapletConfig
+    config <- getSnapletUserConfig
     liftIO $ conn config
   where conn config = do db <- require config "database"
                          user <- require config "user"
@@ -32,7 +32,7 @@ databaseInit = makeSnaplet "database" "PostgreSQL database connection"
 
 
 instance HasDatabase (Handler b Database) where
-  askConnection = gets connectionHandle
+  askConnection = getsSnapletState connectionHandle
 
 --------------------------------------------------------------------------------
 -- | Run a handler action within the scope of a transaction.
