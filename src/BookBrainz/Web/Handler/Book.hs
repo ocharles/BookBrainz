@@ -48,7 +48,7 @@ showBook bbid = do
   roles <- findRoles book
   output $ V.showBook (book, roles) editions
   where loadEdition e =
-          (e, ) <$> traverse getVersion (editionPublisher . copoint $ e)
+          (e, ) <$> traverse getById (editionPublisher . copoint $ e)
 
 --------------------------------------------------------------------------------
 {-| Display a form for adding 'Book's, and on submission, add that book and

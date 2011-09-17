@@ -112,12 +112,14 @@ instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where
                                          <*> o .: "_revision"
                                          <*> o .: "_version"
                                          <*> parseJSON json
+                                         <*> o .: "_id"
   parseJSON v = typeMismatch "LoadedCoreEntity" v
 
 instance ToJSON ent => ToJSON (LoadedCoreEntity ent) where
   toJSON ent = object [ "gid" .= gid ent
                        , "_version" .= coreEntityVersion ent
                        , "_revision" .= coreEntityRevision ent
+                       , "_id" .= coreEntityId ent
                        ]
                `unionObject`
                toJSON (copoint ent)

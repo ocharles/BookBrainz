@@ -15,9 +15,9 @@ instance HasTable Edition where
   newFromRow row =
     Edition { editionName        = row ! "name"
             , editionFormat      = row ! "format"
-            , editionBook        = row ! "book"
+            , editionBook        = row ! "book_id"
             , editionYear        = row ! "year"
-            , editionPublisher   = row ! "publisher"
+            , editionPublisher   = row ! "publisher_id"
             , editionCountry     = row ! "country_iso_code"
             , editionLanguage    = row !  "language_iso_code"
             , editionIsbn        = row ! "isbn"
@@ -40,6 +40,6 @@ findBookEditions book = do
   return $ coreEntityFromRow `map` results
   where selectQuery = unlines [ "SELECT * "
                               , "FROM edition"
-                              , "WHERE book = ?"
+                              , "WHERE book_id = ?"
                               , "ORDER BY year, edition_index NULLS LAST"
                               ]

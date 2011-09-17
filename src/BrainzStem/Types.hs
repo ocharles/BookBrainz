@@ -44,6 +44,8 @@ data LoadedCoreEntity a = CoreEntity
     , coreEntityVersion :: Int
       -- | The underlying information about this entity.
     , coreEntityInfo    :: a
+      -- | The general ID of this entity.
+    , coreEntityId      :: Integer
     } deriving Show
 
 instance Copointed LoadedCoreEntity where

@@ -46,9 +46,10 @@ findRoles' tableName' ent = do
   where roleSql =
           unlines [ "SELECT person.*, role.role_id AS r_id, role.name AS r_name"
                   , "FROM " ++ tableName' ++ "_person_role pr"
-                  , "JOIN person ON person.version = pr.person"
                   , "JOIN person_role role USING (role_id)"
-                  , "WHERE pr." ++ tableName' ++ " = ?"
+                  , "JOIN person USING (person_id)"
+                  , "JOIN " ++ tableName' ++ " t ON pr.rev_id = t.rev_id"
+                  , "WHERE t." ++ tableName' ++ "_id = ?"
                   ]
         personRoleFromRow r =
           ( roleFromRow r

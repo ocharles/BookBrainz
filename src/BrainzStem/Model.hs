@@ -48,11 +48,16 @@ class HasTable a where
   {-| The name of this core entity's table in the PostgreSQL database.
 
   This has to wrapped in 'TableName' in order to make it polymorphic. -}
-  tableName       :: TableName a
+  tableName :: TableName a
 
   {-| Create a new entity from the row in the database. 'coreEntityFromRow'
   will make use of this function, in order to create a 'LoadedCoreEntity'. -}
-  newFromRow      :: Row -> a
+  newFromRow :: Row -> a
+
+  {-| The primary key column for this table. Defaults to the table name,
+  suffixed with @_id@. -}
+  tableKey :: Key a
+  tableKey = Key $ (getTableName (tableName :: TableName a)) ++ "_id"
 
 --------------------------------------------------------------------------------
 {-| A type class specifying that some data is currently stored in database,
@@ -62,7 +67,7 @@ class InDatabase a where
   rowKey :: a -> SqlValue
 
 instance InDatabase (LoadedCoreEntity a) where
-  rowKey = toSql . coreEntityVersion
+  rowKey = toSql . coreEntityId
 
 instance InDatabase e => InDatabase (LoadedEntity e) where
   rowKey = rowKey . copoint
@@ -90,20 +95,20 @@ class HasTable a => CoreEntity a where
                                  , "FROM " ++ table
                                  , "WHERE gid = ?" ]
 
-  -- | Get a specific version of this core entity. You have to use a 'Ref'
-  -- here, because it's impossible to get a version of an entity without
-  -- already knowing it's in the database.
-  getVersion :: (HasDatabase m, CoreEntity a)
+  -- | Get a general version of an entity. This takes the tip of the master
+  -- branch.. You have to use a 'Ref' here, because it's impossible to get a
+  -- version of an entity without already knowing it's in the database.
+  getById :: (HasDatabase m, CoreEntity a)
              => Ref a
              -- ^ A reference to the version of the core entity.
              -> m (LoadedCoreEntity a)
-  getVersion version = do
-    results <- query selectQuery [ rowKey version ]
+  getById id' = do
+    results <- query selectQuery [ rowKey id' ]
     return . coreEntityFromRow $ head results
     where table = getTableName (tableName :: TableName a)
           selectQuery = unlines  [ "SELECT *"
                                  , "FROM " ++ table
-                                 , "WHERE version = ?" ]
+                                 , "WHERE " ++ (getKey (tableKey :: Key a))  ++ " = ?" ]
 
   {-| Turn a 'Row' into a full 'LoadedCoreEntity'.
 
@@ -118,7 +123,10 @@ class HasTable a => CoreEntity a where
     CoreEntity { gid                = row ! "gid"
                , coreEntityVersion  = row ! "version"
                , coreEntityRevision = row ! "rev_id"
-               , coreEntityInfo     = newFromRow row }
+               , coreEntityInfo     = newFromRow row
+               , coreEntityId       = row ! (table ++ "_id")
+               }
+    where table = getTableName (tableName :: TableName a)
 
   {-| Create a new version of a core entity. This version will belong to no
   branch, but will have a revision. -}
