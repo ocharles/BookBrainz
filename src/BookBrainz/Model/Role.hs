@@ -48,8 +48,10 @@ findRoles' tableName' ent = do
                   , "FROM " ++ tableName' ++ "_person_role pr"
                   , "JOIN person_role role USING (role_id)"
                   , "JOIN person USING (person_id)"
-                  , "JOIN " ++ tableName' ++ " t ON pr.rev_id = t.rev_id"
-                  , "WHERE t." ++ tableName' ++ "_id = ?"
+                  , unwords ["JOIN", "bookbrainz_v." ++ tableName' ++ "_revision r", "USING", "(", tableName' ++ "_tree_id" ,")" ]
+                  , "JOIN bookbrainz_v.branch ON branch.rev_id = r.rev_id"
+                  , unwords ["JOIN", "bookbrainz_v." ++ tableName' ++ "_branch b", "ON", "branch.id", "=", "b.branch_id"]
+                  , unwords ["WHERE",  tableName' ++ "_id", "= ?"]
                   ]
         personRoleFromRow r =
           ( roleFromRow r
