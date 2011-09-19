@@ -1,4 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE EmptyDataDecls #-}
+
 -- | Types overlooking the whole BrainzStem architecture.
 module BrainzStem.Types
        ( LoadedCoreEntity (..)
@@ -6,6 +8,7 @@ module BrainzStem.Types
        , Ref (..)
        , Revision (..)
        , Branch (..)
+       , Concept
        ) where
 
 import Data.Convertible (Convertible(..))
@@ -71,3 +74,5 @@ data Revision = Revision { revisionId :: Int }
 data Branch = Branch { branchId :: Int
                      , branchIsMaster :: Bool
                      }
+
+data Concept a

@@ -35,9 +35,9 @@ showEdition bbid = do
   edition <- getByGid bbid `onNothing` "Edition not found"
   output =<< V.showEdition
     <$> do (edition, , , , , , )
-             <$> getById (editionBook   . copoint $ edition)
+             <$> getByConcept (editionBook   . copoint $ edition)
              <*> traverse getByKey (editionFormat . copoint $ edition)
              <*> traverse getByKey (editionCountry . copoint $ edition)
              <*> traverse getByKey (editionLanguage . copoint $ edition)
-             <*> traverse getById (editionPublisher . copoint $ edition)
+             <*> traverse getByConcept (editionPublisher . copoint $ edition)
              <*> findRoles edition

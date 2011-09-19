@@ -29,7 +29,8 @@ import System.Random          (randomIO)
 
 import BrainzStem.Database    (HasDatabase, query, Row, (!))
 import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
-                              ,Ref (..), Revision (..), Branch (..))
+                              ,Ref (..), Revision (..), Branch (..)
+                              ,Concept)
 
 {-| Represents the table name for an entity. @a@ is the type of entity this
 is a table name for. -}
@@ -95,15 +96,16 @@ class HasTable a => CoreEntity a where
                                  , "FROM " ++ table
                                  , "WHERE gid = ?" ]
 
-  -- | Get a general version of an entity. This takes the tip of the master
-  -- branch.. You have to use a 'Ref' here, because it's impossible to get a
-  -- version of an entity without already knowing it's in the database.
-  getById :: (HasDatabase m, CoreEntity a)
-             => Ref a
-             -- ^ A reference to the version of the core entity.
-             -> m (LoadedCoreEntity a)
-  getById id' = do
-    results <- query selectQuery [ rowKey id' ]
+  -- | Get the latest definition of an entity by its concept ID.
+  -- This takes the tip of the master branch. You have to use a 'Ref' here
+  --  because it's impossible to get a version of an entity without already
+  -- knowing it's in the database.
+  getByConcept :: (HasDatabase m, CoreEntity a)
+               => Ref (Concept a)
+               -- ^ A reference to the version of the core entity.
+               -> m (LoadedCoreEntity a)
+  getByConcept conceptId' = do
+    results <- query selectQuery [ rowKey conceptId' ]
     return . coreEntityFromRow $ head results
     where table = getTableName (tableName :: TableName a)
           selectQuery = unlines  [ "SELECT *"
