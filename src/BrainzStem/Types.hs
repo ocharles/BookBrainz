@@ -40,15 +40,15 @@ an instance of 'Copointed'. To work directly with the underlying data, use the
 'copoint' function from 'Data.Copointed'. -}
 data LoadedCoreEntity a = CoreEntity
     { -- | The BrainzStem identifier of this entity.
-      gid               :: UUID
+      gid :: UUID
       -- | The revision tracking this data.
     , coreEntityRevision :: Ref (LoadedEntity Revision)
-      -- | The version of this data.
-    , coreEntityVersion :: Int
+      -- | A reference to this entity's tree.
+    , coreEntityTree :: Ref (Tree a)
       -- | The underlying information about this entity.
-    , coreEntityInfo    :: a
+    , coreEntityInfo :: a
       -- | The general ID of this entity.
-    , coreEntityId      :: Integer
+    , coreEntityId :: Integer
     } deriving Show
 
 instance Copointed LoadedCoreEntity where
@@ -76,3 +76,5 @@ data Branch = Branch { branchId :: Int
                      }
 
 data Concept a
+
+data Tree a

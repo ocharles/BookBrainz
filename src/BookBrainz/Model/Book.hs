@@ -28,7 +28,7 @@ instance CoreEntity Book where
     revisionRow <- head `fmap` query revisionQuery [ ]
     let book = coreEntityFromRow (bookRow `union` revisionRow)
     query bookRevQuery [ toSql $ coreEntityRevision book
-                       , toSql $ coreEntityVersion book
+                       , toSql $ coreEntityTree book
                        ]
     when (isJust parent) $
       query parentQuery [ toSql   parent

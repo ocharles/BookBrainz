@@ -123,7 +123,7 @@ class HasTable a => CoreEntity a where
                     -> LoadedCoreEntity a
   coreEntityFromRow row =
     CoreEntity { gid                = row ! "gid"
-               , coreEntityVersion  = row ! "version"
+               , coreEntityTree     = row ! (table ++ "_tree_id")
                , coreEntityRevision = row ! "rev_id"
                , coreEntityInfo     = newFromRow row
                , coreEntityId       = row ! (table ++ "_id")

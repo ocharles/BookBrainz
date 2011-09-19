@@ -41,7 +41,7 @@ findRoles' :: HasDatabase m
            => String -> LoadedCoreEntity a
            -> m [(LoadedEntity Role, LoadedCoreEntity Person)]
 findRoles' tableName' ent = do
-  rows <- query roleSql [ toSql $ coreEntityVersion ent ]
+  rows <- query roleSql [ toSql $ coreEntityTree ent ]
   return $ personRoleFromRow `map` rows
   where roleSql =
           unlines [ "SELECT person.*, role.role_id AS r_id, role.name AS r_name"
@@ -51,7 +51,7 @@ findRoles' tableName' ent = do
                   , unwords ["JOIN", "bookbrainz_v." ++ tableName' ++ "_revision r", "USING", "(", tableName' ++ "_tree_id" ,")" ]
                   , "JOIN bookbrainz_v.branch ON branch.rev_id = r.rev_id"
                   , unwords ["JOIN", "bookbrainz_v." ++ tableName' ++ "_branch b", "ON", "branch.id", "=", "b.branch_id"]
-                  , unwords ["WHERE",  tableName' ++ "_id", "= ?"]
+                  , unwords ["WHERE",  tableName' ++ "_tree_id", "= ?"]
                   ]
         personRoleFromRow r =
           ( roleFromRow r

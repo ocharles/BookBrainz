@@ -117,7 +117,7 @@ instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where
 
 instance ToJSON ent => ToJSON (LoadedCoreEntity ent) where
   toJSON ent = object [ "gid" .= gid ent
-                       , "_version" .= coreEntityVersion ent
+                       , "_tree" .= coreEntityTree ent
                        , "_revision" .= coreEntityRevision ent
                        , "_id" .= coreEntityId ent
                        ]
