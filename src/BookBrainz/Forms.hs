@@ -21,7 +21,7 @@ import           BookBrainz.Types.Book
 data SearchQuery = SearchQuery { query :: Text }
 
 bookForm :: (Monad m, MonadSnap m)
-         => Maybe (Book)
+         => Maybe Book
          -> SnapForm m Html BlazeFormHtml Book
 bookForm book = Book <$> inputText (bookName `fmap` book)
 

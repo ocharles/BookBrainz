@@ -98,8 +98,7 @@ instance GenericallyVersioned a => CoreEntity a where
         let pubRevSql = unlines [ "INSERT INTO bookbrainz_v.publisher_revision"
                                 , "(rev_id, publisher_id) VALUES (?, ?)"
                                 ]
-        in do
-          query pubRevSql [ toSql revId, treeId ]
+        in query pubRevSql [ toSql revId, treeId ]
       insertTree =
         let findOrInsertVersion =do
                 foundId <- findVersion pubData
@@ -122,7 +121,7 @@ instance GenericallyVersioned a => CoreEntity a where
                               , "(branch_id, publisher_id) VALUES (?, ?)"
                               ]
 
-  getRevision revision = do
+  getRevision revision =
     (revisionFromRow . head) `fmap` query revSql [ toSql revision ]
     where revSql = unlines [ "SELECT * FROM bookbrainz_v.publisher_revision"
                            , "JOIN bookbrainz_v.revision USING (rev_id)"

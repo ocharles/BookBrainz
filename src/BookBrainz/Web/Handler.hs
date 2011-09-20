@@ -16,7 +16,7 @@ import Control.Monad.IO.Class
 import Data.Text                (Text)
 import Data.Text.Lazy           (toStrict)
 import Data.Typeable
-import Snap.Types
+import Snap.Core
 import Text.Blaze               (Html)
 import Text.Blaze.Renderer.Text (renderHtml)
 

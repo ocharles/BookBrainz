@@ -9,28 +9,21 @@ module BookBrainz.Web.Handler.Book
        , editBook
        ) where
 
-import           Control.Applicative             ((<$>))
-import           Data.ByteString.Char8           (pack)
-import           Data.Traversable                (traverse)
+import           Control.Applicative        ((<$>))
+import           Data.Traversable           (traverse)
 
-import           Data.Copointed                  (copoint)
+import           Data.Copointed             (copoint)
 import           Data.UUID
-import           Snap.Types
-import           Text.Digestive.Forms.Snap
-import           Text.Digestive.Blaze.Html5
 
-import           BrainzStem.Model
-import qualified BookBrainz.Forms as Forms
 import           BookBrainz.Model.Book
 import           BookBrainz.Model.Edition
-import           BookBrainz.Model.Publisher      ()
-import           BookBrainz.Model.Role           (findRoles)
-import           BookBrainz.Types                (gid, editionPublisher
-                                                 ,coreEntityTree)
-import           BookBrainz.Web.Handler          (output, onNothing)
-import           BookBrainz.Web.Snaplet          (BookBrainzHandler, database)
-import           BookBrainz.Web.Snaplet.Database (withTransaction)
-import qualified BookBrainz.Web.View.Book as V
+import           BookBrainz.Model.Publisher ()
+import           BookBrainz.Model.Role      (findRoles)
+import           BookBrainz.Types           (coreEntityTree, editionPublisher)
+import           BookBrainz.Web.Handler     (output, onNothing)
+import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
+import qualified BookBrainz.Web.View.Book   as V
+import           BrainzStem.Model
 
 --------------------------------------------------------------------------------
 -- | List all known books.
@@ -51,5 +44,8 @@ showBook bbid = do
   where loadEdition e =
           (e, ) <$> traverse getByConcept (editionPublisher . copoint $ e)
 
+addBook :: BookBrainzHandler ()
 addBook = undefined
+
+editBook :: UUID -> BookBrainzHandler ()
 editBook = undefined

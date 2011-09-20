@@ -4,7 +4,7 @@ module BookBrainz.Model.EditionFormat where
 
 import Database.HDBC (toSql)
 
-import BrainzStem.Database (query, Row)
+import BrainzStem.Database (query)
 import BrainzStem.Model (Entity(..), (!))
 import BookBrainz.Types
 

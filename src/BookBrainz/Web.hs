@@ -5,25 +5,25 @@ module BookBrainz.Web
        ( bookbrainz
        ) where
 
-import Control.Monad.CatchIO           (tryJust)
-import Data.ByteString.Char8           (unpack)
-import Snap.Snaplet
-import Snap.Types
-import Snap.Util.FileServe
-import Web.Routes                      (runSite, RouteT, liftRouteT)
-import Web.Routes.Site                 (Site)
-import Web.Routes.Boomerang
+import           Control.Monad.CatchIO            (tryJust)
+import           Data.ByteString.Char8            (unpack)
+import           Snap.Core
+import           Snap.Snaplet
+import           Snap.Util.FileServe
+import           Web.Routes                       (runSite, RouteT, liftRouteT)
+import           Web.Routes.Boomerang
+import           Web.Routes.Site                  (Site)
 
-import BookBrainz.Web.Handler          (HttpError(..), output)
-import BookBrainz.Web.Handler.Book
-import BookBrainz.Web.Handler.Edition
-import BookBrainz.Web.Handler.Person
-import BookBrainz.Web.Handler.Publisher
-import BookBrainz.Web.Handler.Search
-import BookBrainz.Web.Sitemap          (Sitemap(..), sitemap)
-import BookBrainz.Web.Snaplet
-import BookBrainz.Web.Snaplet.Database
-import qualified BookBrainz.Web.View as V
+import           BookBrainz.Web.Handler           (HttpError(..), output)
+import           BookBrainz.Web.Handler.Book
+import           BookBrainz.Web.Handler.Edition
+import           BookBrainz.Web.Handler.Person
+import           BookBrainz.Web.Handler.Publisher
+import           BookBrainz.Web.Handler.Search
+import           BookBrainz.Web.Sitemap           (Sitemap(..), sitemap)
+import           BookBrainz.Web.Snaplet
+import           BookBrainz.Web.Snaplet.Database
+import qualified BookBrainz.Web.View              as V
 
 routeUrl :: Sitemap -> RouteT Sitemap BookBrainzHandler ()
 routeUrl url = liftRouteT $ case url of

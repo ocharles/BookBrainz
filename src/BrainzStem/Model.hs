@@ -79,7 +79,7 @@ class CoreEntity a where
 create :: (HasDatabase m, CoreEntity a)
        => a                       {-^ The information about the entity to
                                       insert. -}
-       -> (Ref Editor)            {-^ The editor creating this core entity. -}
+       -> Ref Editor              {-^ The editor creating this core entity. -}
        -> m (LoadedCoreEntity a)  {-^ The book, loaded from the database
                                       (complete with GID). -}
 create dat editorRef = do

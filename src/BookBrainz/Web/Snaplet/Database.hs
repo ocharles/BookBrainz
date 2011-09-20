@@ -35,7 +35,7 @@ instance HasDatabase (Handler b Database) where
 
 --------------------------------------------------------------------------------
 -- | Run a handler action within the scope of a transaction.
-withTransaction :: (Lens b (Snaplet Database))  -- ^ A lens to the database snaplet.
+withTransaction :: Lens b (Snaplet Database)    -- ^ A lens to the database snaplet.
                 -> Handler b v a                -- ^ The handler to execute.
                 -> Handler b v a
 withTransaction l h = do
