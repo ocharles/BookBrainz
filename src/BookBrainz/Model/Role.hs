@@ -1,31 +1,33 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 -- | Functions for working with 'BookBrainz.Types.Role.Role' entities.
 module BookBrainz.Model.Role
-       ( findRoles
+       ( HasRoles (..)
        ) where
 
-import Database.HDBC           (toSql)
+import Database.HDBC (toSql)
 
-import BrainzStem.Database     (HasDatabase, prefixedRow, query, (!))
-import BrainzStem.Model        (Entity(..), coreEntityFromRow, HasTable(..)
-                               ,TableName(..))
+import BrainzStem.Model.GenericVersioning (fromViewRow)
+import BrainzStem.Database     (HasDatabase, prefixedRow, query, Row)
+import BrainzStem.Model        (Entity(..), (!))
 import BookBrainz.Model.Person ()
 import BookBrainz.Types
 
-instance HasTable Role where
-  tableName = TableName "person_role"
-  newFromRow row = Role { roleName = row ! "name" }
+instance Entity Role where
+  getByPk pk = (fromRow . head) `fmap` query sql [ toSql pk ]
+    where sql = "SELECT * FROM person_role WHERE id = ?"
 
-instance Entity Role
+fromRow :: Row -> LoadedEntity Role
+fromRow r = Entity { entityInfo = Role { roleName = r ! "name" } }
 
 --------------------------------------------------------------------------------
 -- | The 'HasRoles' type class specifies that @entity@ has person-roles
 -- associated with it.
 class HasRoles entity where
   -- | Find all roles people played, in regards to a given entity.
-  findRoles :: HasDatabase m
-            => LoadedCoreEntity entity
+  findRoles :: (HasDatabase m)
+            => Ref (Tree entity)
             -- ^ The entity to find roles for.
             -> m [(LoadedEntity Role, LoadedCoreEntity Person)]
             -- ^ A list of (role, person) tuples.
@@ -37,11 +39,12 @@ instance HasRoles Edition where
   findRoles = findRoles' "edition"
 
 -- Internal implementation with nasty string munging. Woohoo!
-findRoles' :: HasDatabase m
-           => String -> LoadedCoreEntity a
+findRoles' :: (HasDatabase m, HasRoles roleLike)
+           => String
+           -> Ref (Tree roleLike)
            -> m [(LoadedEntity Role, LoadedCoreEntity Person)]
-findRoles' tableName' ent = do
-  rows <- query roleSql [ toSql $ coreEntityTree ent ]
+findRoles' tableName' treeId = do
+  rows <- query roleSql [ rowKey treeId ]
   return $ personRoleFromRow `map` rows
   where roleSql =
           unlines [ "SELECT person.*, role.role_id AS r_id, role.name AS r_name"
@@ -55,6 +58,6 @@ findRoles' tableName' ent = do
                   ]
         personRoleFromRow r =
           ( roleFromRow r
-          , coreEntityFromRow r :: LoadedCoreEntity Person
+          , fromViewRow r
           )
-        roleFromRow = entityFromRow . prefixedRow "r_"
+        roleFromRow = fromRow . prefixedRow "r_"

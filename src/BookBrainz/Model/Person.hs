@@ -1,39 +1,38 @@
 -- | Functions for working with 'BookBrainz.Types.Person.Person' entities.
-module BookBrainz.Model.Person
-       ( insertPerson
-       ) where
+module BookBrainz.Model.Person () where
 
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.UUID
-import Database.HDBC          (toSql)
-import System.Random
+import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
+                                          ,VersionConfig (..))
 
-import BrainzStem.Database     (HasDatabase, query, (!))
-import BrainzStem.Model        (CoreEntity(..), HasTable(..), coreEntityFromRow
-                               ,TableName(..))
-import BookBrainz.Types
+import Database.HDBC                      (toSql, fromSql)
 
-instance HasTable Person where
-  newFromRow row = Person { personName = row ! "name"
-                          }
-  tableName = TableName "person"
+import BookBrainz.Types                   (Person (..))
+import BrainzStem.Database                (queryOne, safeQueryOne, (!))
+import BrainzStem.Types                   (LoadedCoreEntity (..))
 
-instance CoreEntity Person
+instance GenericallyVersioned Person where
+  versioningConfig = VersionConfig { cfgView = "person"
+                                   , cfgIdCol = "person_id"
+                                   }
 
---------------------------------------------------------------------------------
--- | Insert and version a new 'Person'.
-insertPerson :: (Functor m, HasDatabase m)
-             => Person                      {-^ The information about the person to
-                                            insert. -}
-             -> m (LoadedCoreEntity Person) {-^ The person, loaded from the database
-                                            (complete with GID). -}
-insertPerson personSpec = do
-  personGid <- liftIO randomIO :: MonadIO m => m UUID
-  personRow <- head `fmap` query insertQuery [ toSql $ personName personSpec
-                                             , toSql   personGid
-                                             ]
-  return $ coreEntityFromRow personRow
-  where insertQuery = unlines [ "INSERT INTO person (name, gid)"
-                              , "VALUES (?, ?)"
-                              , "RETURNING *"
+  fromViewRow row =
+    CoreEntity { gid = row ! "gid"
+               , coreEntityRevision = row ! "revision"
+               , coreEntityTree = row ! "person_tree_id"
+               , coreEntityConcept = row ! "person_id"
+               , coreEntityInfo = Person { personName = row ! "name" }
+               }
+
+  findVersion personData = fmap fromSql `fmap`
+                          safeQueryOne findSql [ toSql $ personName personData ]
+    where findSql = unlines [ "SELECT version"
+                            , "FROM bookbrainz_v.person_v"
+                            , "WHERE name = ?"
+                            ]
+
+  newVersion personData = fromSql `fmap`
+                         queryOne insertSql [ toSql $ personName personData ]
+    where insertSql = unlines [ "INSERT INTO bookbrainz_v.person_v"
+                              , "(name) VALUES (?)"
+                              , "RETURNING version"
                               ]

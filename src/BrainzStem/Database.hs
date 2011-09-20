@@ -14,6 +14,7 @@ module BrainzStem.Database
          -- * Database Operations
        , query
        , queryOne
+       , safeQueryOne
 
          -- * Connection Handling
        , openConnection
@@ -23,7 +24,9 @@ module BrainzStem.Database
        ) where
 
 import Data.List                (isPrefixOf)
+import Data.Maybe               (fromJust)
 
+import Control.Applicative      (Applicative)
 import Control.Monad.IO.Class   (MonadIO, liftIO)
 import Data.Convertible         (Convertible)
 import Data.Map                 (Map, findWithDefault, mapKeys, filterWithKey)
@@ -45,7 +48,7 @@ data Database = Database
 
 --------------------------------------------------------------------------------
 -- | A monad that has a connection to a MetaBrainz database.
-class MonadIO m => HasDatabase m where
+class (Functor m, Monad m, Applicative m, MonadIO m) => HasDatabase m where
   -- | Get the @Connection@ to PostgreSQL.
   askConnection :: m Connection
 
@@ -69,18 +72,38 @@ query sql bind = do
 --------------------------------------------------------------------------------
 {-| Perform a SQL query on the database, and return the first column of the
 first row. -}
-queryOne :: (HasDatabase m, Convertible SqlValue v, Functor m)
-         => String                  {-^ The raw SQL to execute. Use @?@ to
-                                        indicate placeholders. -}
-         -> [SqlValue]              {-^ Values for each placeholder according
-                                        to its position in the SQL statement. -}
-         -> m (Maybe v)             {-^ The column value. -}
-queryOne sql bind = do
+safeQueryOne :: HasDatabase m
+             => String
+             -- ^ The raw SQL to execute. Use @?@ to indicate placeholders.
+             -> [SqlValue]
+             -- ^ Values for each placeholder according to its position in
+             -- the SQL statement.
+             -> m (Maybe SqlValue)
+             -- ^ The column value.
+safeQueryOne sql bind = do
   conn <- askConnection
-  fmap (fromSql . head) `fmap`
+  fmap head `fmap`
     liftIO (do stmt <- prepare conn sql
                execute stmt bind
                fetchRow stmt)
+
+--------------------------------------------------------------------------------
+{-| Perform a SQL query on the database, and return the first column of the
+first row. -}
+queryOne :: HasDatabase m
+         => String
+         -- ^ The raw SQL to execute. Use @?@ to indicate placeholders.
+         -> [SqlValue]
+         -- ^ Values for each placeholder according to its position in
+         -- the SQL statement.
+         -> m SqlValue
+         -- ^ The column value.
+queryOne sql bind = do
+  conn <- askConnection
+  head `fmap`
+    liftIO (do stmt <- prepare conn sql
+               execute stmt bind
+               fromJust `fmap` fetchRow stmt)
 
 --------------------------------------------------------------------------------
 -- | Attempt to find the value of a column, throwing an exception if it can't

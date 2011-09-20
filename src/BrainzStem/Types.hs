@@ -9,12 +9,15 @@ module BrainzStem.Types
        , Revision (..)
        , Branch (..)
        , Concept
+       , Tree
+       , Editor (..)
        ) where
 
-import Data.Convertible (Convertible(..))
+import Data.Convertible          (Convertible(..))
 import Data.Copointed
+import Data.Text                 (Text)
 import Data.UUID
-import Database.HDBC    (SqlValue)
+import Database.HDBC             (SqlValue)
 
 -- Import for type class instances
 import BrainzStem.Types.Newtypes ()
@@ -22,14 +25,14 @@ import BrainzStem.Types.Newtypes ()
 --------------------------------------------------------------------------------
 -- | Represents a reference in a database. @entity@ is a phantom type which
 -- tracks what type of entity this reference refers to.
-data Ref entity = Ref { rkey :: SqlValue }
+data Ref entity = Ref { rowKey :: SqlValue }
                 deriving Show
 
 instance Convertible (Ref a) SqlValue where
-  safeConvert = Right . rkey
+  safeConvert = Right . rowKey
 
 instance Convertible SqlValue (Ref a) where
-  safeConvert id' = Right Ref { rkey = id' }
+  safeConvert id' = Right $ Ref id'
 
 --------------------------------------------------------------------------------
 {-| A wrapper type that indicates that some data is a core BrainzStem entity,
@@ -42,13 +45,13 @@ data LoadedCoreEntity a = CoreEntity
     { -- | The BrainzStem identifier of this entity.
       gid :: UUID
       -- | The revision tracking this data.
-    , coreEntityRevision :: Ref (LoadedEntity Revision)
+    , coreEntityRevision :: Ref (Revision a)
       -- | A reference to this entity's tree.
     , coreEntityTree :: Ref (Tree a)
       -- | The underlying information about this entity.
     , coreEntityInfo :: a
-      -- | The general ID of this entity.
-    , coreEntityId :: Integer
+      -- | The concept this entity defines.
+    , coreEntityConcept :: Ref (Concept a)
     } deriving Show
 
 instance Copointed LoadedCoreEntity where
@@ -66,15 +69,47 @@ instance Copointed LoadedEntity where
   copoint = entityInfo
 
 --------------------------------------------------------------------------------
--- | Represents a single revision of a core entity.
-data Revision = Revision { revisionId :: Int }
+-- | Represents a single revision of an entity of type @a@.
+data Revision a = Revision { -- | The ID of the revision.
+                             revisionId :: Int
+                             -- | The 'Tree' this revision refers to.
+                           , revisionTree :: Ref (Tree a)
+                           }
 
 --------------------------------------------------------------------------------
--- | Represents a branch.
-data Branch = Branch { branchId :: Int
-                     , branchIsMaster :: Bool
-                     }
+-- | Represents a branch of revisions for an entity of type @a@.
+data Branch a = Branch { -- | The ID of the branch.
+                         branchId :: Int
+                         -- | True is the branch is the master branch, false for
+                         -- all other branches
+                       , branchIsMaster :: Bool
+                         -- | The 'Concept' this branch contains revisions of.
+                       , branchConcept :: Ref (Concept a)
+                         -- | The 'Revision' at the tip of this branch.
+                       , branchRevision :: Ref (Revision a)
+                       }
 
+--------------------------------------------------------------------------------
+{-| A concept is a single unique identifier for entiites. Every distinct book
+has one (and only one) concept, for example. This may sound like the purpose of
+a BookBrainz ID, but it is in fact what a BookBrainz ID /refers to/.
+
+There is no value of a concept, and they are intended to be used only in the
+phantom type of 'Ref'. -}
 data Concept a
 
+--------------------------------------------------------------------------------
+{-| A tree is a collection of data about an entity, at a point in time (at a
+revision, specifically). For an edition, this is the edition name, language, and
+other properties, but also the people who have a role in the creation of the
+edition, or a link to the publisher.
+
+A 'Tree' itself has no value however, it is intended to be used with 'Ref', and
+functions that operate on 'Tree' 'Ref's. -}
 data Tree a
+
+--------------------------------------------------------------------------------
+{-| An editon within the BrainzStem system. -}
+data Editor = Editor { -- | The name of the editor.
+                       editorName :: Text
+                     }

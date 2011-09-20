@@ -1,13 +1,16 @@
 -- | Functions for working with 'BookBrainz.Types.Language.Language' entities.
 module BookBrainz.Model.Language where
 
-import BrainzStem.Model (HasTable(..), Entity(..), TableName(..), Key(..), (!))
+import Database.HDBC (toSql)
+
+import BrainzStem.Database (query, Row)
+import BrainzStem.Model (Entity(..), (!))
 import BookBrainz.Types
 
-instance HasTable Language where
-  tableName = TableName "language"
-  newFromRow row = Language { languageName = row ! "name"
-                            , languageIsoCode = row ! "iso_code" }
-
 instance Entity Language where
-  key = Key "iso_code"
+  getByPk pk = (fromRow . head) `fmap` query sql [ toSql pk ]
+    where sql = "SELECT * FROM language WHERE iso_code = ?"
+          fromRow r =
+            Entity { entityInfo =
+                       Language { languageName = r ! "name"
+                                , languageIsoCode = r ! "iso_code" } }

@@ -22,7 +22,7 @@ import           BookBrainz.Model.Publisher     ()
 import           BookBrainz.Model.Role          (findRoles)
 import           BookBrainz.Types               (editionBook, editionFormat
                                                 ,editionCountry, editionLanguage
-                                                ,editionPublisher)
+                                                ,editionPublisher, coreEntityTree)
 import           BookBrainz.Web.Handler         (output, onNothing)
 import           BookBrainz.Web.Snaplet         (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Edition as V
@@ -36,8 +36,8 @@ showEdition bbid = do
   output =<< V.showEdition
     <$> do (edition, , , , , , )
              <$> getByConcept (editionBook   . copoint $ edition)
-             <*> traverse getByKey (editionFormat . copoint $ edition)
-             <*> traverse getByKey (editionCountry . copoint $ edition)
-             <*> traverse getByKey (editionLanguage . copoint $ edition)
+             <*> traverse getByPk (editionFormat . copoint $ edition)
+             <*> traverse getByPk (editionCountry . copoint $ edition)
+             <*> traverse getByPk (editionLanguage . copoint $ edition)
              <*> traverse getByConcept (editionPublisher . copoint $ edition)
-             <*> findRoles edition
+             <*> findRoles (coreEntityTree edition)

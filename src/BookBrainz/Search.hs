@@ -119,7 +119,7 @@ instance ToJSON ent => ToJSON (LoadedCoreEntity ent) where
   toJSON ent = object [ "gid" .= gid ent
                        , "_tree" .= coreEntityTree ent
                        , "_revision" .= coreEntityRevision ent
-                       , "_id" .= coreEntityId ent
+                       , "_concept" .= coreEntityConcept ent
                        ]
                `unionObject`
                toJSON (copoint ent)
@@ -128,10 +128,11 @@ instance (FromJSON entity) => FromJSON (LoadedEntity entity) where
   parseJSON json = Entity <$> parseJSON json
 
 instance ToJSON (Ref a) where
-  toJSON ref = toJSON (fromSql $ rkey ref :: String)
+  toJSON ref = toJSON (fromSql $ rowKey ref :: String)
 
 instance FromJSON (Ref a) where
   parseJSON (String s) = return (Ref $ toSql $ T.unpack s)
+  parseJSON v = typeMismatch "Ref" v
 
 typeToIndex :: SearchType -> Index
 typeToIndex BookBrainz.Search.Book = "book"

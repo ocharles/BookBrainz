@@ -10,7 +10,6 @@ module BookBrainz.Web.Snaplet.Database
     ) where
 
 import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.State    (gets)
 import           Data.Configurator      (require)
 import           Data.Lens.Common       (Lens)
 import qualified Database.HDBC          as HDBC

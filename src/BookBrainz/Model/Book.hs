@@ -4,56 +4,45 @@ module BookBrainz.Model.Book
          listAllBooks
        ) where
 
-import Control.Monad          (when)
-import Data.Maybe             (isJust)
+import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
+                                          ,VersionConfig (..))
 
-import Data.Map               (union)
-import Database.HDBC          (toSql)
+import Database.HDBC                      (toSql, fromSql)
 
-import BrainzStem.Database    (HasDatabase, query)
-import BrainzStem.Model       (CoreEntity(..), HasTable(..)
-                              ,coreEntityFromRow, TableName(..), (!))
-import BookBrainz.Types
+import BookBrainz.Types                   (Book (..))
+import BrainzStem.Database                (queryOne, safeQueryOne, (!)
+                                          ,HasDatabase, query)
+import BrainzStem.Types                   (LoadedCoreEntity (..))
 
-instance HasTable Book where
-  tableName = TableName "book"
-  newFromRow row = Book { bookName = row ! "name"
-                        }
+instance GenericallyVersioned Book where
+  versioningConfig = VersionConfig { cfgView = "book"
+                                   , cfgIdCol = "book_id"
+                                   }
 
-instance CoreEntity Book where
-  addVersion bookSpec uuid parent = do
-    bookRow <- head `fmap` query insertQuery [ toSql $ bookName bookSpec
-                                             , toSql   uuid
-                                             ]
-    revisionRow <- head `fmap` query revisionQuery [ ]
-    let book = coreEntityFromRow (bookRow `union` revisionRow)
-    query bookRevQuery [ toSql $ coreEntityRevision book
-                       , toSql $ coreEntityTree book
-                       ]
-    when (isJust parent) $
-      query parentQuery [ toSql   parent
-                        , toSql $ coreEntityRevision book
-                        ] >> return ()
-    return book
-    where insertQuery = unlines [ "INSERT INTO bookbrainz_v.book (name, gid)"
-                                , "VALUES (?, ?)"
-                                , "RETURNING *"
-                                ]
-          revisionQuery = unlines [ "INSERT INTO bookbrainz_v.revision"
-                                  , "DEFAULT VALUES"
-                                  , "RETURNING rev_id"
-                                  ]
-          parentQuery = unlines [ "INSERT INTO bookbrainz_v.revision_parent"
-                                , "(parent_id, rev_id) VALUES (?, ?)"
-                                ]
-          bookRevQuery = unlines [ "INSERT INTO bookbrainz_v.book_revision"
-                                 , "(rev_id, version)"
-                                 , "VALUES (?, ?)"
-                                 ]
+  fromViewRow row =
+    CoreEntity { gid = row ! "gid"
+               , coreEntityRevision = row ! "revision"
+               , coreEntityTree = row ! "book_tree_id"
+               , coreEntityConcept = row ! "book_id"
+               , coreEntityInfo = Book { bookName = row ! "name" }
+               }
 
+  findVersion pubData = fmap fromSql `fmap`
+                          safeQueryOne findSql [ toSql $ bookName pubData ]
+    where findSql = unlines [ "SELECT version"
+                            , "FROM bookbrainz_v.book_v"
+                            , "WHERE name = ?"
+                            ]
+
+  newVersion pubData = fromSql `fmap`
+                         queryOne insertSql [ toSql $ bookName pubData ]
+    where insertSql = unlines [ "INSERT INTO bookbrainz_v.book_v"
+                              , "(name) VALUES (?)"
+                              , "RETURNING version"
+                              ]
 
 --------------------------------------------------------------------------------
 -- | List the latest version of all known books.
 listAllBooks :: (Functor a, HasDatabase a)
              => a [LoadedCoreEntity Book]
-listAllBooks = map coreEntityFromRow `fmap` query "SELECT * FROM book" [ ]
+listAllBooks = map fromViewRow `fmap` query "SELECT * FROM book" [ ]

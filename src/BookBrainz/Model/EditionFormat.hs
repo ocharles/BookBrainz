@@ -2,11 +2,15 @@
 -- entities.
 module BookBrainz.Model.EditionFormat where
 
-import BrainzStem.Model (HasTable(..), Entity(..), TableName(..), (!))
+import Database.HDBC (toSql)
+
+import BrainzStem.Database (query, Row)
+import BrainzStem.Model (Entity(..), (!))
 import BookBrainz.Types
 
-instance HasTable EditionFormat where
-  tableName = TableName "edition_format"
-  newFromRow row = EditionFormat { editionFormatName = row ! "name" }
-
-instance Entity EditionFormat
+instance Entity EditionFormat where
+  getByPk pk = (fromRow . head) `fmap` query sql [ toSql pk ]
+    where sql = "SELECT * FROM edition_format WHERE id = ?"
+          fromRow r =
+            Entity { entityInfo =
+                       EditionFormat { editionFormatName = r ! "name" } }
