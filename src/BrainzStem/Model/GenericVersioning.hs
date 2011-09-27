@@ -10,10 +10,7 @@ module BrainzStem.Model.GenericVersioning
 
 import Data.Maybe             (listToMaybe)
 
-import Control.Monad.IO.Class (liftIO, MonadIO)
-import Data.UUID              (UUID)
 import Database.HDBC          (toSql, fromSql)
-import System.Random          (randomIO)
 
 import BrainzStem.Database    (query, queryOne, (!), Row,
                               HasDatabase)
@@ -49,11 +46,11 @@ class GenericallyVersioned a where
              -> m (Ref (Version a))
 
 instance GenericallyVersioned a => CoreEntity a where
-  getByGid bbid =
+  getByBbid bbid' =
     (fmap fromViewRow . listToMaybe)
-      `fmap` query selectSql [ toSql bbid ]
+      `fmap` query selectSql [ toSql bbid' ]
     where selectSql = unlines [ "SELECT * FROM " ++ view
-                              , "WHERE gid = ?"
+                              , "WHERE bbid = ?"
                               ]
           view = cfgView (versioningConfig :: VersionConfig a)
 
@@ -66,9 +63,9 @@ instance GenericallyVersioned a => CoreEntity a where
           view = cfgView (versioningConfig :: VersionConfig a)
           idCol = cfgIdCol (versioningConfig :: VersionConfig a)
 
-  newConcept = do
+  newConcept bbid' = do
     concept <- createConcept
-    attachGid concept
+    attachBbid concept
     return $ fromSql concept
     where
       createConcept =
@@ -78,14 +75,12 @@ instance GenericallyVersioned a => CoreEntity a where
                                      ]
             in
               queryOne conceptSql []
-      attachGid conceptRef =
-            let generateGid = liftIO randomIO :: MonadIO m => m UUID
-                attachToConcept uuid = query attachSql [ conceptRef
-                                                       , toSql uuid ]
-                attachSql = unlines [ "INSERT INTO bookbrainz_v.publisher_gid"
-                                    , "(publisher_id, gid) VALUES (?, ?)"
+      attachBbid conceptRef =
+            let attachSql = unlines [ "INSERT INTO bookbrainz_v.publisher_bbid"
+                                    , "(publisher_id, bbid) VALUES (?, ?)"
                                     ]
-            in generateGid >>= attachToConcept
+            in query attachSql [ conceptRef
+                               , toSql bbid' ]
 
   newRevision baseTree pubData revId = do
     treeId <- case baseTree of

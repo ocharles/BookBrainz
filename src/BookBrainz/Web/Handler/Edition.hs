@@ -28,11 +28,11 @@ import           BookBrainz.Web.Snaplet         (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Edition as V
 
 --------------------------------------------------------------------------------
-{-| Show a single 'Edition', searching by its GID. If the edition cannot be
+{-| Show a single 'Edition', searching by its BBID. If the edition cannot be
 found, a 404 page is displayed. -}
 showEdition :: UUID -> BookBrainzHandler ()
 showEdition bbid = do
-  edition <- getByGid bbid `onNothing` "Edition not found"
+  edition <- getByBbid bbid `onNothing` "Edition not found"
   output =<< V.showEdition
     <$> do (edition, , , , , , )
              <$> getByConcept (editionBook   . copoint $ edition)

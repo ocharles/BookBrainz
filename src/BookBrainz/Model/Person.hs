@@ -16,7 +16,7 @@ instance GenericallyVersioned Person where
                                    }
 
   fromViewRow row =
-    CoreEntity { gid = row ! "gid"
+    CoreEntity { bbid = row ! "bbid"
                , coreEntityRevision = row ! "revision"
                , coreEntityTree = row ! "person_tree_id"
                , coreEntityConcept = row ! "person_id"

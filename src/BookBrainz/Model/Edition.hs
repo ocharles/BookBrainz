@@ -22,7 +22,7 @@ instance GenericallyVersioned Edition where
                                    }
 
   fromViewRow row =
-    CoreEntity { gid = row ! "gid"
+    CoreEntity { bbid = row ! "bbid"
                , coreEntityRevision = row ! "revision"
                , coreEntityTree = row ! "edition_tree_id"
                , coreEntityConcept = row ! "edition_id"

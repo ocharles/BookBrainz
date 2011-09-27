@@ -9,9 +9,9 @@ import Data.UUID        (UUID, fromString, toString)
 import Database.HDBC    (fromSql, toSql, SqlValue)
 
 instance Convertible SqlValue UUID where
-  safeConvert gid = case fromString $ fromSql gid of
+  safeConvert bbid = case fromString $ fromSql bbid of
               Just uuid -> return uuid
-              Nothing -> convError "Not a valid UUID" gid
+              Nothing -> convError "Not a valid BBID" bbid
 
 instance Convertible UUID SqlValue where
   safeConvert = Right . toSql . toString

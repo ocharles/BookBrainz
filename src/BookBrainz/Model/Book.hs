@@ -20,7 +20,7 @@ instance GenericallyVersioned Book where
                                    }
 
   fromViewRow row =
-    CoreEntity { gid = row ! "gid"
+    CoreEntity { bbid = row ! "bbid"
                , coreEntityRevision = row ! "revision"
                , coreEntityTree = row ! "book_tree_id"
                , coreEntityConcept = row ! "book_id"

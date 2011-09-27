@@ -16,7 +16,7 @@ instance GenericallyVersioned Publisher where
                                    }
 
   fromViewRow row =
-    CoreEntity { gid = row ! "gid"
+    CoreEntity { bbid = row ! "bbid"
                , coreEntityRevision = row ! "revision"
                , coreEntityTree = row ! "publisher_tree_id"
                , coreEntityConcept = row ! "publisher_id"

@@ -43,7 +43,7 @@ an instance of 'Copointed'. To work directly with the underlying data, use the
 'copoint' function from 'Data.Copointed'. -}
 data LoadedCoreEntity a = CoreEntity
     { -- | The BrainzStem identifier of this entity.
-      gid :: UUID
+      bbid :: UUID
       -- | The revision tracking this data.
     , coreEntityRevision :: Ref (Revision a)
       -- | A reference to this entity's tree.

@@ -108,7 +108,7 @@ instance FromJSON UUID where
   parseJSON v = typeMismatch "UUID" v
 
 instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where
-  parseJSON json@(Object o) = CoreEntity <$> o .: "gid"
+  parseJSON json@(Object o) = CoreEntity <$> o .: "bbid"
                                          <*> o .: "_revision"
                                          <*> o .: "_version"
                                          <*> parseJSON json
@@ -116,7 +116,7 @@ instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where
   parseJSON v = typeMismatch "LoadedCoreEntity" v
 
 instance ToJSON ent => ToJSON (LoadedCoreEntity ent) where
-  toJSON ent = object [ "gid" .= gid ent
+  toJSON ent = object [ "bbid" .= bbid ent
                        , "_tree" .= coreEntityTree ent
                        , "_revision" .= coreEntityRevision ent
                        , "_concept" .= coreEntityConcept ent

@@ -33,11 +33,11 @@ listBooks = do
   output $ V.showBooks bs
 
 --------------------------------------------------------------------------------
-{-| Show a single 'Book', searching by its GID. If the book cannot be found,
+{-| Show a single 'Book', searching by its BBID. If the book cannot be found,
 a 404 page is displayed. -}
 showBook :: UUID -> BookBrainzHandler ()
 showBook bbid = do
-  book <- getByGid bbid `onNothing` "Book not found"
+  book <- getByBbid bbid `onNothing` "Book not found"
   editions <- findBookEditions (coreEntityTree book) >>= mapM loadEdition
   roles <- findRoles (coreEntityTree book)
   output $ V.showBook (book, roles) editions

@@ -70,40 +70,40 @@ pageLayout sidebar body = H.docTypeHtml $ do
 -- | Link to a book.
 linkBook :: LoadedCoreEntity Book  {-^ The 'Book' to link to. Must be a
                                    'LoadedCoreEntity' in order to have a
-                                   GID. -}
+                                   BBID. -}
          -> Html
 linkBook book =
-  let uri = showURL $ Sitemap.Book (gid book) in
+  let uri = showURL $ Sitemap.Book (bbid book) in
   H.a ! A.href (toValue uri) $ toHtml $ bookName $ copoint book
 
 --------------------------------------------------------------------------------
 -- | Link to an edition.
 linkEdition :: LoadedCoreEntity Edition  {-^ The 'Edition' to link to. Must be a
                                          'LoadedCoreEntity' in order to have a
-                                         GID. -}
+                                         BBID. -}
             -> Html
 linkEdition edition =
-  let uri = showURL $ Sitemap.Edition (gid edition) in
+  let uri = showURL $ Sitemap.Edition (bbid edition) in
   H.a ! A.href (toValue uri) $ toHtml $ (editionName . copoint) edition
 
 --------------------------------------------------------------------------------
 -- | Link to a publisher.
 linkPublisher :: LoadedCoreEntity Publisher
               -- ^ The 'Edition' to link to. Must be a 'LoadedCoreEntity' in
-              -- order to have a GID.
+              -- order to have a BBID.
               -> Html
 linkPublisher p =
-  let uri = showURL $ Sitemap.Publisher (gid p) in
+  let uri = showURL $ Sitemap.Publisher (bbid p) in
   H.a ! A.href (toValue uri) $ toHtml $ publisherName $ copoint p
 
 --------------------------------------------------------------------------------
 -- | Link to a person.
 linkPerson :: LoadedCoreEntity Person
            -- ^ The 'Person' to link to. Must be a 'LoadedCoreEntity' in
-           -- order to have a GID.
+           -- order to have a BBID.
            -> Html
 linkPerson p =
-  let uri = showURL $ Sitemap.Person (gid p) in
+  let uri = showURL $ Sitemap.Person (bbid p) in
   H.a ! A.href (toValue uri) $ toHtml $ personName $ copoint p
 
 --------------------------------------------------------------------------------

@@ -15,9 +15,11 @@ module BrainzStem.Model
        , (!)
        ) where
 
+import Control.Monad.IO.Class (liftIO, MonadIO)
 import Data.Copointed         (copoint)
 import Database.HDBC          (toSql, fromSql)
 import Data.UUID              (UUID)
+import System.Random          (randomIO)
 
 import BrainzStem.Database    (HasDatabase, (!), queryOne, query)
 import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
@@ -25,17 +27,17 @@ import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
                               ,Editor, Revision (..), Tree)
 
 --------------------------------------------------------------------------------
-{-| A "core" entity is an entity that has both a GID (BookBrainz identifier)
+{-| A "core" entity is an entity that has both a BBID (BookBrainz identifier)
 and is also versioned. This type class defines how they can be interacted with
 via the database. -}
 class CoreEntity a where
-  -- | Get a core entity by its GID.
-  getByGid :: HasDatabase m
+  -- | Get a core entity by its BBID.
+  getByBbid :: HasDatabase m
            => UUID
-           -- ^ The GID of the core entity.
+           -- ^ The BBID of the core entity.
            -> m (Maybe (LoadedCoreEntity a))
            -- ^ The 'LoadedCoreEntity' contextual representation of this core
-           -- entity, or 'Nothing' if there was no entity with this GID. -}
+           -- entity, or 'Nothing' if there was no entity with this BBID. -}
 
   -- | Get the latest definition of an entity by its concept ID.
   -- This takes the tip of the master branch. You have to use a 'Ref' here
@@ -55,9 +57,10 @@ class CoreEntity a where
               -> Ref (Revision a)
               -> m ()
 
-  -- | Create a completely new concept and attach a GID to it.
+  -- | Create a completely new concept and attach a BBID to it.
   newConcept :: HasDatabase m
-             => m (Ref (Concept a))
+             => UUID
+             -> m (Ref (Concept a))
 
   -- | Create a core entity specific branch and attach a concept reference to it
   attachBranchToConcept :: HasDatabase m
@@ -74,16 +77,17 @@ class CoreEntity a where
 
 --------------------------------------------------------------------------------
 -- | Insert and version a new core entity, creating a master branch and concept
--- at the same time. The creation of a concept will also assign a GID to this
+-- at the same time. The creation of a concept will also assign a BBID to this
 -- entity.
 create :: (HasDatabase m, CoreEntity a)
        => a                       {-^ The information about the entity to
                                       insert. -}
        -> Ref Editor              {-^ The editor creating this core entity. -}
        -> m (LoadedCoreEntity a)  {-^ The book, loaded from the database
-                                      (complete with GID). -}
+                                      (complete with BBID). -}
 create dat editorRef = do
-  concept <- newConcept
+  bbid' <- liftIO randomIO :: MonadIO m => m UUID
+  concept <- newConcept bbid'
   revision <- newSystemRevision Nothing dat editorRef
   newSystemBranch concept revision True
   getByConcept concept

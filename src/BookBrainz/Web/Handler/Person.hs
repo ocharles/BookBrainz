@@ -14,9 +14,9 @@ import           BookBrainz.Web.Snaplet  (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Person as V
 
 --------------------------------------------------------------------------------
-{-| Show a single 'Person', searching by its GID. If the person cannot be found,
+{-| Show a single 'Person', searching by its BBID. If the person cannot be found,
 a 404 page is displayed. -}
 showPerson :: UUID -> BookBrainzHandler ()
 showPerson bbid = do
-  person <- getByGid bbid `onNothing` "Person not found"
+  person <- getByBbid bbid `onNothing` "Person not found"
   output $ V.showPerson person
