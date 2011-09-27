@@ -32,7 +32,7 @@ data SearchableBook = SearchableBook
     }
 
 instance Document SearchableBook where
-  documentKey = toString . gid . bookResult
+  documentKey = T.pack . toString . bbid . bookResult
   documentType = DocumentType "book"
 
 instance ToJSON SearchableBook where
@@ -93,7 +93,7 @@ search :: (Document d, MonadIO m)
        => SearchType  -- ^ The type of entities to search for
        -> T.Text
        -> m (ES.SearchResults d)
-search t = liftIO . ES.search localServer (typeToIndex t)
+search t = liftIO . ES.search localServer (typeToIndex t) 0
 
 unionObject :: Value -> Value -> Value
 unionObject (Object a) (Object b) = Object (a `union` b)
