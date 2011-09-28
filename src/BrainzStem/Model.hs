@@ -86,7 +86,7 @@ create :: (HasDatabase m, CoreEntity a)
        -> m (LoadedCoreEntity a)  {-^ The book, loaded from the database
                                       (complete with BBID). -}
 create dat editorRef = do
-  bbid' <- liftIO randomIO :: MonadIO m => m UUID
+  bbid' <- newSystemConcept
   concept <- newConcept bbid'
   revision <- newSystemRevision Nothing dat editorRef
   newSystemBranch concept revision True
@@ -142,6 +142,14 @@ newSystemRevision base dat editor = do
                          , "(editor) VALUES (?)"
                          , "RETURNING rev_id"
                          ]
+
+newSystemConcept :: HasDatabase m
+                 => m UUID
+newSystemConcept = do
+  uuid <- liftIO randomIO :: MonadIO m => m UUID
+  query bbidSql [ toSql uuid ]
+  return uuid
+  where bbidSql = "INSERT INTO bookbrainz_v.bbid (bbid) VALUES (?)"
 
 newSystemBranch :: (CoreEntity a, HasDatabase m)
                 => Ref (Concept a)

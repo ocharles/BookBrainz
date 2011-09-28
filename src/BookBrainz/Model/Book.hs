@@ -16,7 +16,12 @@ import BrainzStem.Types                   (LoadedCoreEntity (..))
 
 instance GenericallyVersioned Book where
   versioningConfig = VersionConfig { cfgView = "book"
+                                   , cfgConcept = "book"
                                    , cfgIdCol = "book_id"
+                                   , cfgTree = "book_tree"
+                                   , cfgRevision = "book_revision"
+                                   , cfgBranch = "book_branch"
+                                   , cfgBbid = "book_bbid"
                                    }
 
   fromViewRow row =

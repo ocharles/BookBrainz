@@ -21,6 +21,11 @@ import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
 data Version a
 data VersionConfig a = VersionConfig { cfgView :: String
                                      , cfgIdCol :: String
+                                     , cfgConcept :: String
+                                     , cfgTree :: String
+                                     , cfgBbid :: String
+                                     , cfgRevision :: String
+                                     , cfgBranch :: String
                                      }
 
 --------------------------------------------------------------------------------
@@ -68,16 +73,20 @@ instance GenericallyVersioned a => CoreEntity a where
     attachBbid concept
     return $ fromSql concept
     where
+      config = versioningConfig :: VersionConfig a
       createConcept =
-            let conceptSql = unlines [ "INSERT INTO bookbrainz_v.publisher"
+            let conceptSql = unlines [ "INSERT INTO bookbrainz_v." ++
+                                       (cfgConcept config)
                                      , "DEFAULT VALUES"
-                                     , "RETURNING publisher_id"
+                                     , "RETURNING " ++ (cfgIdCol config)
                                      ]
             in
               queryOne conceptSql []
       attachBbid conceptRef =
-            let attachSql = unlines [ "INSERT INTO bookbrainz_v.publisher_bbid"
-                                    , "(publisher_id, bbid) VALUES (?, ?)"
+            let attachSql = unlines [ "INSERT INTO bookbrainz_v." ++
+                                      (cfgBbid config)
+                                    , "(" ++ (cfgIdCol config) ++ ", bbid)"
+                                    , "VALUES (?, ?)"
                                     ]
             in query attachSql [ conceptRef
                                , toSql bbid' ]
@@ -89,21 +98,25 @@ instance GenericallyVersioned a => CoreEntity a where
     createRevision treeId
     return ()
     where
+      config = versioningConfig :: VersionConfig a
       createRevision treeId =
-        let pubRevSql = unlines [ "INSERT INTO bookbrainz_v.publisher_revision"
-                                , "(rev_id, publisher_id) VALUES (?, ?)"
+        let pubRevSql = unlines [ "INSERT INTO bookbrainz_v." ++
+                                  (cfgRevision config)
+                                , "(rev_id, " ++ (cfgTree config) ++ "_id)"
+                                , "VALUES (?, ?)"
                                 ]
         in query pubRevSql [ toSql revId, treeId ]
       insertTree =
-        let findOrInsertVersion =do
+        let findOrInsertVersion = do
                 foundId <- findVersion pubData
                 case foundId of
                   Just id' -> return id'
                   Nothing -> newVersion pubData
             insertTreeSql = unlines
-                    [ "INSERT INTO bookbrainz_v.publisher_tree"
+                    [ "INSERT INTO bookbrainz_v." ++
+                      (cfgTree config)
                     , "(version) VALUES (?)"
-                    , "RETURNING tree_id"
+                    , "RETURNING " ++ (cfgTree config) ++ "_id"
                     ]
         in do
           versionId <- findOrInsertVersion
@@ -112,19 +125,26 @@ instance GenericallyVersioned a => CoreEntity a where
   attachBranchToConcept branch concept = do
     query branchSql [ toSql branch, toSql concept ]
     return ()
-    where branchSql = unlines [ "INSERT INTO bookbrainz_v.publisher_branch"
-                              , "(branch_id, publisher_id) VALUES (?, ?)"
-                              ]
+    where
+      config = versioningConfig :: VersionConfig a
+      branchSql = unlines [ "INSERT INTO bookbrainz_v." ++
+                            (cfgBranch config)
+                          , "(branch_id, " ++ (cfgIdCol config) ++ ")"
+                          , "VALUES (?, ?)"
+                          ]
 
   getRevision revision =
     (revisionFromRow . head) `fmap` query revSql [ toSql revision ]
-    where revSql = unlines [ "SELECT * FROM bookbrainz_v.publisher_revision"
-                           , "JOIN bookbrainz_v.revision USING (rev_id)"
-                           , "WHERE rev_id = ?"
-                           ]
-          revisionFromRow row =
-            Entity { entityInfo =
-                       Revision { revisionId = row ! "rev_id"
-                                , revisionTree = row ! "publisher_tree_id"
-                                }
-                   }
+    where
+      config = versioningConfig :: VersionConfig a
+      revSql = unlines [ "SELECT * FROM bookbrainz_v." ++
+                         (cfgRevision config)
+                       , "JOIN bookbrainz_v.revision USING (rev_id)"
+                       , "WHERE rev_id = ?"
+                       ]
+      revisionFromRow row =
+        Entity { entityInfo =
+                    Revision { revisionId = row ! "rev_id"
+                             , revisionTree = row ! ((cfgTree config) ++ "_id")
+                             }
+               }
