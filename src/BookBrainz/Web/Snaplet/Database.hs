@@ -9,10 +9,11 @@ module BookBrainz.Web.Snaplet.Database
     , withTransaction
     ) where
 
-import           Control.Monad.IO.Class (liftIO)
-import           Data.Configurator      (require)
-import           Data.Lens.Common       (Lens)
-import qualified Database.HDBC          as HDBC
+import           Control.Monad.IO.Class    (liftIO)
+import           Control.Monad.State.Class (gets)
+import           Data.Configurator         (require)
+import           Data.Lens.Common          (Lens)
+import qualified Database.HDBC             as HDBC
 import           Snap.Snaplet
 
 import BrainzStem.Database (Database, HasDatabase(..), connectionHandle
@@ -31,7 +32,7 @@ databaseInit = makeSnaplet "database" "PostgreSQL database connection"
 
 
 instance HasDatabase (Handler b Database) where
-  askConnection = getsSnapletState connectionHandle
+  askConnection = gets connectionHandle
 
 --------------------------------------------------------------------------------
 -- | Run a handler action within the scope of a transaction.
