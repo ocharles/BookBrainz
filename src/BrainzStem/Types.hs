@@ -13,26 +13,16 @@ module BrainzStem.Types
        , Editor (..)
        ) where
 
-import Data.Convertible          (Convertible(..))
 import Data.Copointed
-import Data.Text                 (Text)
-import Data.UUID
-import Database.HDBC             (SqlValue)
-
--- Import for type class instances
-import BrainzStem.Types.Newtypes ()
+import Data.Text        (Text)
+import Data.UUID        (UUID)
+import Database.HDBC    (SqlValue)
 
 --------------------------------------------------------------------------------
 -- | Represents a reference in a database. @entity@ is a phantom type which
 -- tracks what type of entity this reference refers to.
 data Ref entity = Ref { rowKey :: SqlValue }
                 deriving Show
-
-instance Convertible (Ref a) SqlValue where
-  safeConvert = Right . rowKey
-
-instance Convertible SqlValue (Ref a) where
-  safeConvert id' = Right $ Ref id'
 
 --------------------------------------------------------------------------------
 {-| A wrapper type that indicates that some data is a core BrainzStem entity,

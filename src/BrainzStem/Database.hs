@@ -28,11 +28,14 @@ import Data.Maybe               (fromJust)
 
 import Control.Applicative      (Applicative)
 import Control.Monad.IO.Class   (MonadIO, liftIO)
-import Data.Convertible         (Convertible)
+import Data.Convertible         (Convertible, safeConvert, convError)
 import Data.Map                 (Map, findWithDefault, mapKeys, filterWithKey)
+import Data.UUID                (UUID, fromString, toString)
 import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue
-                                ,fromSql, fetchRow)
+                                ,fromSql, fetchRow, toSql)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL)
+
+import BrainzStem.Types
 
 -- | A row is a mapping of column names to 'SqlValue's.
 type Row = Map String SqlValue
@@ -138,3 +141,16 @@ openConnection dbName dbUser = liftIO $ do
   where connStr = unwords . map stringPair
         stringPair (k, v) = k ++ "=" ++ v
 
+instance Convertible SqlValue UUID where
+  safeConvert bbid' = case fromString $ fromSql bbid' of
+                        Just uuid -> return uuid
+                        Nothing -> convError "Not a valid BBID" bbid'
+
+instance Convertible UUID SqlValue where
+  safeConvert = Right . toSql . toString
+
+instance Convertible (Ref a) SqlValue where
+  safeConvert = Right . rowKey
+
+instance Convertible SqlValue (Ref a) where
+  safeConvert id' = Right $ Ref id'

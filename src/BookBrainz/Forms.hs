@@ -16,7 +16,7 @@ import           Text.Digestive.Forms        (FormInput(..))
 import qualified Text.Digestive.Forms        as Forms
 import           Text.Digestive.Forms.Snap
 
-import           BookBrainz.Types.Book
+import           BookBrainz.Types
 
 data SearchQuery = SearchQuery { query :: Text }
 
