@@ -18,13 +18,12 @@ module BrainzStem.Model
 import Control.Monad.IO.Class (liftIO, MonadIO)
 import Data.Copointed         (copoint)
 import Database.HDBC          (toSql, fromSql)
-import Data.UUID              (UUID)
 import System.Random          (randomIO)
 
 import BrainzStem.Database    (HasDatabase, (!), queryOne, query)
 import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
                               ,Ref (..), Branch (..), Concept
-                              ,Editor, Revision (..), Tree)
+                              ,Editor, Revision (..), Tree, BBID)
 
 --------------------------------------------------------------------------------
 {-| A "core" entity is an entity that has both a BBID (BookBrainz identifier)
@@ -33,11 +32,11 @@ via the database. -}
 class CoreEntity a where
   -- | Get a core entity by its BBID.
   getByBbid :: HasDatabase m
-           => UUID
-           -- ^ The BBID of the core entity.
-           -> m (Maybe (LoadedCoreEntity a))
-           -- ^ The 'LoadedCoreEntity' contextual representation of this core
-           -- entity, or 'Nothing' if there was no entity with this BBID. -}
+            => BBID
+            -- ^ The BBID of the core entity.
+            -> m (Maybe (LoadedCoreEntity a))
+            -- ^ The 'LoadedCoreEntity' contextual representation of this core
+            -- entity, or 'Nothing' if there was no entity with this BBID. -}
 
   -- | Get the latest definition of an entity by its concept ID.
   -- This takes the tip of the master branch. You have to use a 'Ref' here
@@ -59,7 +58,7 @@ class CoreEntity a where
 
   -- | Create a completely new concept and attach a BBID to it.
   newConcept :: HasDatabase m
-             => UUID
+             => BBID
              -> m (Ref (Concept a))
 
   -- | Create a core entity specific branch and attach a concept reference to it
@@ -144,9 +143,9 @@ newSystemRevision base dat editor = do
                          ]
 
 newSystemConcept :: HasDatabase m
-                 => m UUID
+                 => m BBID
 newSystemConcept = do
-  uuid <- liftIO randomIO :: MonadIO m => m UUID
+  uuid <- liftIO randomIO :: MonadIO m => m BBID
   query bbidSql [ toSql uuid ]
   return uuid
   where bbidSql = "INSERT INTO bookbrainz_v.bbid (bbid) VALUES (?)"

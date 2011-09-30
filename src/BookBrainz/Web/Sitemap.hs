@@ -11,14 +11,15 @@ module BookBrainz.Web.Sitemap
        , showURL
        ) where
 
-import Prelude hiding                 ((.))
-import Control.Category               ((.))
-import Data.Maybe                     (fromJust)
+import Prelude hiding       ((.))
+import Control.Category     ((.))
+import Data.Maybe           (fromJust)
 
-import Data.UUID                      (UUID, fromString, toString)
-import Text.Boomerang.TH              (derivePrinterParsers)
-import Web.Routes.Base                (encodePathInfo)
+import Text.Boomerang.TH    (derivePrinterParsers)
+import Web.Routes.Base      (encodePathInfo)
 import Web.Routes.Boomerang
+
+import BrainzStem.Types     (BBID, parseBbid)
 
 data Sitemap
      = Home
@@ -27,18 +28,18 @@ data Sitemap
      | Resource String
 
        -- /book
-     | Book UUID
+     | Book BBID
      | AddBook
-     | EditBook UUID
+     | EditBook BBID
 
        -- /person
-     | Person UUID
+     | Person BBID
 
        -- /edition
-     | Edition UUID
+     | Edition BBID
 
        -- /publisher
-     | Publisher UUID
+     | Publisher BBID
 
        -- /search
      | Search
@@ -63,8 +64,8 @@ sitemap =
 
   <> rSearch . "search"
 
-uuid :: PrinterParser StringsError [String] o (UUID :- o)
-uuid = xmaph (fromJust . fromString) (Just . toString) anyString
+uuid :: PrinterParser StringsError [String] o (BBID :- o)
+uuid = xmaph (fromJust . parseBbid) (Just . show) anyString
 
 --------------------------------------------------------------------------------
 -- | Turn a 'Sitemap' value into a string URL with query parameters.

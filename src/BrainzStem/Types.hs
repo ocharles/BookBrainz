@@ -1,5 +1,7 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- | Types overlooking the whole BrainzStem architecture.
 module BrainzStem.Types
@@ -11,12 +13,16 @@ module BrainzStem.Types
        , Concept
        , Tree
        , Editor (..)
+       , BBID
+       , parseBbid
        ) where
 
 import Data.Copointed
-import Data.Text        (Text)
-import Data.UUID        (UUID)
-import Database.HDBC    (SqlValue)
+import Data.Text      (Text)
+import Data.Typeable  (Typeable)
+import Data.UUID      (UUID, fromString)
+import Database.HDBC  (SqlValue)
+import System.Random  (Random)
 
 --------------------------------------------------------------------------------
 -- | Represents a reference in a database. @entity@ is a phantom type which
@@ -33,7 +39,7 @@ an instance of 'Copointed'. To work directly with the underlying data, use the
 'copoint' function from 'Data.Copointed'. -}
 data LoadedCoreEntity a = CoreEntity
     { -- | The BrainzStem identifier of this entity.
-      bbid :: UUID
+      bbid :: BBID
       -- | The revision tracking this data.
     , coreEntityRevision :: Ref (Revision a)
       -- | A reference to this entity's tree.
@@ -103,3 +109,14 @@ data Tree a
 data Editor = Editor { -- | The name of the editor.
                        editorName :: Text
                      }
+
+--------------------------------------------------------------------------------
+-- | A BookBrainz identifier.
+newtype BBID = BBID UUID
+                 deriving (Show, Eq, Typeable, Random)
+
+--------------------------------------------------------------------------------
+-- | Try and parse a 'BBID' from a 'String', returning 'Nothing' if the parse
+-- fails.
+parseBbid :: String -> Maybe BBID
+parseBbid = fmap BBID . fromString

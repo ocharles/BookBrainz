@@ -13,7 +13,6 @@ import           Database.HDBC          (toSql, fromSql)
 import           Data.Aeson.Types       (typeMismatch)
 import           Data.Copointed         (copoint)
 import           Data.Map               (union)
-import           Data.UUID              (fromString, toString, UUID)
 import qualified Search.ElasticSearch   as ES
 import           Search.ElasticSearch   (Document(..), DocumentType(..)
                                         ,localServer, indexDocument, Index)
@@ -32,7 +31,7 @@ data SearchableBook = SearchableBook
     }
 
 instance Document SearchableBook where
-  documentKey = T.pack . toString . bbid . bookResult
+  documentKey = T.pack . show . bbid . bookResult
   documentType = DocumentType "book"
 
 instance ToJSON SearchableBook where
@@ -99,12 +98,12 @@ unionObject :: Value -> Value -> Value
 unionObject (Object a) (Object b) = Object (a `union` b)
 unionObject _ _ = error "unionObject can only be called with 2 Objects"
 
-instance ToJSON UUID where
-  toJSON = toJSON . toString
+instance ToJSON BBID where
+  toJSON = toJSON . show
 
-instance FromJSON UUID where
+instance FromJSON BBID where
   parseJSON (String s) =
-    maybe (fail "Couldnt parse UUID") return (fromString $ T.unpack s)
+    maybe (fail "Couldnt parse UUID") return (parseBbid $ T.unpack s)
   parseJSON v = typeMismatch "UUID" v
 
 instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where

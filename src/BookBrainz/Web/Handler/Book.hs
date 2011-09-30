@@ -13,13 +13,12 @@ import           Control.Applicative        ((<$>))
 import           Data.Traversable           (traverse)
 
 import           Data.Copointed             (copoint)
-import           Data.UUID
 
 import           BookBrainz.Model.Book
 import           BookBrainz.Model.Edition
 import           BookBrainz.Model.Publisher ()
 import           BookBrainz.Model.Role      (findRoles)
-import           BookBrainz.Types           (coreEntityTree, editionPublisher)
+import           BookBrainz.Types           (coreEntityTree, editionPublisher, BBID)
 import           BookBrainz.Web.Handler     (output, onNothing)
 import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Book   as V
@@ -35,7 +34,7 @@ listBooks = do
 --------------------------------------------------------------------------------
 {-| Show a single 'Book', searching by its BBID. If the book cannot be found,
 a 404 page is displayed. -}
-showBook :: UUID -> BookBrainzHandler ()
+showBook :: BBID -> BookBrainzHandler ()
 showBook bbid = do
   book <- getByBbid bbid `onNothing` "Book not found"
   editions <- findBookEditions (coreEntityTree book) >>= mapM loadEdition
@@ -47,5 +46,5 @@ showBook bbid = do
 addBook :: BookBrainzHandler ()
 addBook = undefined
 
-editBook :: UUID -> BookBrainzHandler ()
+editBook :: BBID -> BookBrainzHandler ()
 editBook = undefined
