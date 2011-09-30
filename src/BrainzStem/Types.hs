@@ -113,7 +113,10 @@ data Editor = Editor { -- | The name of the editor.
 --------------------------------------------------------------------------------
 -- | A BookBrainz identifier.
 newtype BBID = BBID UUID
-                 deriving (Show, Eq, Typeable, Random)
+                 deriving (Eq, Typeable, Random)
+
+instance Show BBID where
+  show (BBID uuid) = show uuid
 
 --------------------------------------------------------------------------------
 -- | Try and parse a 'BBID' from a 'String', returning 'Nothing' if the parse
