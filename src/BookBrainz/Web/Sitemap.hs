@@ -9,6 +9,7 @@ module BookBrainz.Web.Sitemap
        ( Sitemap(..)
        , sitemap
        , showURL
+       , showURLParams
        ) where
 
 import Prelude hiding       ((.))
@@ -43,6 +44,11 @@ data Sitemap
 
        -- /search
      | Search
+
+       -- User stuff
+     | Login
+     | Register
+     | Logout
      deriving (Eq, Show)
 
 $(derivePrinterParsers ''Sitemap)
@@ -54,7 +60,7 @@ sitemap =
 
   <> rAddBook . ("book" </> "add")
   <> rBook . ("book" </> uuid)
-  <> rEditBook . ("bookedit" </> uuid)
+  <> rEditBook . ("book" </> uuid . "edit")
 
   <> rPerson . ("person" </> uuid)
 
@@ -64,6 +70,11 @@ sitemap =
 
   <> rSearch . "search"
 
+  <> rLogin . "login"
+  <> rRegister . "register"
+  <> rLogout . "logout"
+
+-- Note that this currently consumes the trailing / !
 uuid :: PrinterParser StringsError [String] o (BBID :- o)
 uuid = xmaph (fromJust . parseBbid) (Just . show) anyString
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 {-| Connect to a MetaBrainz PostgreSQL database and interact with it.
 
@@ -15,6 +16,7 @@ module BrainzStem.Database
        , query
        , queryOne
        , safeQueryOne
+       , runDatabase
 
          -- * Connection Handling
        , openConnection
@@ -28,10 +30,11 @@ import Data.Maybe               (fromJust)
 
 import Control.Applicative      (Applicative)
 import Control.Monad.IO.Class   (MonadIO, liftIO)
+import Control.Monad.Reader     (runReaderT, ReaderT, asks, MonadReader)
 import Data.Convertible         (Convertible, safeConvert, convError)
 import Data.Map                 (Map, findWithDefault, mapKeys, filterWithKey)
 import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue
-                                ,fromSql, fetchRow, toSql)
+                                ,fromSql, fetchRow, toSql, commit)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL)
 
 import BrainzStem.Types
@@ -151,3 +154,18 @@ instance Convertible (Ref a) SqlValue where
 
 instance Convertible SqlValue (Ref a) where
   safeConvert id' = Right $ Ref id'
+
+--------------------------------------------------------------------------------
+-- | Run some IO code with a context that has access to a database.
+newtype DatabaseContext a = DatabaseContext {
+      runDbAction :: ReaderT Database IO a
+  } deriving (Monad, MonadIO, MonadReader Database, Functor, Applicative)
+
+instance HasDatabase DatabaseContext where
+  askConnection = asks connectionHandle
+
+runDatabase :: Database -> DatabaseContext a -> IO a
+runDatabase db action = do
+  ret <- runReaderT (runDbAction action) db
+  commit $ connectionHandle db
+  return ret
