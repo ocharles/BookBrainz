@@ -26,9 +26,9 @@ import           BookBrainz.Model.Role      (findRoles)
 import           BookBrainz.Types           (coreEntityTree, editionPublisher
                                             ,bbid, editorRef, BBID, coreEntityConcept)
 import           BookBrainz.Web.Handler     (output, onNothing, withUser)
-import           BookBrainz.Web.Snaplet     (BookBrainzHandler, database)
-import           BookBrainz.Web.Snaplet.Database (withTransaction)
+import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Book   as V
+import           BrainzStem.Database        (withTransaction)
 import           BrainzStem.Model
 
 --------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ addBook = do
     case r of
       Left form' -> output $ V.addBook $ renderFormHtml form'
       Right submission -> do
-        book <- withTransaction database $ create submission $ editorRef user
+        book <- withTransaction  $ create submission $ editorRef user
         redirect $ pack . ("/book/" ++) . show . bbid $ book
 
 ---------------------------------------------------------------------------------
@@ -75,6 +75,6 @@ editBook bbid' = do
       Left form' -> output $ V.addBook $ renderFormHtml form'
       Right submission -> do
         master <- findMasterBranch $ coreEntityConcept book
-        withTransaction database $
+        withTransaction $
           update master submission (editorRef user)
         redirect $ pack . ("/book/" ++) . show . bbid $ book

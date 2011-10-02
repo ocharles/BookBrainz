@@ -10,6 +10,7 @@ module Snap.Snaplet.Auth.Backend.BookBrainz
 import           Data.List               (intercalate)
 import           Data.Maybe              (listToMaybe)
 
+import           Database.HDBC.PostgreSQL (Connection)
 import           Control.Monad.IO.Class  (liftIO)
 import           Data.Convertible        (Convertible(..))
 import qualified Data.HashMap.Strict     as HM
@@ -24,12 +25,14 @@ import           Snap.Snaplet.Auth.Types (UserId (..), AuthSettings (..)
 import           Snap.Snaplet.Session    (SessionManager)
 import           Web.ClientSession       (getKey)
 
-import           BrainzStem.Database     (Database, query, (!), runDatabase
-                                         ,Row, queryOne)
+import           BrainzStem.Database     (Database(Database), query, (!)
+                                         ,runDatabase, Row, queryOne)
 
 data BookBrainzAuthManager b = BookBrainzAuthManager
-    { database :: Database
+    { dbConn :: Connection
     }
+
+database = Database . dbConn 
 
 ------------------------------------------------------------------------------
 -- | Initialize a BookBrainz auth backend 'AuthManager'.
@@ -38,7 +41,7 @@ initBookBrainzAuthManager
   -- ^ Authentication settings for your app.
   -> Lens b (Snaplet SessionManager)
   -- ^ Lens into a 'SessionManager' auth snaplet will use.
-  -> Database
+  -> Connection
   -- ^ A database connection to the BookBrainz schema.
   -> SnapletInit b (AuthManager b)
 initBookBrainzAuthManager settings sessionL connL =
@@ -57,7 +60,7 @@ initBookBrainzAuthManager settings sessionL connL =
                          , lockout = asLockout settings
                          }
 
-mkBookBrainzAuthMgr :: Database -> IO (BookBrainzAuthManager b)
+mkBookBrainzAuthMgr :: Connection -> IO (BookBrainzAuthManager b)
 mkBookBrainzAuthMgr = return . BookBrainzAuthManager
 
 instance Convertible SqlValue UserId where

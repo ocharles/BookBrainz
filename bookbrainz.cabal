@@ -62,7 +62,8 @@ Executable bookbrainz-server
     aeson >= 0.3.2.11,
     configurator >= 0.0.1.1,
     clientsession >= 0.6.0,
-    unordered-containers >= 0.1.4.2
+    unordered-containers >= 0.1.4.2,
+    snaplet-hdbc >= 0.1.0
 
   extensions: TypeSynonymInstances MultiParamTypeClasses
 

@@ -5,14 +5,17 @@ module BookBrainz.Web
        ( bookbrainz
        ) where
 
+import           Control.Monad.IO.Class                      (liftIO)
 import           Control.Monad.CatchIO                       (tryJust)
 import           Data.ByteString.Char8                       (unpack)
-import           Data.Lens.Lazy                              (getL)
+import           Data.Configurator                           (require)
+import           Database.HDBC.PostgreSQL                    (connectPostgreSQL)
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth                           (defAuthSettings
                                                              ,loginByRememberToken)
 import           Snap.Snaplet.Auth.Backend.BookBrainz
+import           Snap.Snaplet.Hdbc                           (hdbcInit)
 import           Snap.Snaplet.Session.Backends.CookieSession (initCookieSessionManager)
 import           Snap.Util.FileServe
 import           Web.Routes                                  (runSite, RouteT, liftRouteT)
@@ -28,7 +31,6 @@ import           BookBrainz.Web.Handler.Search
 import           BookBrainz.Web.Handler.User
 import           BookBrainz.Web.Sitemap                      (Sitemap(..), sitemap)
 import           BookBrainz.Web.Snaplet
-import           BookBrainz.Web.Snaplet.Database
 import qualified BookBrainz.Web.View                         as V
 
 routeUrl :: Sitemap -> RouteT Sitemap BookBrainzHandler ()
@@ -54,11 +56,12 @@ routeSite = boomerangSiteRouteT routeUrl sitemap
 -- | Initialize the 'BookBrainz' 'Snap.Snaplet'.
 bookbrainz :: SnapletInit BookBrainz BookBrainz
 bookbrainz = makeSnaplet "bookbrainz" "BookBrainz" Nothing $ do
-    dbSnaplet <- nestSnaplet "database" database databaseInit
+    config <- getSnapletUserConfig
+    conn <- liftIO $ connectToDatabase config
+    dbSnaplet <- nestSnaplet "hdbc" database $ hdbcInit conn
     sessionSnaplet <- nestSnaplet "session" session cookieSessionManager
     authSnaplet <- nestSnaplet "auth" auth $
-      initBookBrainzAuthManager defAuthSettings session $
-        getL snapletValue dbSnaplet
+      initBookBrainzAuthManager defAuthSettings session conn
     addRoutes [ ("/static", serveDirectory "resources")
               , ("", site) ]
     wrapHandlers tryLogin
@@ -71,6 +74,12 @@ bookbrainz = makeSnaplet "bookbrainz" "BookBrainz" Nothing $ do
         cookieSessionManager =
           initCookieSessionManager "site_key.txt" "_bbsession" Nothing
         tryLogin h = (with auth $ loginByRememberToken) >> h
+        connectToDatabase config = do
+          dbName <- require config "database"
+          dbUser <- require config "user"
+          connectPostgreSQL $ connStr [ ("dbname", dbName), ("user", dbUser) ]
+        connStr = unwords . map stringPair
+        stringPair (k, v) = k ++ "=" ++ v
 
 runHandler :: BookBrainzHandler () -> BookBrainzHandler ()
 runHandler a = do

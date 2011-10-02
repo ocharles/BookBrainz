@@ -17,6 +17,7 @@ module BrainzStem.Database
        , queryOne
        , safeQueryOne
        , runDatabase
+       , withTransaction
 
          -- * Connection Handling
        , openConnection
@@ -25,16 +26,20 @@ module BrainzStem.Database
        , connectionHandle
        ) where
 
+import Prelude hiding (catch)
+
+import Control.Exception        (SomeException)
 import Data.List                (isPrefixOf)
 import Data.Maybe               (fromJust)
 
 import Control.Applicative      (Applicative)
+import Control.Monad.CatchIO    (onException, MonadCatchIO, catch)
 import Control.Monad.IO.Class   (MonadIO, liftIO)
 import Control.Monad.Reader     (runReaderT, ReaderT, asks, MonadReader)
 import Data.Convertible         (Convertible, safeConvert, convError)
 import Data.Map                 (Map, findWithDefault, mapKeys, filterWithKey)
 import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue
-                                ,fromSql, fetchRow, toSql, commit)
+                                ,fromSql, fetchRow, toSql, commit, rollback)
 import Database.HDBC.PostgreSQL (Connection, connectPostgreSQL)
 
 import BrainzStem.Types
@@ -53,7 +58,7 @@ data Database = Database
 
 --------------------------------------------------------------------------------
 -- | A monad that has a connection to a MetaBrainz database.
-class (Functor m, Monad m, Applicative m, MonadIO m) => HasDatabase m where
+class (Functor m, Monad m, Applicative m, MonadIO m, MonadCatchIO m) => HasDatabase m where
   -- | Get the @Connection@ to PostgreSQL.
   askConnection :: m Connection
 
@@ -156,10 +161,24 @@ instance Convertible SqlValue (Ref a) where
   safeConvert id' = Right $ Ref id'
 
 --------------------------------------------------------------------------------
+-- | Run an action within a transaction. If it does not cleanly execute (throws
+-- exceptions) then the transaction is rolled back. Otherwise, it is commited
+withTransaction :: HasDatabase m => m a -> m a
+withTransaction action = do
+  conn <- askConnection
+  r <- onException action (liftIO $ doRollback conn)
+  liftIO $ commit conn
+  return r
+  where doRollback conn = catch (rollback conn) doRollbackHandler
+        doRollbackHandler :: SomeException -> IO ()
+        doRollbackHandler _ = return ()
+
+--------------------------------------------------------------------------------
 -- | Run some IO code with a context that has access to a database.
 newtype DatabaseContext a = DatabaseContext {
       runDbAction :: ReaderT Database IO a
-  } deriving (Monad, MonadIO, MonadReader Database, Functor, Applicative)
+  } deriving (Monad, MonadIO, MonadReader Database, Functor, Applicative,
+              MonadCatchIO)
 
 instance HasDatabase DatabaseContext where
   askConnection = asks connectionHandle
