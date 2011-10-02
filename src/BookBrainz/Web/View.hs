@@ -20,9 +20,12 @@ import           Data.Monoid                       (mempty)
 
 import           Data.Copointed
 import           Data.Text                         (Text)
-import           Text.Blaze.Html5                  (Html, toHtml, (!), toValue)
+import           Text.Blaze.Html5                  (Html, toHtml, (!), toValue
+                                                   ,ToValue
+                                                   ,preEscapedStringValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import           Text.Digestive.Forms.Html         (FormEncType)
 
 import           BookBrainz.Types
 import           BookBrainz.Web.Sitemap as Sitemap (Sitemap(..), showURL)
@@ -135,3 +138,7 @@ detailTable headers rows =
         mapEven o _ [x] = [o x]
         mapEven _ _ [] = []
         mapEven_ o e as = sequence_ (mapEven o e as)
+
+--------------------------------------------------------------------------------
+instance ToValue FormEncType where
+  toValue = preEscapedStringValue . show

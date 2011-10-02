@@ -49,6 +49,6 @@ searchPortal :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it
 searchPortal (formHtml, enctype) =
   pageLayout Nothing $ do
     H.h1 "Search"
-    H.form ! A.method "GET" ! A.action (toValue $ showURL Search) $ do
+    H.form ! A.method "GET" ! A.action (toValue $ showURL Search) ! A.enctype (toValue enctype) $ do
       formHtml
       H.p $ H.input ! A.type_ "submit" ! A.value "Search"

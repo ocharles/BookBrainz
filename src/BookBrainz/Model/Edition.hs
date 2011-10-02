@@ -19,6 +19,11 @@ import BrainzStem.Types                   (LoadedCoreEntity (..), Ref, Tree)
 instance GenericallyVersioned Edition where
   versioningConfig = VersionConfig { cfgView = "edition"
                                    , cfgIdCol = "edition_id"
+                                   , cfgConcept = "edition"
+                                   , cfgTree = "edition_tree"
+                                   , cfgBbid = "edition_bbid"
+                                   , cfgRevision = "edition_revision"
+                                   , cfgBranch = "edition_branch"                                                                      
                                    }
 
   fromViewRow row =

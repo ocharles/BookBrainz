@@ -9,7 +9,7 @@ module BookBrainz.Web.View.Book
        ) where
 
 import           Data.Copointed
-import           Text.Blaze.Html5          (toHtml, Html, (!))
+import           Text.Blaze.Html5          (toHtml, toValue, Html, (!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive.Forms.Html (FormEncType)
@@ -68,6 +68,6 @@ addBook :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
 addBook (formHtml, enctype) =
   pageLayout Nothing $ do
     H.h1 "Add Book"
-    H.form ! A.method "POST" $ do
+    H.form ! A.method "POST" ! A.enctype (toValue enctype) $ do
       formHtml
       H.p $ H.input ! A.type_ "submit" ! A.value "Add Book"

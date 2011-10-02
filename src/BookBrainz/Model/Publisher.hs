@@ -13,6 +13,11 @@ import BrainzStem.Types                   (LoadedCoreEntity (..))
 instance GenericallyVersioned Publisher where
   versioningConfig = VersionConfig { cfgView = "publisher"
                                    , cfgIdCol = "publisher_id"
+                                   , cfgConcept = "publisher"
+                                   , cfgTree = "publisher_tree"
+                                   , cfgBbid = "publisher_bbid"
+                                   , cfgRevision = "publisher_revision"
+                                   , cfgBranch = "publisher_branch"
                                    }
 
   fromViewRow row =

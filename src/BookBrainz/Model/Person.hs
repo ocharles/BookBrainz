@@ -13,6 +13,11 @@ import BrainzStem.Types                   (LoadedCoreEntity (..))
 instance GenericallyVersioned Person where
   versioningConfig = VersionConfig { cfgView = "person"
                                    , cfgIdCol = "person_id"
+                                   , cfgConcept = "person"
+                                   , cfgTree = "person_tree"
+                                   , cfgBbid = "person_bbid"
+                                   , cfgRevision = "person_revision"
+                                   , cfgBranch = "person_branch"                                   
                                    }
 
   fromViewRow row =
