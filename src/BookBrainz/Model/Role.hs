@@ -6,6 +6,8 @@ module BookBrainz.Model.Role
        ( HasRoles (..)
        ) where
 
+import Control.Monad (void)
+       
 import Database.HDBC (toSql)
 
 import BrainzStem.Model.GenericVersioning (fromViewRow)
@@ -32,11 +34,17 @@ class HasRoles entity where
             -> m [(LoadedEntity Role, LoadedCoreEntity Person)]
             -- ^ A list of (role, person) tuples.
 
+  copyRoles :: HasDatabase m
+            => Ref (Tree entity) -> Ref (Tree entity)
+            -> m ()
+            
 instance HasRoles Book where
   findRoles = findRoles' "book"
+  copyRoles = copyRoles' "book"
 
 instance HasRoles Edition where
   findRoles = findRoles' "edition"
+  copyRoles = copyRoles' "edition"  
 
 -- Internal implementation with nasty string munging. Woohoo!
 findRoles' :: (HasDatabase m, HasRoles roleLike)
@@ -61,3 +69,18 @@ findRoles' tableName' treeId = do
           , fromViewRow r
           )
         roleFromRow = fromRow . prefixedRow "r_"
+
+copyRoles' :: (HasDatabase m, HasRoles roleLike)
+           => String
+           -> Ref (Tree roleLike) -> Ref (Tree roleLike)
+           -> m ()
+copyRoles' tableName' baseTreeId newTreeId =
+  void $ query sql [ toSql baseTreeId, toSql newTreeId ]
+  where sql = let fullTable = "bookbrainz." ++ tableName' ++ "_person_role"
+                  col = tableName' ++ "_tree_id"
+              in unlines [ "INSERT INTO " ++ fullTable
+                         , "(" ++ col ++ ", person_id, role_id)"
+                         , "SELECT ?, person_id, role_id"
+                         , "FROM " ++ fullTable
+                         , "WHERE " ++ col ++ " = ?"
+                         ]

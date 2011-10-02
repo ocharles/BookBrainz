@@ -9,17 +9,29 @@ module BookBrainz.Web.Handler
          -- * Helper functions
        , output
        , onNothing
+       , currentUser
+       , withUser
        ) where
 
+import Data.Maybe (fromJust)
+
+import Database.HDBC            (toSql)
 import Control.Monad.CatchIO    (Exception, throw)
 import Control.Monad.IO.Class
+import qualified Data.ByteString.Char8 as BS
 import Data.Text                (Text)
 import Data.Text.Lazy           (toStrict)
+import Data.Text.Read           (decimal)
 import Data.Typeable
 import Snap.Core
+import Snap.Snaplet             (with)
+import qualified Snap.Snaplet.Auth as SnapAuth
+import Snap.Snaplet.Auth.Types  (userLogin, userId, unUid)
 import Text.Blaze               (Html)
 import Text.Blaze.Renderer.Text (renderHtml)
 
+import BookBrainz.Types
+import BookBrainz.Web.Sitemap     (showURLParams, Sitemap(..))
 import BookBrainz.Web.Snaplet
 
 {-| A HTTP client or server error that can be thrown in order to stop
@@ -45,3 +57,28 @@ onNothing :: MonadIO m
           -> Text         -- ^ The message to display to users with this 404.
           -> m b
 action `onNothing` msg = action >>= maybe (throw $ Http404 msg) return
+
+--------------------------------------------------------------------------------
+-- | Get the current user, as a BrainzStem specific 'Editor' type.
+currentUser :: BookBrainzHandler (Maybe Editor)
+currentUser = fmap auToBbE `fmap` (with auth $ SnapAuth.currentUser)
+  where auToBbE user =
+          Editor { editorName = userLogin user
+                 , editorRef = Ref . toSql . uidResult . decimal . unUid . fromJust $
+                               userId user
+                 }
+        uidResult :: Either String (Int, Text) -> Int
+        uidResult (Left _) = error "Could not read user ID"
+        uidResult (Right (id', _)) = id'
+
+--------------------------------------------------------------------------------
+-- | If the user is not logged in, redirect them to the login page with a sane
+-- redirection handler. Otherwise, return the currently logged in user.
+withUser :: (Editor -> BookBrainzHandler ()) -> BookBrainzHandler ()
+withUser f = do
+  u <- currentUser
+  case u of
+    Nothing -> do
+      redir <- rqURI `fmap` getRequest
+      redirect . BS.pack $ showURLParams Login [("redirect", BS.unpack redir)]
+    Just user -> f user

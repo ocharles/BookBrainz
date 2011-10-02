@@ -8,6 +8,7 @@ module BrainzStem.Model.GenericVersioning
        , VersionConfig (..)
        ) where
 
+import Control.Monad          (void)
 import Data.Maybe             (listToMaybe)
 
 import Database.HDBC          (toSql, fromSql)
@@ -16,9 +17,8 @@ import BrainzStem.Database    (query, queryOne, (!), Row,
                               HasDatabase)
 import BrainzStem.Model       (CoreEntity(..))
 import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
-                              ,Revision (..), Ref (..))
+                              ,Revision (..), Ref (..), Branch (..), Tree)
 
-data Version a
 data VersionConfig a = VersionConfig { cfgView :: String
                                      , cfgIdCol :: String
                                      , cfgConcept :: String
@@ -39,16 +39,12 @@ class GenericallyVersioned a where
   -- | Create a 'LoadedCoreEntity' from a row from the unified view.
   fromViewRow :: Row -> LoadedCoreEntity a
 
-  -- | Find an existing version row, from the definition of an entity.
-  findVersion :: HasDatabase m
-              => a
-              -> m (Maybe (Ref (Version a)))
-
-  -- | Insert a new version row, returning a 'Ref' to it. Called if
-  -- 'findVersion' returns 'Nothing'.
-  newVersion :: HasDatabase m
-             => a
-             -> m (Ref (Version a))
+  -- | Create a new 'Tree' for this @a@, optionally basing on an existing
+  -- tree.
+  newTree :: HasDatabase m
+          => Maybe (Ref (Tree a))
+          -> a
+          -> m (Ref (Tree a))
 
 instance GenericallyVersioned a => CoreEntity a where
   getByBbid bbid' =
@@ -91,36 +87,17 @@ instance GenericallyVersioned a => CoreEntity a where
             in query attachSql [ conceptRef
                                , toSql bbid' ]
 
-  newRevision baseTree pubData revId = do
-    treeId <- case baseTree of
-                Just _ -> error "Basing a revision off another not done"
-                Nothing -> insertTree
-    createRevision treeId
-    return ()
+  newRevision baseTree entData revId =
+    void $ newTree baseTree entData >>= newRevision'
     where
       config = versioningConfig :: VersionConfig a
-      createRevision treeId =
+      newRevision' treeId =
         let pubRevSql = unlines [ "INSERT INTO bookbrainz_v." ++
                                   (cfgRevision config)
                                 , "(rev_id, " ++ (cfgTree config) ++ "_id)"
                                 , "VALUES (?, ?)"
                                 ]
-        in query pubRevSql [ toSql revId, treeId ]
-      insertTree =
-        let findOrInsertVersion = do
-                foundId <- findVersion pubData
-                case foundId of
-                  Just id' -> return id'
-                  Nothing -> newVersion pubData
-            insertTreeSql = unlines
-                    [ "INSERT INTO bookbrainz_v." ++
-                      (cfgTree config)
-                    , "(version) VALUES (?)"
-                    , "RETURNING " ++ (cfgTree config) ++ "_id"
-                    ]
-        in do
-          versionId <- findOrInsertVersion
-          queryOne insertTreeSql [ toSql versionId ]
+        in queryOne pubRevSql [ toSql revId, toSql treeId ]
 
   attachBranchToConcept branch concept = do
     query branchSql [ toSql branch, toSql concept ]
@@ -148,3 +125,19 @@ instance GenericallyVersioned a => CoreEntity a where
                              , revisionTree = row ! ((cfgTree config) ++ "_id")
                              }
                }
+
+  findMasterBranch concept =
+    (branchFromRow . head) `fmap` query branchSql [ toSql concept ]
+    where
+      config = versioningConfig :: VersionConfig a
+      branchSql = unlines [ "SELECT * FROM bookbrainz_v.branch"
+                          , "JOIN bookbrainz_v." ++ (cfgBranch config)
+                          , "USING (branch_id)"
+                          , "WHERE " ++ (cfgConcept config) ++ "_id = ?"
+                          , "AND master = TRUE"
+                          ]
+      branchFromRow row = Entity $ Branch { branchId = row ! "branch_id"
+                                          , branchIsMaster = row ! "master"
+                                          , branchConcept = row ! (cfgConcept config)
+                                          , branchRevision = row ! "rev_id"
+                                          }

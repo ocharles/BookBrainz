@@ -119,3 +119,16 @@ table.details th {
 table.details tr.even td {
     background: #F2F2F2;
 }
+
+
+form label {
+    display: inline-block;
+    width: 100pt;
+    text-align: right;
+    margin-right: 4pt;
+}
+
+form p input[type="submit"],
+form ul {
+    margin-left: 104pt;
+}

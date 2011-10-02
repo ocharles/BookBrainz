@@ -108,6 +108,8 @@ data Tree a
 {-| An editon within the BrainzStem system. -}
 data Editor = Editor { -- | The name of the editor.
                        editorName :: Text
+                       -- | A reference to this editor.
+                     , editorRef :: Ref Editor
                      }
 
 --------------------------------------------------------------------------------

@@ -74,6 +74,11 @@ class CoreEntity a where
               => Ref (Revision a)
               -> m (LoadedEntity (Revision a))
 
+  -- | Find the master 'Branch' for a specific concept.
+  findMasterBranch :: HasDatabase m
+                   => Ref (Concept a)
+                   -> m (LoadedEntity (Branch a))
+
 --------------------------------------------------------------------------------
 -- | Insert and version a new core entity, creating a master branch and concept
 -- at the same time. The creation of a concept will also assign a BBID to this
@@ -112,10 +117,18 @@ update :: (CoreEntity a, HasDatabase m)
        -> m ()
 update branch dat editorRef = do
   let parent = branchRevision $ copoint branch
-  rev <- getRevision $ branchRevision (copoint branch)
-  revision <- newSystemRevision (Just $ revisionTree $ copoint rev) dat editorRef
-  parentRevision revision parent
+  currentRev <- getRevision $ branchRevision (copoint branch)
+  newRev <- newSystemRevision (Just $ revisionTree $ copoint currentRev) dat editorRef
+  parentRevision newRev parent
+  forwardBranch newRev
   return ()
+  where forwardBranch revId =
+          query forwardSql [ toSql revId
+                           , toSql . branchId $ copoint branch
+                           ]
+        forwardSql = unlines [ "UPDATE bookbrainz_v.branch SET rev_id = ?"
+                             , "WHERE branch_id = ?"
+                             ]
 
 merge :: HasDatabase m
       => Ref (Concept a)
@@ -162,7 +175,7 @@ newSystemBranch concept rev master = do
   return branch
   where branchSql = unlines [ "INSERT INTO bookbrainz_v.branch"
                             , "(rev_id, master) VALUES (?, ?)"
-                            , "RETURNING id"
+                            , "RETURNING branch_id"
                             ]
 
 parentRevision :: HasDatabase m
