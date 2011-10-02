@@ -53,7 +53,7 @@ findRoles' tableName' treeId = do
                   , "JOIN person USING (person_id)"
                   , unwords ["JOIN", "bookbrainz_v." ++ tableName' ++ "_revision r", "USING", "(", tableName' ++ "_tree_id" ,")" ]
                   , "JOIN bookbrainz_v.branch ON branch.rev_id = r.rev_id"
-                  , unwords ["JOIN", "bookbrainz_v." ++ tableName' ++ "_branch b", "ON", "branch.id", "=", "b.branch_id"]
+                  , unwords ["JOIN", "bookbrainz_v." ++ tableName' ++ "_branch b", "USING (branch_id)"]
                   , unwords ["WHERE",  tableName' ++ "_tree_id", "= ?"]
                   ]
         personRoleFromRow r =
