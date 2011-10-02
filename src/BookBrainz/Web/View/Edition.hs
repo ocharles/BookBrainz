@@ -11,12 +11,12 @@ import           Data.Maybe          (isJust, fromJust)
 import           Data.Monoid         (mappend, mconcat)
 
 import           Data.Copointed
-import           Text.Blaze.Html5    (Html, toHtml)
+import           Text.Blaze.Html5    (toHtml)
 import qualified Text.Blaze.Html5 as H
 
 import           BookBrainz.Types
 import           BookBrainz.Web.View (pageLayout, linkBook, linkEdition
-                                     ,linkPublisher, optionalDl)
+                                     ,linkPublisher, optionalDl, View)
 import qualified BookBrainz.Web.View.Sidebar as Sidebar
 
 --------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ showEdition :: ( LoadedCoreEntity Edition
                , [(LoadedEntity Role, LoadedCoreEntity Person)]
                )
             -- ^ The 'Edition' to display, with all necessary metadata
-            -> Html
+            -> View
 showEdition (edition, book, format, country, language, publisher, roles) =
   pageLayout (Just sidebar) $ do
     H.h1 $ do

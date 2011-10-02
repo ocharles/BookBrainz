@@ -16,7 +16,7 @@ import           Text.Digestive.Forms.Html (FormEncType)
 
 import           BookBrainz.Types
 import           BookBrainz.Web.View       (pageLayout, linkEdition, linkBook
-                                           ,linkPublisher, detailTable)
+                                           ,linkPublisher, detailTable, View)
 import qualified BookBrainz.Web.View.Sidebar as Sidebar
 
 --------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ showBook :: (LoadedCoreEntity Book
              , Maybe (LoadedCoreEntity Publisher)
              )]
          -- ^ A list of 'Edition's for this 'Book'.
-         -> Html
+         -> View
 showBook (book, roles) editions =
   pageLayout (Just sidebar) $ do
     let book' = copoint book
@@ -55,7 +55,7 @@ showBook (book, roles) editions =
 --------------------------------------------------------------------------------
 -- | Display a list of many 'Book's.
 showBooks :: [LoadedCoreEntity Book]  -- ^ The 'Book's to display.
-          -> Html
+          -> View
 showBooks books =
   pageLayout Nothing $ do
     H.h1 "Books"
@@ -64,7 +64,7 @@ showBooks books =
 --------------------------------------------------------------------------------
 -- | A form for adding new 'Book's.
 addBook :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
-        -> Html
+        -> View
 addBook (formHtml, enctype) =
   pageLayout Nothing $ do
     H.h1 "Add Book"

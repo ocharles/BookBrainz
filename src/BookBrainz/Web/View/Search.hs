@@ -15,14 +15,14 @@ import qualified BookBrainz.Search           as S
 import           BookBrainz.Types
 import           BookBrainz.Web.Sitemap      as Sitemap (Sitemap(..), showURL)
 import           BookBrainz.Web.View  (pageLayout, detailTable, linkBook
-                                      ,linkPerson)
+                                      ,linkPerson, View)
 
 --------------------------------------------------------------------------------
 -- | Given a list of search results, display them in a human readable
 -- table.
 searchResults :: SearchResults S.SearchableBook
               -- ^ The search results.
-              -> Html
+              -> View
 searchResults results = pageLayout Nothing $
   detailTable [("Score", ["score"])
               ,("Book", [])
@@ -45,7 +45,7 @@ roleList roles = H.ul (formatRole `mapM_` roles)
 --------------------------------------------------------------------------------
 -- | A form for beginning a search
 searchPortal :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
-             -> Html
+             -> View
 searchPortal (formHtml, enctype) =
   pageLayout Nothing $ do
     H.h1 "Search"

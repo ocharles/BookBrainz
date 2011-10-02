@@ -7,16 +7,16 @@ module BookBrainz.Web.View.Person
        ) where
 
 import Data.Copointed
-import Text.Blaze.Html5    (toHtml, Html)
+import Text.Blaze.Html5    (toHtml)
 import qualified Text.Blaze.Html5 as H
 
 import BookBrainz.Types
-import BookBrainz.Web.View (pageLayout)
+import BookBrainz.Web.View (pageLayout, View)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Person'.
 showPerson :: LoadedCoreEntity Person  -- ^ The 'Person' to display.
-           -> Html
+           -> View
 showPerson person =
   pageLayout Nothing $ do
     let person' = copoint person

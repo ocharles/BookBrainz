@@ -12,12 +12,12 @@ import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive.Forms.Html   (FormEncType)
 
-import           BookBrainz.Web.View         (pageLayout)
+import           BookBrainz.Web.View         (pageLayout, View)
 
 --------------------------------------------------------------------------------
 -- | A form authenticating.
 login :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
-      -> Html
+      -> View
 login (formHtml, enctype) =
   pageLayout Nothing $ do
     H.h1 "Login"
@@ -28,7 +28,7 @@ login (formHtml, enctype) =
 --------------------------------------------------------------------------------
 -- | A form for registering.
 register :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
-         -> Html
+         -> View
 register (formHtml, enctype) =
   pageLayout Nothing $ do
     H.h1 "Become a BookBrainz Editor"

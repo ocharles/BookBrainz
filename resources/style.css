@@ -44,6 +44,9 @@ body a:hover {
     border-radius: 0px 0px 5px 5px;
 }
 
+#header-menu ul.nav-left  { float: left; }
+#header-menu ul.nav-right { float: right; }
+
 #header-menu ul {
     margin: 0;
     padding: 0;

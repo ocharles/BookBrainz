@@ -27,12 +27,12 @@ import Snap.Core
 import Snap.Snaplet             (with)
 import qualified Snap.Snaplet.Auth as SnapAuth
 import Snap.Snaplet.Auth.Types  (userLogin, userId, unUid)
-import Text.Blaze               (Html)
 import Text.Blaze.Renderer.Text (renderHtml)
 
 import BookBrainz.Types
 import BookBrainz.Web.Sitemap     (showURLParams, Sitemap(..))
 import BookBrainz.Web.Snaplet
+import BookBrainz.Web.View        (View, runView)
 
 {-| A HTTP client or server error that can be thrown in order to stop
 processing a 'BookBrainzHandler'. -}
@@ -43,9 +43,11 @@ instance Exception HttpError
 
 --------------------------------------------------------------------------------
 -- | Output 'Html'.
-output :: Html -- ^ The 'Html' to display.
+output :: View -- ^ The 'View' to display.
        -> BookBrainzHandler ()
-output = writeText . toStrict . renderHtml
+output view = do
+  u <- currentUser
+  writeText . toStrict . renderHtml $ runView view u
 
 --------------------------------------------------------------------------------
 {-| Run an action with a 'Maybe' result, and if it returns 'Nothing', then a
