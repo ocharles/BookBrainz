@@ -26,7 +26,7 @@ import           Data.Monoid                       (mempty)
 
 import           Control.Monad.Reader              (Reader, runReader, asks, ReaderT)
 import           Data.Copointed
-import           Data.Text                         (Text, append)
+import           Data.Text                         (Text)
 import           Text.Blaze.Html5                  (Html, toHtml, (!), toValue
                                                    ,ToValue
                                                    ,preEscapedStringValue)
