@@ -28,16 +28,28 @@ instance GenericallyVersioned Person where
                , coreEntityInfo = Person { personName = row ! "name" }
                }
 
-  findVersion personData = fmap fromSql `fmap`
-                          safeQueryOne findSql [ toSql $ personName personData ]
-    where findSql = unlines [ "SELECT version"
-                            , "FROM bookbrainz_v.person_v"
-                            , "WHERE name = ?"
-                            ]
-
-  newVersion personData = fromSql `fmap`
-                         queryOne insertSql [ toSql $ personName personData ]
-    where insertSql = unlines [ "INSERT INTO bookbrainz_v.person_v"
-                              , "(name) VALUES (?)"
-                              , "RETURNING version"
+  newTree _ pubData = do
+    versionId <- findOrInsertVersion
+    fromSql `fmap` queryOne insertTreeSql [ versionId ]
+    where
+      findOrInsertVersion = do
+        foundId <- findVersion
+        case foundId of
+          Just id' -> return id'
+          Nothing -> newVersion
+      insertTreeSql = unlines [ "INSERT INTO bookbrainz_v.person_tree"
+                              , "(version) VALUES (?)"
+                              , "RETURNING person_tree_id"
                               ]
+      findVersion =
+        let findSql = unlines [ "SELECT version"
+                              , "FROM bookbrainz_v.person_v"
+                              , "WHERE name = ?"
+                              ]
+        in safeQueryOne findSql [ toSql $ personName pubData ]
+      newVersion =
+        let insertSql = unlines [ "INSERT INTO bookbrainz_v.person_v"
+                                , "(name) VALUES (?)"
+                                , "RETURNING version"
+                                ]
+        in queryOne insertSql [ toSql $ personName pubData ]

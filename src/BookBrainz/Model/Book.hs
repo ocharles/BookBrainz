@@ -4,14 +4,16 @@ module BookBrainz.Model.Book
          listAllBooks
        ) where
 
-import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
-                                          ,VersionConfig (..))
+import Data.Traversable                   (traverse)
 
 import Database.HDBC                      (toSql, fromSql)
 
+import BookBrainz.Model.Role              (copyRoles)
 import BookBrainz.Types                   (Book (..))
 import BrainzStem.Database                (queryOne, safeQueryOne, (!)
                                           ,HasDatabase, query)
+import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
+                                          ,VersionConfig (..))
 import BrainzStem.Types                   (LoadedCoreEntity (..))
 
 instance GenericallyVersioned Book where
@@ -32,19 +34,33 @@ instance GenericallyVersioned Book where
                , coreEntityInfo = Book { bookName = row ! "name" }
                }
 
-  findVersion pubData = fmap fromSql `fmap`
-                          safeQueryOne findSql [ toSql $ bookName pubData ]
-    where findSql = unlines [ "SELECT version"
-                            , "FROM bookbrainz_v.book_v"
-                            , "WHERE name = ?"
-                            ]
-
-  newVersion pubData = fromSql `fmap`
-                         queryOne insertSql [ toSql $ bookName pubData ]
-    where insertSql = unlines [ "INSERT INTO bookbrainz_v.book_v"
-                              , "(name) VALUES (?)"
-                              , "RETURNING version"
+  newTree baseTree pubData = do
+    versionId <- findOrInsertVersion
+    newTreeId <- fromSql `fmap` queryOne insertTreeSql [ versionId ]
+    traverse (\tree -> copyRoles tree newTreeId) baseTree
+    return newTreeId
+    where
+      findOrInsertVersion = do
+        foundId <- findVersion
+        case foundId of
+          Just id' -> return id'
+          Nothing -> newVersion
+      insertTreeSql = unlines [ "INSERT INTO bookbrainz_v.book_tree"
+                              , "(version) VALUES (?)"
+                              , "RETURNING book_tree_id"
                               ]
+      findVersion =
+        let findSql = unlines [ "SELECT version"
+                              , "FROM bookbrainz_v.book_v"
+                              , "WHERE name = ?"
+                              ]
+        in safeQueryOne findSql [ toSql $ bookName pubData ]
+      newVersion =
+        let insertSql = unlines [ "INSERT INTO bookbrainz_v.book_v"
+                                , "(name) VALUES (?)"
+                                , "RETURNING version"
+                                ]
+        in queryOne insertSql [ toSql $ bookName pubData ]
 
 --------------------------------------------------------------------------------
 -- | List the latest version of all known books.

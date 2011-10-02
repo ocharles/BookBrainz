@@ -12,15 +12,22 @@ module BookBrainz.Web.Handler.Book
 import           Control.Applicative        ((<$>))
 import           Data.Traversable           (traverse)
 
+import           Data.ByteString.Char8      (pack)
 import           Data.Copointed             (copoint)
+import           Snap.Core                  (redirect)
+import           Text.Digestive.Blaze.Html5
+import           Text.Digestive.Forms.Snap  (eitherSnapForm)
 
+import qualified BookBrainz.Forms as Forms
 import           BookBrainz.Model.Book
 import           BookBrainz.Model.Edition
 import           BookBrainz.Model.Publisher ()
 import           BookBrainz.Model.Role      (findRoles)
-import           BookBrainz.Types           (coreEntityTree, editionPublisher, BBID)
-import           BookBrainz.Web.Handler     (output, onNothing)
-import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
+import           BookBrainz.Types           (coreEntityTree, editionPublisher
+                                            ,bbid, editorRef, BBID, coreEntityConcept)
+import           BookBrainz.Web.Handler     (output, onNothing, withUser)
+import           BookBrainz.Web.Snaplet     (BookBrainzHandler, database)
+import           BookBrainz.Web.Snaplet.Database (withTransaction)
 import qualified BookBrainz.Web.View.Book   as V
 import           BrainzStem.Model
 
@@ -35,16 +42,39 @@ listBooks = do
 {-| Show a single 'Book', searching by its BBID. If the book cannot be found,
 a 404 page is displayed. -}
 showBook :: BBID -> BookBrainzHandler ()
-showBook bbid = do
-  book <- getByBbid bbid `onNothing` "Book not found"
+showBook bbid' = do
+  book <- getByBbid bbid' `onNothing` "Book not found"
   editions <- findBookEditions (coreEntityTree book) >>= mapM loadEdition
   roles <- findRoles (coreEntityTree book)
   output $ V.showBook (book, roles) editions
   where loadEdition e =
           (e, ) <$> traverse getByConcept (editionPublisher . copoint $ e)
 
+---------------------------------------------------------------------------------
+{-| Display a form for adding 'Book's, and on submission, add that book and
+redirect to view it. -}
 addBook :: BookBrainzHandler ()
-addBook = undefined
+addBook = do
+  withUser $ \user -> do
+    r <- eitherSnapForm (Forms.bookForm Nothing) "book"
+    case r of
+      Left form' -> output $ V.addBook $ renderFormHtml form'
+      Right submission -> do
+        book <- withTransaction database $ create submission $ editorRef user
+        redirect $ pack . ("/book/" ++) . show . bbid $ book
 
+---------------------------------------------------------------------------------
+{-| Display a form for adding 'Book's, and on submission, add that book and
+redirect to view it. -}
 editBook :: BBID -> BookBrainzHandler ()
-editBook = undefined
+editBook bbid' = do
+  withUser $ \user -> do
+    book <- getByBbid bbid' `onNothing` "Book not found"
+    r <- eitherSnapForm (Forms.bookForm . Just $ copoint book) "book"
+    case r of
+      Left form' -> output $ V.addBook $ renderFormHtml form'
+      Right submission -> do
+        master <- findMasterBranch $ coreEntityConcept book
+        withTransaction database $
+          update master submission (editorRef user)
+        redirect $ pack . ("/book/" ++) . show . bbid $ book

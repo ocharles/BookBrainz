@@ -1,13 +1,12 @@
 -- | Functions for working with 'BookBrainz.Types.Publisher.Publisher' entities.
 module BookBrainz.Model.Publisher () where
 
+import Database.HDBC (fromSql, toSql)
+
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
-
-import Database.HDBC                      (toSql, fromSql)
-
 import BookBrainz.Types                   (Publisher (..))
-import BrainzStem.Database                (queryOne, safeQueryOne, (!))
+import BrainzStem.Database                ((!), queryOne, safeQueryOne)
 import BrainzStem.Types                   (LoadedCoreEntity (..))
 
 instance GenericallyVersioned Publisher where
@@ -28,17 +27,28 @@ instance GenericallyVersioned Publisher where
                , coreEntityInfo = Publisher { publisherName = row ! "name" }
                }
 
-  findVersion pubData = fmap fromSql `fmap`
-                          safeQueryOne findSql [ toSql $ publisherName pubData ]
-    where findSql = unlines [ "SELECT version"
-                            , "FROM bookbrainz_v.publisher_v"
-                            , "WHERE name = ?"
-                            ]
-
-  newVersion pubData = fromSql `fmap`
-                         queryOne insertSql [ toSql $ publisherName pubData ]
-    where insertSql = unlines [ "INSERT INTO bookbrainz_v.publisher_v"
-                              , "(name) VALUES (?)"
-                              , "RETURNING version"
+  newTree _ pubData = do
+    versionId <- findOrInsertVersion
+    fromSql `fmap` queryOne insertTreeSql [ versionId ]
+    where
+      findOrInsertVersion = do
+        foundId <- findVersion
+        case foundId of
+          Just id' -> return id'
+          Nothing -> newVersion
+      insertTreeSql = unlines [ "INSERT INTO bookbrainz_v.publisher_tree"
+                              , "(version) VALUES (?)"
+                              , "RETURNING publisher_tree_id"
                               ]
-
+      findVersion =
+        let findSql = unlines [ "SELECT version"
+                              , "FROM bookbrainz_v.publisher_v"
+                              , "WHERE name = ?"
+                              ]
+        in safeQueryOne findSql [ toSql $ publisherName pubData ]
+      newVersion =
+        let insertSql = unlines [ "INSERT INTO bookbrainz_v.publisher_v"
+                                , "(name) VALUES (?)"
+                                , "RETURNING version"
+                                ]
+        in queryOne insertSql [ toSql $ publisherName pubData ]
