@@ -89,8 +89,9 @@ pageLayout sidebar body = do
               case cu of
                 Just authedUser -> do
                   H.li $ navLink Logout "Logout"
-                Nothing ->
+                Nothing -> do
                   H.li $ navLink Login "Login"
+                  H.li $ navLink Register "Register"
       H.div ! A.id "page" $ do
         showSidebar sidebar
         H.div ! A.id "content" $ body -- TODO Sidebar
