@@ -20,7 +20,7 @@ import Text.Boomerang.TH    (derivePrinterParsers)
 import Web.Routes.Base      (encodePathInfo)
 import Web.Routes.Boomerang
 
-import BrainzStem.Types     (BBID, parseBbid)
+import BookBrainz.Types
 
 data Sitemap
      = Home
@@ -29,18 +29,18 @@ data Sitemap
      | Resource String
 
        -- /book
-     | Book BBID
+     | Book (BBID Book)
      | AddBook
-     | EditBook BBID
+     | EditBook (BBID Book)
 
        -- /person
-     | Person BBID
+     | Person (BBID Person)
 
        -- /edition
-     | Edition BBID
+     | Edition (BBID Edition)
 
        -- /publisher
-     | Publisher BBID
+     | Publisher (BBID Publisher)
 
        -- /search
      | Search
@@ -75,7 +75,7 @@ sitemap =
   <> rLogout . "logout"
 
 -- Note that this currently consumes the trailing / !
-uuid :: PrinterParser StringsError [String] o (BBID :- o)
+uuid :: PrinterParser StringsError [String] o ((BBID a) :- o)
 uuid = xmaph (fromJust . parseBbid) (Just . show) anyString
 
 --------------------------------------------------------------------------------

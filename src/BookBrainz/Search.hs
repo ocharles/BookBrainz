@@ -98,10 +98,10 @@ unionObject :: Value -> Value -> Value
 unionObject (Object a) (Object b) = Object (a `union` b)
 unionObject _ _ = error "unionObject can only be called with 2 Objects"
 
-instance ToJSON BBID where
+instance ToJSON (BBID a) where
   toJSON = toJSON . show
 
-instance FromJSON BBID where
+instance FromJSON (BBID a) where
   parseJSON (String s) =
     maybe (fail "Couldnt parse UUID") return (parseBbid $ T.unpack s)
   parseJSON v = typeMismatch "UUID" v

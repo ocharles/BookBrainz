@@ -32,7 +32,7 @@ via the database. -}
 class CoreEntity a where
   -- | Get a core entity by its BBID.
   getByBbid :: HasDatabase m
-            => BBID
+            => BBID a
             -- ^ The BBID of the core entity.
             -> m (Maybe (LoadedCoreEntity a))
             -- ^ The 'LoadedCoreEntity' contextual representation of this core
@@ -58,7 +58,7 @@ class CoreEntity a where
 
   -- | Create a completely new concept and attach a BBID to it.
   newConcept :: HasDatabase m
-             => BBID
+             => BBID a
              -> m (Ref (Concept a))
 
   -- | Create a core entity specific branch and attach a concept reference to it
@@ -156,9 +156,9 @@ newSystemRevision base dat editor = do
                          ]
 
 newSystemConcept :: HasDatabase m
-                 => m BBID
+                 => m (BBID a)
 newSystemConcept = do
-  uuid <- liftIO randomIO :: MonadIO m => m BBID
+  uuid <- liftIO randomIO :: MonadIO m => m (BBID a)
   query bbidSql [ toSql uuid ]
   return uuid
   where bbidSql = "INSERT INTO bookbrainz_v.bbid (bbid) VALUES (?)"

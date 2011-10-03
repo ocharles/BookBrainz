@@ -23,8 +23,7 @@ import           BookBrainz.Model.Book
 import           BookBrainz.Model.Edition
 import           BookBrainz.Model.Publisher ()
 import           BookBrainz.Model.Role      (findRoles)
-import           BookBrainz.Types           (coreEntityTree, editionPublisher
-                                            ,bbid, editorRef, BBID, coreEntityConcept)
+import           BookBrainz.Types
 import           BookBrainz.Web.Handler     (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Book   as V
@@ -41,7 +40,7 @@ listBooks = do
 --------------------------------------------------------------------------------
 {-| Show a single 'Book', searching by its BBID. If the book cannot be found,
 a 404 page is displayed. -}
-showBook :: BBID -> BookBrainzHandler ()
+showBook :: BBID Book -> BookBrainzHandler ()
 showBook bbid' = do
   book <- getByBbid bbid' `onNothing` "Book not found"
   editions <- findBookEditions (coreEntityTree book) >>= mapM loadEdition
@@ -66,7 +65,7 @@ addBook = do
 ---------------------------------------------------------------------------------
 {-| Display a form for adding 'Book's, and on submission, add that book and
 redirect to view it. -}
-editBook :: BBID -> BookBrainzHandler ()
+editBook :: BBID Book -> BookBrainzHandler ()
 editBook bbid' = do
   withUser $ \user -> do
     book <- getByBbid bbid' `onNothing` "Book not found"

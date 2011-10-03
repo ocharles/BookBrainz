@@ -39,7 +39,7 @@ an instance of 'Copointed'. To work directly with the underlying data, use the
 'copoint' function from 'Data.Copointed'. -}
 data LoadedCoreEntity a = CoreEntity
     { -- | The BrainzStem identifier of this entity.
-      bbid :: BBID
+      bbid :: BBID a
       -- | The revision tracking this data.
     , coreEntityRevision :: Ref (Revision a)
       -- | A reference to this entity's tree.
@@ -113,15 +113,16 @@ data Editor = Editor { -- | The name of the editor.
                      }
 
 --------------------------------------------------------------------------------
--- | A BookBrainz identifier.
-newtype BBID = BBID UUID
+-- | A BookBrainz identifier. @a@ is a phantom type, which stops you using this
+-- BBID to refer to different concepts.
+newtype BBID a = BBID UUID
                  deriving (Eq, Typeable, Random)
 
-instance Show BBID where
+instance Show (BBID a) where
   show (BBID uuid) = show uuid
 
 --------------------------------------------------------------------------------
 -- | Try and parse a 'BBID' from a 'String', returning 'Nothing' if the parse
 -- fails.
-parseBbid :: String -> Maybe BBID
+parseBbid :: String -> Maybe (BBID a)
 parseBbid = fmap BBID . fromString

@@ -19,10 +19,7 @@ import           BookBrainz.Model.EditionFormat ()
 import           BookBrainz.Model.Language      ()
 import           BookBrainz.Model.Publisher     ()
 import           BookBrainz.Model.Role          (findRoles)
-import           BookBrainz.Types               (editionBook, editionFormat
-                                                ,editionCountry, editionLanguage
-                                                ,editionPublisher, coreEntityTree
-                                                ,BBID)
+import           BookBrainz.Types
 import           BookBrainz.Web.Handler         (output, onNothing)
 import           BookBrainz.Web.Snaplet         (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Edition as V
@@ -30,7 +27,7 @@ import qualified BookBrainz.Web.View.Edition as V
 --------------------------------------------------------------------------------
 {-| Show a single 'Edition', searching by its BBID. If the edition cannot be
 found, a 404 page is displayed. -}
-showEdition :: BBID -> BookBrainzHandler ()
+showEdition :: BBID Edition -> BookBrainzHandler ()
 showEdition bbid = do
   edition <- getByBbid bbid `onNothing` "Edition not found"
   output =<< V.showEdition

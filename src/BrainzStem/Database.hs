@@ -36,7 +36,7 @@ import Control.Applicative      (Applicative)
 import Control.Monad.CatchIO    (onException, MonadCatchIO, catch)
 import Control.Monad.IO.Class   (MonadIO, liftIO)
 import Control.Monad.Reader     (runReaderT, ReaderT, asks, MonadReader)
-import Data.Convertible         (Convertible, safeConvert, convError)
+import Data.Convertible         (Convertible, safeConvert, ConvertError(..))
 import Data.Map                 (Map, findWithDefault, mapKeys, filterWithKey)
 import Database.HDBC            (fetchAllRowsMap, prepare, execute, SqlValue
                                 ,fromSql, fetchRow, toSql, commit, rollback)
@@ -148,10 +148,16 @@ openConnection dbName dbUser = liftIO $ do
   where connStr = unwords . map stringPair
         stringPair (k, v) = k ++ "=" ++ v
 
-instance Convertible SqlValue BBID where
-  safeConvert bbid' = maybe (convError "Not a valid BBID" bbid') return (parseBbid $ fromSql bbid')
+instance Convertible SqlValue (BBID a) where
+  safeConvert bbid' = maybe (convError' bbid') return (parseBbid $ fromSql bbid')
+    where convError' inpval =
+            Left $ ConvertError { convSourceValue = show inpval
+                                , convSourceType = "SqlValue"
+                                , convDestType = "BBID"
+                                , convErrorMessage = "Not a valid BBID"
+                                }
 
-instance Convertible BBID SqlValue where
+instance Convertible (BBID a) SqlValue where
   safeConvert = Right . toSql . show
 
 instance Convertible (Ref a) SqlValue where
