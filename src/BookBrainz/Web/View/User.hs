@@ -7,7 +7,9 @@ module BookBrainz.Web.View.User
        , register
        ) where
 
-import           Text.Blaze.Html5            (Html, (!), toValue)
+import           Control.Monad (when)
+       
+import           Text.Blaze.Html5            (Html, (!), toValue, toHtml)
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive.Forms.Html   (FormEncType)
@@ -28,10 +30,13 @@ login (formHtml, enctype) =
 --------------------------------------------------------------------------------
 -- | A form for registering.
 register :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
+         -> [String]
          -> View
-register (formHtml, enctype) =
+register (formHtml, enctype) generalErrors =
   pageLayout Nothing $ do
     H.h1 "Become a BookBrainz Editor"
     H.form ! A.method "POST" ! A.enctype (toValue enctype) $ do
+      when (not $ null generalErrors) $
+        H.ul $ (H.li . toHtml) `mapM_` generalErrors
       formHtml
       H.p $ H.input ! A.type_ "submit" ! A.value "Register"

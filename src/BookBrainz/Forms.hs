@@ -15,6 +15,7 @@ import           Text.Digestive.Blaze.Html5
 import           Text.Digestive.Forms        (FormInput(..))
 import qualified Text.Digestive.Forms        as Forms
 import           Text.Digestive.Forms.Snap
+import qualified Text.Digestive.Types as DF
 
 import           BookBrainz.Types
 
@@ -97,3 +98,10 @@ processForm :: (MonadSnap m)
             -> String            -- ^ Form name
             -> m (Either v a)    -- ^ Result
 processForm form name = eitherForm form name snapEnvironment
+
+--------------------------------------------------------------------------------
+-- | Run a form returning the view and the result. This allows you to do extra
+-- processing once a form has validated.
+runForm :: MonadSnap m
+        => SnapForm m e v a -> String -> m (DF.View e v, Result e a)
+runForm form identifier = DF.runForm form identifier snapEnvironment
