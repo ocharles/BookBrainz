@@ -9,13 +9,9 @@ import           Snap.Snaplet.Auth          (Password (..), loginByUsername
 import qualified Snap.Snaplet.Auth as Auth
 import           Text.Digestive.Blaze.Html5 (renderFormHtml)
 import           Text.Digestive.Forms.Snap  (eitherSnapForm)
-import           Text.Digestive.Result      (Result(Ok, Error))
-import           Text.Digestive.Types       (unView)
 
 import           BookBrainz.Forms           (Login (..), loginForm
-                                            ,Registration (..), registerForm
-                                            ,runForm)
-import           BookBrainz.Model.Editor    (getEditorByName)
+                                            ,Registration (..), registerForm)
 import           BookBrainz.Web.Handler
 import           BookBrainz.Web.Snaplet
 import qualified BookBrainz.Web.View.User   as V
@@ -36,21 +32,15 @@ login = do
         
 register :: BookBrainzHandler ()
 register = do
-  (view', result) <- runForm registerForm "register"
-  case result of
-    Ok submission -> do
-      editor <- getEditorByName $ newUserName submission
-      case editor of
-        Just _ ->
-          output $ V.register (renderFormHtml $ unView view' [])
-                              [ "This account already exists" ]
-        Nothing -> do
-          with auth $ do
-            newUser <- createUser (newUserName submission)
-                                  (encodeUtf8 $ newUserPassword submission)
-            forceLogin newUser
-          redirect "/"
-    Error e -> output $ V.register (renderFormHtml $ unView view' e) []
+  r <- eitherSnapForm registerForm "register"
+  case r of
+    Left form' -> output $ V.login $ renderFormHtml form'
+    Right submission -> do
+      with auth $ do
+        newUser <- createUser (newUserName submission)
+                              (encodeUtf8 $ newUserPassword submission)
+        forceLogin newUser
+      redirect "/"
 
 logout :: BookBrainzHandler ()
 logout = do

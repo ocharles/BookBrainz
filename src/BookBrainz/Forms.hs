@@ -15,8 +15,9 @@ import           Text.Digestive.Blaze.Html5
 import           Text.Digestive.Forms        (FormInput(..))
 import qualified Text.Digestive.Forms        as Forms
 import           Text.Digestive.Forms.Snap
-import qualified Text.Digestive.Types as DF
 
+import           BrainzStem.Database (HasDatabase)
+import           BookBrainz.Model.Editor (getEditorByName)
 import           BookBrainz.Types
 
 data SearchQuery = SearchQuery { query :: Text }
@@ -53,9 +54,9 @@ password :: (Monad m, MonadSnap m)
          => Maybe Text -> SnapForm m Html BlazeFormHtml Text
 password inp = inputPass inp `validate` nonEmpty "Please enter a password"
 
-registerForm :: (Monad m, MonadSnap m)
+registerForm :: (Monad m, MonadSnap m, HasDatabase m)
              => SnapForm m Html BlazeFormHtml Registration
-registerForm = (`validate` passwordsMatch) $ (errors ++>) $
+registerForm = (`transform` newUserCheck) $ (`validate` passwordsMatch) $ (errors ++>) $
                   Registration <$> simpleField "User name:" (userName Nothing)
                                <*> simpleField "Password:" (password Nothing)
                                <*> simpleField "Confirm password:" (password Nothing)
@@ -63,6 +64,11 @@ registerForm = (`validate` passwordsMatch) $ (errors ++>) $
                                      (inputText Nothing)
   where passwordsMatch = check "Passwords must match" $ \reg ->
           newUserPassword reg == newUserPasswordConfirmation reg
+        newUserCheck = transformEitherM $ \submission -> do
+          editor <- getEditorByName $ newUserName submission
+          return $ case editor of
+            Just _  -> Left "An account with this name already exists"
+            Nothing -> Right submission
 
 loginForm :: (Monad m, MonadSnap m)
           => SnapForm m Html BlazeFormHtml Login
@@ -98,10 +104,3 @@ processForm :: (MonadSnap m)
             -> String            -- ^ Form name
             -> m (Either v a)    -- ^ Result
 processForm form name = eitherForm form name snapEnvironment
-
---------------------------------------------------------------------------------
--- | Run a form returning the view and the result. This allows you to do extra
--- processing once a form has validated.
-runForm :: MonadSnap m
-        => SnapForm m e v a -> String -> m (DF.View e v, Result e a)
-runForm form identifier = DF.runForm form identifier snapEnvironment
