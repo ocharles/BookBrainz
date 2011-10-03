@@ -110,7 +110,6 @@ instance IAuthBackend (BookBrainzAuthManager b) where
                           ]
         in do editorId <- queryOne sql [ toSql $ userLogin user
                                        , toSql $ userPassword user
-                                       , toSql $ userRememberToken user
                                        ]
               return $ user { userId = fromSql editorId }
       updateUser =
