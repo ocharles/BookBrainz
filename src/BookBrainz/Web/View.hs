@@ -20,8 +20,10 @@ module BookBrainz.Web.View
        , optionalDl
        , detailTable
        ) where
-       
+
+import           Control.Monad                     (when)
 import           Data.Functor.Identity             (Identity)
+import           Data.Maybe                        (isJust)
 import           Data.Monoid                       (mempty)
 
 import           Control.Monad.Reader              (Reader, runReader, asks, ReaderT)
@@ -68,6 +70,7 @@ pageLayout :: Maybe Html   -- ^ Optional 'Html' for the sidebar.
            -> View
 pageLayout sidebar body = do
   cu <- currentEditor
+  let loggedIn = isJust cu
   return . H.docTypeHtml $ do
     H.head $ do
       H.title "BookBrainz"
@@ -83,11 +86,13 @@ pageLayout sidebar body = do
               H.input ! A.type_ "submit"
         H.div ! A.id "header-menu" $
           H.div $ do
-            H.ul ! A.class_ "nav-left" $
+            H.ul ! A.class_ "nav-left" $ do
               H.li $ navLink Home "BookBrainz" -- TODO Navigation menu
+              when loggedIn $ do
+                H.li $ navLink AddBook "Add Book"
             H.ul ! A.class_ "nav-right" $
               case cu of
-                Just authedUser -> do
+                Just _ -> do
                   H.li $ navLink Logout "Logout"
                 Nothing -> do
                   H.li $ navLink Login "Login"
