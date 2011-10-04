@@ -90,7 +90,6 @@ addEdition book = Edition <$> simpleField "Name:" (entityName Nothing)
                           <*> pure Nothing
                           <*> simpleField "ISBN:" (isbn13 Nothing)
                           <*> pure Nothing
-                          <*> pure Nothing
 
 --------------------------------------------------------------------------------
 searchForm :: (Monad m, MonadSnap m) => SnapForm m Html BlazeFormHtml SearchQuery

@@ -72,7 +72,7 @@ instance GenericallyVersioned Edition where
         let findSql = unlines [ "SELECT version"
                               , "FROM bookbrainz_v.edition_v"
                               , "WHERE name = ? AND year = ? AND country_iso_code = ?"
-                              , "AND language_iso_code = ? AND isbn = ? AND barcode = ?"
+                              , "AND language_iso_code = ? AND isbn = ?"
                               , "AND format = ?"
                               ]
         in safeQueryOne findSql [ toSql $ editionName pubData
@@ -80,13 +80,12 @@ instance GenericallyVersioned Edition where
                                 , toSql $ editionCountry pubData
                                 , toSql $ editionLanguage pubData
                                 , toSql $ editionIsbn pubData
-                                , toSql $ editionBarcode pubData
                                 , toSql $ editionFormat pubData
                                 ]
       newVersion =
         let insertSql = unlines [ "INSERT INTO bookbrainz_v.edition_v"
-                                , "(name, year, country_iso_code, language_iso_code, isbn, barcode, format)"
-                                , "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                                , "(name, year, country_iso_code, language_iso_code, isbn, format)"
+                                , "VALUES (?, ?, ?, ?, ?, ?)"
                                 , "RETURNING version"
                                 ]
         in queryOne insertSql [ toSql $ editionName pubData
@@ -94,7 +93,6 @@ instance GenericallyVersioned Edition where
                               , toSql $ editionCountry pubData
                               , toSql $ editionLanguage pubData
                               , toSql $ editionIsbn pubData
-                              , toSql $ editionBarcode pubData
                               , toSql $ editionFormat pubData
                               ]
 
