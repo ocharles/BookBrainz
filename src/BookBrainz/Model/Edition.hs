@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- | Functions for working with 'BookBrainz.Types.Edition.Edition' entities.
 module BookBrainz.Model.Edition
@@ -8,15 +9,21 @@ module BookBrainz.Model.Edition
 
 import Data.Traversable                   (traverse)
 
-import Database.HDBC                      (toSql, fromSql)
+import Data.Convertible                   (Convertible, safeConvert)
+import Database.HDBC                      (toSql, fromSql, SqlValue)
 
 import BookBrainz.Model.Role              (copyRoles)
-import BookBrainz.Types                   (Edition (..), Book)
+import BookBrainz.Types
 import BrainzStem.Database                (queryOne, safeQueryOne, (!)
                                           ,HasDatabase, query)
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
-import BrainzStem.Types                   (LoadedCoreEntity (..), Ref, Concept)
+
+instance Convertible Isbn SqlValue where
+  safeConvert = Right . toSql . show
+
+instance Convertible SqlValue Isbn where
+  safeConvert = Right . read . fromSql
 
 instance GenericallyVersioned Edition where
   versioningConfig = VersionConfig { cfgView = "edition"

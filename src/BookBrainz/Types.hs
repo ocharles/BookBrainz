@@ -13,9 +13,13 @@ module BookBrainz.Types
        , Language (..)
        , Role (..)
 
+         -- * Other Types
+       , Isbn
+
        , module BrainzStem.Types
        ) where
 
+import Data.Char        (digitToInt)
 import Data.Text        (Text)
 
 import BrainzStem.Types
@@ -47,6 +51,17 @@ data EditionFormat = EditionFormat
     } deriving Show
 
 --------------------------------------------------------------------------------
+-- | A 13 digit ISBN code
+newtype Isbn = Isbn { unIsbn :: [Int] }
+
+instance Show Isbn where
+  show = concat . map show . unIsbn
+
+instance Read Isbn where
+  readsPrec _ inp = let (isbn, rest) = splitAt 13 inp
+                    in [(Isbn $ map digitToInt isbn, rest)]
+
+--------------------------------------------------------------------------------
 -- | An edition is a release of a 'Book' that people actually read from.
 data Edition = Edition
     { -- | The name of the edition.
@@ -64,7 +79,7 @@ data Edition = Edition
       -- | The 'Language' of this edition.
     , editionLanguage    :: Maybe (Ref Language)
       -- | The ISBN code of this edition.
-    , editionIsbn        :: Maybe String
+    , editionIsbn        :: Maybe Isbn
       -- | An index used for sorting this edition.
     , editionIndex       :: Maybe Int
     } deriving Show

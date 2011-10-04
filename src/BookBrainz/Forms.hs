@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TypeSynonymInstances #-}
 module BookBrainz.Forms where
 
-import           Data.Char                   (isDigit)
+import           Data.Char                   (isDigit, digitToInt)
 import           Control.Applicative         ((<$>), (<*>), pure)
 import           Data.Maybe                  (fromMaybe)
 
@@ -53,6 +53,26 @@ year def = inputText ((T.pack . show) `fmap` def)
                                       Left e -> Left $ toHtml e
                                       Right (d, _) -> Right $ Just d
 
+isbn13 :: (Monad m, MonadSnap m)
+       => Maybe [Int] -> SnapForm m Html BlazeFormHtml (Maybe Isbn)
+isbn13 def = inputString ((concat . map show) `fmap` def)
+               `validate` checkIsbn `transform` transIsbn
+  where
+    checkIsbn = check "This is not a valid ISBN-13 identifier"
+                      (or . zipWith ($) [null, validIsbn] . repeat)
+    validIsbn i = let digits = map digitToInt i :: [Int]
+                      isbn = init digits
+                      checkDigit = last digits
+                      checkSum (x:y:xs) = x + (3 * y) + checkSum xs
+                      checkSum (_:[]) = error "Checksum must contain 12 digits"
+                      checkSum [] = 0
+                   in (all isDigit i) &&
+                        (length i == 13) &&
+                          ((10 - checkSum isbn `mod` 10) `mod` 10) == checkDigit
+    transIsbn = transformEither goTransform
+    goTransform t | null t    = Right Nothing
+                  | otherwise = Right . Just $ read t
+
 bookForm :: (Monad m, MonadSnap m)
          => Maybe Book
          -> SnapForm m Html BlazeFormHtml Book
@@ -68,7 +88,7 @@ addEdition book = Edition <$> simpleField "Name:" (entityName Nothing)
                           <*> pure Nothing
                           <*> pure Nothing
                           <*> pure Nothing
-                          <*> pure Nothing
+                          <*> simpleField "ISBN:" (isbn13 Nothing)
                           <*> pure Nothing
                           <*> pure Nothing
 

@@ -48,7 +48,7 @@ showEdition (edition, book, format, country, language, publisher, roles) =
             [("Format:",    fmap (toHtml.editionFormatName.copoint) format)
             ,("Country:",   fmap (toHtml.countryName.copoint) country)
             ,("Language:",  fmap (toHtml.languageName.copoint) language)
-            ,("ISBN:",      fmap toHtml (editionIsbn $ copoint edition))
+            ,("ISBN:",      fmap (toHtml.show) (editionIsbn $ copoint edition))
             ,("Publisher:", fmap linkPublisher publisher)
             ]
           Sidebar.roles roles

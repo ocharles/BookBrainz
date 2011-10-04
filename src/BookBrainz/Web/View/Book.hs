@@ -50,7 +50,7 @@ showBook (book, roles) editions =
       let edition' = copoint edition in
       [ toHtml $ linkEdition edition
       , maybeCell toHtml $ editionYear edition'
-      , maybeCell toHtml $ editionIsbn edition'
+      , maybeCell (toHtml . show) $ editionIsbn edition'
       , maybeCell linkPublisher publisher
       ]
     sidebar = Sidebar.roles roles
