@@ -41,7 +41,6 @@ instance GenericallyVersioned Edition where
                                           , editionCountry = row ! "country_iso_code"
                                           , editionLanguage = row ! "language_iso_code"
                                           , editionIsbn = row ! "isbn"
-                                          , editionBarcode = row ! "barcode"
                                           , editionIndex = row ! "edition_index"
                                           }
                }
