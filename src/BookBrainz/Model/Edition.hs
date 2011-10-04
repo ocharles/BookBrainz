@@ -71,15 +71,32 @@ instance GenericallyVersioned Edition where
       findVersion =
         let findSql = unlines [ "SELECT version"
                               , "FROM bookbrainz_v.edition_v"
-                              , "WHERE name = ?"
+                              , "WHERE name = ? AND year = ? AND country_iso_code = ?"
+                              , "AND language_iso_code = ? AND isbn = ? AND barcode = ?"
+                              , "AND format = ?"
                               ]
-        in safeQueryOne findSql [ toSql $ editionName pubData ]
+        in safeQueryOne findSql [ toSql $ editionName pubData
+                                , toSql $ editionYear pubData
+                                , toSql $ editionCountry pubData
+                                , toSql $ editionLanguage pubData
+                                , toSql $ editionIsbn pubData
+                                , toSql $ editionBarcode pubData
+                                , toSql $ editionFormat pubData
+                                ]
       newVersion =
         let insertSql = unlines [ "INSERT INTO bookbrainz_v.edition_v"
-                                , "(name) VALUES (?)"
+                                , "(name, year, country_iso_code, language_iso_code, isbn, barcode, format)"
+                                , "VALUES (?, ?, ?, ?, ?, ?, ?)"
                                 , "RETURNING version"
                                 ]
-        in queryOne insertSql [ toSql $ editionName pubData ]
+        in queryOne insertSql [ toSql $ editionName pubData
+                              , toSql $ editionYear pubData
+                              , toSql $ editionCountry pubData
+                              , toSql $ editionLanguage pubData
+                              , toSql $ editionIsbn pubData
+                              , toSql $ editionBarcode pubData
+                              , toSql $ editionFormat pubData
+                              ]
 
 --------------------------------------------------------------------------------
 -- | Find all editions of a specific 'Book'.
