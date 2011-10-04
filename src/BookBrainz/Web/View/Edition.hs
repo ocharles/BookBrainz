@@ -4,6 +4,7 @@
 module BookBrainz.Web.View.Edition
        ( -- * Pages
          showEdition
+       , addEdition
        ) where
 
 import           Control.Monad       (when)
@@ -11,8 +12,10 @@ import           Data.Maybe          (isJust, fromJust)
 import           Data.Monoid         (mappend, mconcat)
 
 import           Data.Copointed
-import           Text.Blaze.Html5    (toHtml)
+import           Text.Blaze.Html5    (toHtml, (!), Html, toValue)
 import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import           Text.Digestive.Forms.Html (FormEncType)
 
 import           BookBrainz.Types
 import           BookBrainz.Web.View (pageLayout, linkBook, linkEdition
@@ -49,3 +52,14 @@ showEdition (edition, book, format, country, language, publisher, roles) =
             ,("Publisher:", fmap linkPublisher publisher)
             ]
           Sidebar.roles roles
+
+--------------------------------------------------------------------------------
+-- | A form for adding new 'Edition's.
+addEdition :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
+           -> View
+addEdition (formHtml, enctype) =
+  pageLayout Nothing $ do
+    H.h1 "Add Edition"
+    H.form ! A.method "POST" ! A.enctype (toValue enctype) $ do
+      formHtml
+      H.p $ H.input ! A.type_ "submit" ! A.value "Add Edition"

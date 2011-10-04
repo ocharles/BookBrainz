@@ -16,7 +16,7 @@ import BrainzStem.Database                (queryOne, safeQueryOne, (!)
                                           ,HasDatabase, query)
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
-import BrainzStem.Types                   (LoadedCoreEntity (..), Ref, Tree)
+import BrainzStem.Types                   (LoadedCoreEntity (..), Ref, Concept)
 
 instance GenericallyVersioned Edition where
   versioningConfig = VersionConfig { cfgView = "edition"
@@ -47,7 +47,8 @@ instance GenericallyVersioned Edition where
 
   newTree baseTree pubData = do
     versionId <- findOrInsertVersion
-    newTreeId <- fromSql `fmap` queryOne insertTreeSql [ versionId ]
+    newTreeId <- fromSql `fmap` queryOne insertTreeSql [ versionId
+                                                       , toSql $ editionBook pubData ]
     traverse (\tree -> copyRoles tree newTreeId) baseTree
     return newTreeId
     where
@@ -57,7 +58,7 @@ instance GenericallyVersioned Edition where
           Just id' -> return id'
           Nothing -> newVersion
       insertTreeSql = unlines [ "INSERT INTO bookbrainz_v.edition_tree"
-                              , "(version) VALUES (?)"
+                              , "(version, book_id) VALUES (?, ?)"
                               , "RETURNING edition_tree_id"
                               ]
       findVersion =
@@ -77,7 +78,7 @@ instance GenericallyVersioned Edition where
 -- | Find all editions of a specific 'Book'.
 -- The book must be a 'LoadedCoreEntity', ensuring it exists in the database.
 findBookEditions :: HasDatabase m
-                 => Ref (Tree Book)
+                 => Ref (Concept Book)
                  -- ^ The book to find editions of.
                  -> m [LoadedCoreEntity Edition]
                  -- ^ A (possibly empty) list of editions.

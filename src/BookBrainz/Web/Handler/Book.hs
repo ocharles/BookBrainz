@@ -43,7 +43,7 @@ a 404 page is displayed. -}
 showBook :: BBID Book -> BookBrainzHandler ()
 showBook bbid' = do
   book <- getByBbid bbid' `onNothing` "Book not found"
-  editions <- findBookEditions (coreEntityTree book) >>= mapM loadEdition
+  editions <- findBookEditions (coreEntityConcept book) >>= mapM loadEdition
   roles <- findRoles (coreEntityTree book)
   output $ V.showBook (book, roles) editions
   where loadEdition e =

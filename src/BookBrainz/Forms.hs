@@ -1,13 +1,15 @@
 {-# LANGUAGE OverloadedStrings, TypeSynonymInstances #-}
 module BookBrainz.Forms where
 
-import           Control.Applicative         ((<$>), (<*>))
+import           Data.Char                   (isDigit)
+import           Control.Applicative         ((<$>), (<*>), pure)
 import           Data.Maybe                  (fromMaybe)
 
 import           Data.Text                   (Text)
 import qualified Data.Text                   as T
+import           Data.Text.Read              (decimal)
 import           Snap.Core
-import           Text.Blaze.Html5            (Html, (!), toValue)
+import           Text.Blaze.Html5            (Html, (!), toValue, toHtml)
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive
@@ -34,11 +36,41 @@ data Registration = Registration { newUserName :: Text
                                  }
 
 --------------------------------------------------------------------------------
+entityName :: (Monad m, MonadSnap m)
+           => Maybe Text -> SnapForm m Html BlazeFormHtml Text
+entityName def = inputText def `validate` nonEmpty "Name cannot be empty"
+
+year :: (Monad m, MonadSnap m)
+     => Maybe Int -> SnapForm m Html BlazeFormHtml (Maybe Int)
+year def = inputText ((T.pack . show) `fmap` def)
+             `validate` yearCheck
+               `transform` transDecimal
+  where yearCheck = check "Year field must only contain digits"
+                      (or . zipWith ($) [T.all isDigit, T.null] . repeat)
+        transDecimal = transformEither goTransform
+        goTransform t | T.null t  = Right Nothing
+                      | otherwise = case (decimal t :: Either String (Int, Text)) of
+                                      Left e -> Left $ toHtml e
+                                      Right (d, _) -> Right $ Just d
+
 bookForm :: (Monad m, MonadSnap m)
          => Maybe Book
          -> SnapForm m Html BlazeFormHtml Book
-bookForm book = Book <$> simpleField "Book title:"
-                           (inputText (bookName `fmap` book) `validate` nonEmpty "Book title cannot be empty")
+bookForm book = Book <$> simpleField "Book title:" (entityName $ bookName `fmap` book)
+
+addEdition :: (MonadSnap m)
+           => Ref (Concept Book)
+           -> SnapForm m Html BlazeFormHtml Edition
+addEdition book = Edition <$> simpleField "Name:" (entityName Nothing)
+                          <*> pure Nothing
+                          <*> pure book
+                          <*> simpleField "Year:" (year Nothing)
+                          <*> pure Nothing
+                          <*> pure Nothing
+                          <*> pure Nothing
+                          <*> pure Nothing
+                          <*> pure Nothing
+                          <*> pure Nothing
 
 --------------------------------------------------------------------------------
 searchForm :: (Monad m, MonadSnap m) => SnapForm m Html BlazeFormHtml SearchQuery
