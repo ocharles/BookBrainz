@@ -83,7 +83,6 @@ bookbrainz = makeSnaplet "bookbrainz" "BookBrainz" Nothing $ do
 
 runHandler :: BookBrainzHandler () -> BookBrainzHandler ()
 runHandler a = do
-  modifyResponse $ setContentType "text/html; charset=utf8"
   outcome <- tryJust errorH a
   case outcome of
     Right r -> return r

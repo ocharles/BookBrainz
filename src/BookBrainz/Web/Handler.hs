@@ -20,14 +20,13 @@ import Control.Monad.CatchIO    (Exception, throw)
 import Control.Monad.IO.Class
 import qualified Data.ByteString.Char8 as BS
 import Data.Text                (Text)
-import Data.Text.Lazy           (toStrict)
 import Data.Text.Read           (decimal)
 import Data.Typeable
+import Snap.Blaze (blaze)
 import Snap.Core
 import Snap.Snaplet             (with)
 import qualified Snap.Snaplet.Auth as SnapAuth
 import Snap.Snaplet.Auth.Types  (userLogin, userId, unUid)
-import Text.Blaze.Renderer.Text (renderHtml)
 
 import BookBrainz.Types
 import BookBrainz.Web.Sitemap     (showURLParams, Sitemap(..))
@@ -47,7 +46,7 @@ output :: View -- ^ The 'View' to display.
        -> BookBrainzHandler ()
 output view = do
   u <- currentUser
-  writeText . toStrict . renderHtml $ runView view u
+  blaze $  runView view u
 
 --------------------------------------------------------------------------------
 {-| Run an action with a 'Maybe' result, and if it returns 'Nothing', then a
