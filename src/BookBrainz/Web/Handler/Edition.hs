@@ -52,7 +52,8 @@ addEdition :: BBID Book -> BookBrainzHandler ()
 addEdition bookBbid = do
   withUser $ \user -> do
     book <- getByBbid bookBbid `onNothing` "Book not found"
-    r <- eitherSnapForm (Forms.addEdition $ coreEntityConcept book) "edition"
+    editionForm <- Forms.addEdition $ coreEntityConcept book
+    r <- eitherSnapForm editionForm "edition"
     case r of
       Left form' -> output $ V.addEdition $ renderFormHtml form'
       Right submission -> do

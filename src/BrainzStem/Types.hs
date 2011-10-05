@@ -28,7 +28,7 @@ import System.Random  (Random)
 -- | Represents a reference in a database. @entity@ is a phantom type which
 -- tracks what type of entity this reference refers to.
 data Ref entity = Ref { rowKey :: SqlValue }
-                deriving Show
+                deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 {-| A wrapper type that indicates that some data is a core BrainzStem entity,
