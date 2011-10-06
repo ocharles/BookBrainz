@@ -13,9 +13,13 @@ module BookBrainz.Types
        , Language (..)
        , Role (..)
 
+         -- * Other Types
+       , Isbn
+
        , module BrainzStem.Types
        ) where
 
+import Data.Char        (digitToInt)
 import Data.Text        (Text)
 
 import BrainzStem.Types
@@ -37,6 +41,8 @@ data Country = Country
       countryName    :: Text
       -- | The ISO 3166-1 alpha-2 ISO code of the country.
     , countryIsoCode :: String
+      -- | A reference to this country.
+    , countryRef :: Ref Country
     } deriving Show
 
 --------------------------------------------------------------------------------
@@ -44,7 +50,19 @@ data Country = Country
 data EditionFormat = EditionFormat
     { -- | The human-readable name of the format.
       editionFormatName :: Text
+    , editionFormatRef :: Ref EditionFormat
     } deriving Show
+
+--------------------------------------------------------------------------------
+-- | A 13 digit ISBN code
+newtype Isbn = Isbn { unIsbn :: [Int] }
+
+instance Show Isbn where
+  show = concat . map show . unIsbn
+
+instance Read Isbn where
+  readsPrec _ inp = let (isbn, rest) = splitAt 13 inp
+                    in [(Isbn $ map digitToInt isbn, rest)]
 
 --------------------------------------------------------------------------------
 -- | An edition is a release of a 'Book' that people actually read from.
@@ -64,7 +82,7 @@ data Edition = Edition
       -- | The 'Language' of this edition.
     , editionLanguage    :: Maybe (Ref Language)
       -- | The ISBN code of this edition.
-    , editionIsbn        :: Maybe String
+    , editionIsbn        :: Maybe Isbn
       -- | An index used for sorting this edition.
     , editionIndex       :: Maybe Int
     } deriving Show
@@ -76,6 +94,8 @@ data Language = Language
       languageName :: Text
       -- | The ISO-639-3 code for the language.
     , languageIsoCode :: String
+      -- | A reference to this language.
+    , languageRef :: Ref Language
     } deriving Show
 
 --------------------------------------------------------------------------------

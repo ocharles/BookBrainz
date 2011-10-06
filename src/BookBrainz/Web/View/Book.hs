@@ -18,6 +18,7 @@ import           BookBrainz.Types
 import           BookBrainz.Web.View       (pageLayout, linkEdition, linkBook
                                            ,linkPublisher, detailTable, View)
 import qualified BookBrainz.Web.View.Sidebar as Sidebar
+import           BookBrainz.Web.Sitemap    (Sitemap(..), showURL)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Book'.
@@ -41,13 +42,15 @@ showBook (book, roles) editions =
       ,("ISBN", [])
       ,("Publisher",[])]
       (editionRow `map` editions)
+    H.p $ H.a ! A.href (toValue . showURL $ AddEdition $ bbid book) $
+      "Add a new edition"
   where
     maybeCell f = toHtml . maybe "-" f
     editionRow (edition, publisher) =
       let edition' = copoint edition in
       [ toHtml $ linkEdition edition
       , maybeCell toHtml $ editionYear edition'
-      , maybeCell toHtml $ editionIsbn edition'
+      , maybeCell (toHtml . show) $ editionIsbn edition'
       , maybeCell linkPublisher publisher
       ]
     sidebar = Sidebar.roles roles

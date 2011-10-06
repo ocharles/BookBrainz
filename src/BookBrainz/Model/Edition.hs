@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- | Functions for working with 'BookBrainz.Types.Edition.Edition' entities.
 module BookBrainz.Model.Edition
@@ -8,15 +9,21 @@ module BookBrainz.Model.Edition
 
 import Data.Traversable                   (traverse)
 
-import Database.HDBC                      (toSql, fromSql)
+import Data.Convertible                   (Convertible, safeConvert)
+import Database.HDBC                      (toSql, fromSql, SqlValue)
 
 import BookBrainz.Model.Role              (copyRoles)
-import BookBrainz.Types                   (Edition (..), Book)
+import BookBrainz.Types
 import BrainzStem.Database                (queryOne, safeQueryOne, (!)
                                           ,HasDatabase, query)
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
-import BrainzStem.Types                   (LoadedCoreEntity (..), Ref, Tree)
+
+instance Convertible Isbn SqlValue where
+  safeConvert = Right . toSql . show
+
+instance Convertible SqlValue Isbn where
+  safeConvert = Right . read . fromSql
 
 instance GenericallyVersioned Edition where
   versioningConfig = VersionConfig { cfgView = "edition"
@@ -47,7 +54,8 @@ instance GenericallyVersioned Edition where
 
   newTree baseTree pubData = do
     versionId <- findOrInsertVersion
-    newTreeId <- fromSql `fmap` queryOne insertTreeSql [ versionId ]
+    newTreeId <- fromSql `fmap` queryOne insertTreeSql [ versionId
+                                                       , toSql $ editionBook pubData ]
     traverse (\tree -> copyRoles tree newTreeId) baseTree
     return newTreeId
     where
@@ -57,27 +65,42 @@ instance GenericallyVersioned Edition where
           Just id' -> return id'
           Nothing -> newVersion
       insertTreeSql = unlines [ "INSERT INTO bookbrainz_v.edition_tree"
-                              , "(version) VALUES (?)"
+                              , "(version, book_id) VALUES (?, ?)"
                               , "RETURNING edition_tree_id"
                               ]
       findVersion =
         let findSql = unlines [ "SELECT version"
                               , "FROM bookbrainz_v.edition_v"
-                              , "WHERE name = ?"
+                              , "WHERE name = ? AND year = ? AND country_iso_code = ?"
+                              , "AND language_iso_code = ? AND isbn = ?"
+                              , "AND format = ?"
                               ]
-        in safeQueryOne findSql [ toSql $ editionName pubData ]
+        in safeQueryOne findSql [ toSql $ editionName pubData
+                                , toSql $ editionYear pubData
+                                , toSql $ editionCountry pubData
+                                , toSql $ editionLanguage pubData
+                                , toSql $ editionIsbn pubData
+                                , toSql $ editionFormat pubData
+                                ]
       newVersion =
         let insertSql = unlines [ "INSERT INTO bookbrainz_v.edition_v"
-                                , "(name) VALUES (?)"
+                                , "(name, year, country_iso_code, language_iso_code, isbn, format)"
+                                , "VALUES (?, ?, ?, ?, ?, ?)"
                                 , "RETURNING version"
                                 ]
-        in queryOne insertSql [ toSql $ editionName pubData ]
+        in queryOne insertSql [ toSql $ editionName pubData
+                              , toSql $ editionYear pubData
+                              , toSql $ editionCountry pubData
+                              , toSql $ editionLanguage pubData
+                              , toSql $ editionIsbn pubData
+                              , toSql $ editionFormat pubData
+                              ]
 
 --------------------------------------------------------------------------------
 -- | Find all editions of a specific 'Book'.
 -- The book must be a 'LoadedCoreEntity', ensuring it exists in the database.
 findBookEditions :: HasDatabase m
-                 => Ref (Tree Book)
+                 => Ref (Concept Book)
                  -- ^ The book to find editions of.
                  -> m [LoadedCoreEntity Edition]
                  -- ^ A (possibly empty) list of editions.

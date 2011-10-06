@@ -32,6 +32,7 @@ data Sitemap
      | Book (BBID Book)
      | AddBook
      | EditBook (BBID Book)
+     | AddEdition (BBID Book)
 
        -- /person
      | Person (BBID Person)
@@ -41,6 +42,7 @@ data Sitemap
 
        -- /publisher
      | Publisher (BBID Publisher)
+     | AddPublisher
 
        -- /search
      | Search
@@ -61,12 +63,14 @@ sitemap =
   <> rAddBook . ("book" </> "add")
   <> rBook . ("book" </> uuid)
   <> rEditBook . ("book" </> uuid . "edit")
+  <> rAddEdition . ("book" </> uuid . "add-edition")
 
   <> rPerson . ("person" </> uuid)
 
   <> rEdition . ("edition" </> uuid)
 
   <> rPublisher . ("publisher" </> uuid)
+  <> rAddPublisher . ("publisher" </> "add")
 
   <> rSearch . "search"
 

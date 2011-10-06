@@ -1,12 +1,15 @@
 -- | Functions for working with 'BookBrainz.Types.Publisher.Publisher' entities.
-module BookBrainz.Model.Publisher () where
+module BookBrainz.Model.Publisher
+       ( allPublishers
+       ) where
 
 import Database.HDBC (fromSql, toSql)
 
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
 import BookBrainz.Types                   (Publisher (..))
-import BrainzStem.Database                ((!), queryOne, safeQueryOne)
+import BrainzStem.Database                ((!), queryOne, safeQueryOne
+                                          ,HasDatabase, query)
 import BrainzStem.Types                   (LoadedCoreEntity (..))
 
 instance GenericallyVersioned Publisher where
@@ -52,3 +55,8 @@ instance GenericallyVersioned Publisher where
                                 , "RETURNING version"
                                 ]
         in queryOne insertSql [ toSql $ publisherName pubData ]
+
+--------------------------------------------------------------------------------
+-- | Get all publishers in the system
+allPublishers :: HasDatabase m => m [LoadedCoreEntity Publisher]
+allPublishers = map fromViewRow `fmap` query "SELECT * FROM publisher" []

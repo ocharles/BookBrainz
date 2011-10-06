@@ -1,13 +1,16 @@
 {-# LANGUAGE OverloadedStrings, TypeSynonymInstances #-}
 module BookBrainz.Forms where
 
-import           Control.Applicative         ((<$>), (<*>))
+import           Data.Char                   (isDigit, digitToInt)
+import           Control.Applicative         ((<$>), (<*>), pure)
 import           Data.Maybe                  (fromMaybe)
 
+import           Data.Copointed              (copoint, Copointed)
 import           Data.Text                   (Text)
 import qualified Data.Text                   as T
+import           Data.Text.Read              (decimal)
 import           Snap.Core
-import           Text.Blaze.Html5            (Html, (!), toValue)
+import           Text.Blaze.Html5            (Html, (!), toValue, toHtml)
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive
@@ -17,8 +20,17 @@ import qualified Text.Digestive.Forms        as Forms
 import           Text.Digestive.Forms.Snap
 
 import           BrainzStem.Database (HasDatabase)
+import           BookBrainz.Model.Country  (allCountries)
+import           BookBrainz.Model.EditionFormat (allEditionFormats)
+import           BookBrainz.Model.Language (allLanguages)
 import           BookBrainz.Model.Editor (getEditorByName)
-import           BookBrainz.Types
+import           BookBrainz.Model.Publisher (allPublishers)
+import           BookBrainz.Types (Book (Book), Edition (Edition)
+                                  ,EditionFormat, Ref, Concept, Isbn
+                                  ,Language, Country, Publisher)
+import qualified BookBrainz.Types as BB
+import           BookBrainz.Web.Sitemap (showURL)
+import qualified BookBrainz.Web.Sitemap as URL
 
 data SearchQuery = SearchQuery { query :: Text }
 
@@ -34,11 +46,113 @@ data Registration = Registration { newUserName :: Text
                                  }
 
 --------------------------------------------------------------------------------
+entityName :: (Monad m, MonadSnap m)
+           => Maybe Text -> SnapForm m Html BlazeFormHtml Text
+entityName def = inputText def `validate` nonEmpty "Name cannot be empty"
+
+year :: (Monad m, MonadSnap m)
+     => Maybe Int -> SnapForm m Html BlazeFormHtml (Maybe Int)
+year def = inputText ((T.pack . show) `fmap` def)
+             `validate` yearCheck
+               `transform` transDecimal
+  where yearCheck = check "Year field must only contain digits"
+                      (or . zipWith ($) [T.all isDigit, T.null] . repeat)
+        transDecimal = transformEither goTransform
+        goTransform t | T.null t  = Right Nothing
+                      | otherwise = case (decimal t :: Either String (Int, Text)) of
+                                      Left e -> Left $ toHtml e
+                                      Right (d, _) -> Right $ Just d
+
+isbn13 :: (Monad m, MonadSnap m)
+       => Maybe [Int] -> SnapForm m Html BlazeFormHtml (Maybe Isbn)
+isbn13 def = inputString ((concat . map show) `fmap` def)
+               `validate` checkIsbn `transform` transIsbn
+  where
+    checkIsbn = check "This is not a valid ISBN-13 identifier"
+                      (or . zipWith ($) [null, validIsbn] . repeat)
+    validIsbn i = let digits = map digitToInt i :: [Int]
+                      isbn = init digits
+                      checkDigit = last digits
+                      checkSum (x:y:xs) = x + (3 * y) + checkSum xs
+                      checkSum (_:[]) = error "Checksum must contain 12 digits"
+                      checkSum [] = 0
+                   in (all isDigit i) &&
+                        (length i == 13) &&
+                          ((10 - checkSum isbn `mod` 10) `mod` 10) == checkDigit
+    transIsbn = transformEither goTransform
+    goTransform t | null t    = Right Nothing
+                  | otherwise = Right . Just $ read t
+
+optionalDbSelect :: (Monad m, MonadSnap m, HasDatabase m, Eq a, Copointed cont)
+                 => Maybe a
+                 -> (cont b -> a)
+                 -> (b -> Html)
+                 -> [cont b]
+                 -> SnapForm m Html BlazeFormHtml (Maybe a)
+optionalDbSelect def fVal fLabel options =
+  inputSelect def $ [(Nothing,"")] ++ map fOption options
+  where fOption v = (Just . fVal $ v, fLabel . copoint $ v)
+
+editionFormat :: (Monad m, MonadSnap m, HasDatabase m)
+              => Maybe (Ref EditionFormat)
+              -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref EditionFormat)))
+editionFormat def =
+  optionalDbSelect def (BB.editionFormatRef . copoint)
+                       (toHtml . BB.editionFormatName)
+    <$> allEditionFormats
+
+language :: (Monad m, MonadSnap m, HasDatabase m)
+         => Maybe (Ref Language)
+         -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref Language)))
+language def =
+  optionalDbSelect def (BB.languageRef . copoint)
+                       (toHtml . BB.languageName)
+    <$> allLanguages
+
+country :: (Monad m, MonadSnap m, HasDatabase m)
+        => Maybe (Ref Country)
+        -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref Country)))
+country def =
+  optionalDbSelect def (BB.countryRef . copoint)
+                       (toHtml . BB.countryName)
+    <$> allCountries
+
+publisher :: (Monad m, MonadSnap m, HasDatabase m)
+          => Maybe (Ref (Concept Publisher))
+          -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref (Concept Publisher))))
+publisher def = do
+  opts <- allPublishers
+  return (buildField opts <++ viewHtml addNew)
+  where
+    buildField opts =
+      optionalDbSelect def BB.coreEntityConcept (toHtml . BB.publisherName) opts
+    addNew = H.a ! A.target "_blank"
+                 ! A.href (toValue . showURL $ URL.AddPublisher) $
+               "Add a new publisher"
+
 bookForm :: (Monad m, MonadSnap m)
          => Maybe Book
          -> SnapForm m Html BlazeFormHtml Book
-bookForm book = Book <$> simpleField "Book title:"
-                           (inputText (bookName `fmap` book) `validate` nonEmpty "Book title cannot be empty")
+bookForm book = Book <$> simpleField "Book title:" (entityName $ BB.bookName `fmap` book)
+
+addEdition :: (MonadSnap m, HasDatabase m)
+           => Ref (Concept Book)
+           -> m (SnapForm m Html BlazeFormHtml Edition)
+addEdition book = do
+  formatField    <- editionFormat Nothing
+  countryField   <- country Nothing
+  languageField  <- language Nothing
+  publisherField <- publisher Nothing
+  return $
+    Edition <$> simpleField "Name:" (entityName Nothing)
+            <*> simpleField "Format:" formatField
+            <*> pure book
+            <*> simpleField "Year:" (year Nothing)
+            <*> simpleField "Publisher:" publisherField
+            <*> simpleField "Country:" countryField
+            <*> simpleField "Language:" languageField
+            <*> simpleField "ISBN:" (isbn13 Nothing)
+            <*> pure Nothing
 
 --------------------------------------------------------------------------------
 searchForm :: (Monad m, MonadSnap m) => SnapForm m Html BlazeFormHtml SearchQuery
