@@ -29,12 +29,12 @@ login = do
       case loginResult of
         Right _ -> getParam "redirect" >>= redirect . maybe "/" id
         Left _ -> return ()
-        
+
 register :: BookBrainzHandler ()
 register = do
   r <- eitherSnapForm registerForm "register"
   case r of
-    Left form' -> output $ V.login $ renderFormHtml form'
+    Left form' -> output $ V.register $ renderFormHtml form'
     Right submission -> do
       with auth $ do
         newUser <- createUser (newUserName submission)

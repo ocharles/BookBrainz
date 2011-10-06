@@ -6,7 +6,7 @@ module BookBrainz.Web.View.User
          login
        , register
        ) where
-       
+
 import           Text.Blaze.Html5            (Html, (!), toValue)
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
