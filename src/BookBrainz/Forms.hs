@@ -5,7 +5,7 @@ import           Data.Char                   (isDigit, digitToInt)
 import           Control.Applicative         ((<$>), (<*>), pure)
 import           Data.Maybe                  (fromMaybe)
 
-import           Data.Copointed              (copoint)
+import           Data.Copointed              (copoint, Copointed)
 import           Data.Text                   (Text)
 import qualified Data.Text                   as T
 import           Data.Text.Read              (decimal)
@@ -24,10 +24,13 @@ import           BookBrainz.Model.Country  (allCountries)
 import           BookBrainz.Model.EditionFormat (allEditionFormats)
 import           BookBrainz.Model.Language (allLanguages)
 import           BookBrainz.Model.Editor (getEditorByName)
+import           BookBrainz.Model.Publisher (allPublishers)
 import           BookBrainz.Types (Book (Book), Edition (Edition)
                                   ,EditionFormat, Ref, Concept, Isbn
-                                  ,LoadedEntity, Language, Country)
+                                  ,Language, Country, Publisher)
 import qualified BookBrainz.Types as BB
+import           BookBrainz.Web.Sitemap (showURL)
+import qualified BookBrainz.Web.Sitemap as URL
 
 data SearchQuery = SearchQuery { query :: Text }
 
@@ -80,37 +83,52 @@ isbn13 def = inputString ((concat . map show) `fmap` def)
     goTransform t | null t    = Right Nothing
                   | otherwise = Right . Just $ read t
 
-optionalDbSelect :: (Monad m, MonadSnap m, HasDatabase m, Eq a)
+optionalDbSelect :: (Monad m, MonadSnap m, HasDatabase m, Eq a, Copointed cont)
                  => Maybe a
-                 -> (b -> a)
+                 -> (cont b -> a)
                  -> (b -> Html)
-                 -> [LoadedEntity b]
-                 -> m (SnapForm m Html BlazeFormHtml (Maybe a))
+                 -> [cont b]
+                 -> SnapForm m Html BlazeFormHtml (Maybe a)
 optionalDbSelect def fVal fLabel options =
-  return $ inputSelect def $ [(Nothing,"")] ++ map fOption options
-  where fOption v = (Just . fVal . copoint $ v, fLabel . copoint $ v)
+  inputSelect def $ [(Nothing,"")] ++ map fOption options
+  where fOption v = (Just . fVal $ v, fLabel . copoint $ v)
 
 editionFormat :: (Monad m, MonadSnap m, HasDatabase m)
               => Maybe (Ref EditionFormat)
               -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref EditionFormat)))
 editionFormat def =
-  allEditionFormats >>=
-    optionalDbSelect def BB.editionFormatRef
-                         (toHtml . BB.editionFormatName)
+  optionalDbSelect def (BB.editionFormatRef . copoint)
+                       (toHtml . BB.editionFormatName)
+    <$> allEditionFormats
 
 language :: (Monad m, MonadSnap m, HasDatabase m)
          => Maybe (Ref Language)
          -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref Language)))
 language def =
-  allLanguages >>=
-    optionalDbSelect def BB.languageRef (toHtml . BB.languageName)
+  optionalDbSelect def (BB.languageRef . copoint)
+                       (toHtml . BB.languageName)
+    <$> allLanguages
 
 country :: (Monad m, MonadSnap m, HasDatabase m)
         => Maybe (Ref Country)
         -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref Country)))
 country def =
-  allCountries >>=
-    optionalDbSelect def BB.countryRef (toHtml . BB.countryName)
+  optionalDbSelect def (BB.countryRef . copoint)
+                       (toHtml . BB.countryName)
+    <$> allCountries
+
+publisher :: (Monad m, MonadSnap m, HasDatabase m)
+          => Maybe (Ref (Concept Publisher))
+          -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref (Concept Publisher))))
+publisher def = do
+  opts <- allPublishers
+  return (buildField opts <++ viewHtml addNew)
+  where
+    buildField opts =
+      optionalDbSelect def BB.coreEntityConcept (toHtml . BB.publisherName) opts
+    addNew = H.a ! A.target "_blank"
+                 ! A.href (toValue . showURL $ URL.AddPublisher) $
+               "Add a new publisher"
 
 bookForm :: (Monad m, MonadSnap m)
          => Maybe Book
@@ -121,15 +139,16 @@ addEdition :: (MonadSnap m, HasDatabase m)
            => Ref (Concept Book)
            -> m (SnapForm m Html BlazeFormHtml Edition)
 addEdition book = do
-  formatField <- editionFormat Nothing
-  countryField <- country Nothing
-  languageField <- language Nothing
+  formatField    <- editionFormat Nothing
+  countryField   <- country Nothing
+  languageField  <- language Nothing
+  publisherField <- publisher Nothing
   return $
     Edition <$> simpleField "Name:" (entityName Nothing)
             <*> simpleField "Format:" formatField
             <*> pure book
             <*> simpleField "Year:" (year Nothing)
-            <*> pure Nothing
+            <*> simpleField "Publisher:" publisherField
             <*> simpleField "Country:" countryField
             <*> simpleField "Language:" languageField
             <*> simpleField "ISBN:" (isbn13 Nothing)

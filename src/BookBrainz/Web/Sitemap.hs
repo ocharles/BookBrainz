@@ -42,6 +42,7 @@ data Sitemap
 
        -- /publisher
      | Publisher (BBID Publisher)
+     | AddPublisher
 
        -- /search
      | Search
@@ -69,6 +70,7 @@ sitemap =
   <> rEdition . ("edition" </> uuid)
 
   <> rPublisher . ("publisher" </> uuid)
+  <> rAddPublisher . ("publisher" </> "add")
 
   <> rSearch . "search"
 
