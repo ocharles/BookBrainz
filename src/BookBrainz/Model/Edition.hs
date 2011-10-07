@@ -54,8 +54,11 @@ instance GenericallyVersioned Edition where
 
   newTree baseTree pubData = do
     versionId <- findOrInsertVersion
-    newTreeId <- fromSql `fmap` queryOne insertTreeSql [ versionId
-                                                       , toSql $ editionBook pubData ]
+    newTreeId <- fromSql `fmap`
+                   queryOne insertTreeSql [ versionId
+                                          , toSql $ editionBook pubData
+                                          , toSql $ editionPublisher pubData
+                                          ]
     traverse (\tree -> copyRoles tree newTreeId) baseTree
     return newTreeId
     where
@@ -65,7 +68,7 @@ instance GenericallyVersioned Edition where
           Just id' -> return id'
           Nothing -> newVersion
       insertTreeSql = unlines [ "INSERT INTO bookbrainz_v.edition_tree"
-                              , "(version, book_id) VALUES (?, ?)"
+                              , "(version, book_id, publisher_id) VALUES (?, ?, ?)"
                               , "RETURNING edition_tree_id"
                               ]
       findVersion =

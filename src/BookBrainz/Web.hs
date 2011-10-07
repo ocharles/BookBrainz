@@ -44,6 +44,7 @@ routeUrl url = liftRouteT $ case url of
   AddEdition bbid -> addEdition bbid
   Edition bbid    -> showEdition bbid
   Publisher bbid  -> showPublisher bbid
+  AddPublisher    -> addPublisher
   Search          -> search
   Login           -> login
   Register        -> register

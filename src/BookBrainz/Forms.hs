@@ -27,7 +27,7 @@ import           BookBrainz.Model.Editor (getEditorByName)
 import           BookBrainz.Model.Publisher (allPublishers)
 import           BookBrainz.Types (Book (Book), Edition (Edition)
                                   ,EditionFormat, Ref, Concept, Isbn
-                                  ,Language, Country, Publisher)
+                                  ,Language, Country, Publisher (Publisher))
 import qualified BookBrainz.Types as BB
 import           BookBrainz.Web.Sitemap (showURL)
 import qualified BookBrainz.Web.Sitemap as URL
@@ -117,10 +117,10 @@ country def =
                        (toHtml . BB.countryName)
     <$> allCountries
 
-publisher :: (Monad m, MonadSnap m, HasDatabase m)
-          => Maybe (Ref (Concept Publisher))
-          -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref (Concept Publisher))))
-publisher def = do
+publisherRef :: (Monad m, MonadSnap m, HasDatabase m)
+             => Maybe (Ref (Concept Publisher))
+             -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref (Concept Publisher))))
+publisherRef def = do
   opts <- allPublishers
   return (buildField opts <++ viewHtml addNew)
   where
@@ -142,7 +142,7 @@ addEdition book = do
   formatField    <- editionFormat Nothing
   countryField   <- country Nothing
   languageField  <- language Nothing
-  publisherField <- publisher Nothing
+  publisherField <- publisherRef Nothing
   return $
     Edition <$> simpleField "Name:" (entityName Nothing)
             <*> simpleField "Format:" formatField
@@ -153,6 +153,10 @@ addEdition book = do
             <*> simpleField "Language:" languageField
             <*> simpleField "ISBN:" (isbn13 Nothing)
             <*> pure Nothing
+
+addPublisher :: (MonadSnap m)
+             => SnapForm m Html BlazeFormHtml Publisher
+addPublisher = Publisher <$> simpleField "Name:" (entityName Nothing)
 
 --------------------------------------------------------------------------------
 searchForm :: (Monad m, MonadSnap m) => SnapForm m Html BlazeFormHtml SearchQuery

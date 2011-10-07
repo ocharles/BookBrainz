@@ -69,8 +69,8 @@ sitemap =
 
   <> rEdition . ("edition" </> uuid)
 
-  <> rPublisher . ("publisher" </> uuid)
   <> rAddPublisher . ("publisher" </> "add")
+  <> rPublisher . ("publisher" </> uuid)
 
   <> rSearch . "search"
 
