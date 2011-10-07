@@ -32,12 +32,12 @@ instance GenericallyVersioned Edition where
                                    , cfgTree = "edition_tree"
                                    , cfgBbid = "edition_bbid"
                                    , cfgRevision = "edition_revision"
-                                   , cfgBranch = "edition_branch"                                                                      
+                                   , cfgBranch = "edition_branch"
                                    }
 
   fromViewRow row =
     CoreEntity { bbid = row ! "bbid"
-               , coreEntityRevision = row ! "revision"
+               , coreEntityRevision = row ! "rev_id"
                , coreEntityTree = row ! "edition_tree_id"
                , coreEntityConcept = row ! "edition_id"
                , coreEntityInfo = Edition { editionName = row ! "name"

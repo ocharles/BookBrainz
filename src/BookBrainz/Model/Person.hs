@@ -17,12 +17,12 @@ instance GenericallyVersioned Person where
                                    , cfgTree = "person_tree"
                                    , cfgBbid = "person_bbid"
                                    , cfgRevision = "person_revision"
-                                   , cfgBranch = "person_branch"                                   
+                                   , cfgBranch = "person_branch"
                                    }
 
   fromViewRow row =
     CoreEntity { bbid = row ! "bbid"
-               , coreEntityRevision = row ! "revision"
+               , coreEntityRevision = row ! "rev_id"
                , coreEntityTree = row ! "person_tree_id"
                , coreEntityConcept = row ! "person_id"
                , coreEntityInfo = Person { personName = row ! "name" }
