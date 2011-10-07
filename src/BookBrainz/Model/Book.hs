@@ -2,6 +2,7 @@
 module BookBrainz.Model.Book
        ( -- * Working With Books
          listAllBooks
+       , BookBrainz.Model.Book.create
        ) where
 
 import Data.Traversable                   (traverse)
@@ -9,9 +10,11 @@ import Data.Traversable                   (traverse)
 import Database.HDBC                      (toSql, fromSql)
 
 import BookBrainz.Model.Role              (copyRoles)
-import BookBrainz.Types                   (Book (..))
-import BrainzStem.Database                (queryOne, safeQueryOne, (!)
+import BookBrainz.Search                  (indexBook)
+import BookBrainz.Types                   (Book (..), Ref, Editor)
+import BrainzStem.Database                (queryOne, safeQueryOne
                                           ,HasDatabase, query)
+import BrainzStem.Model as Model
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
 import BrainzStem.Types                   (LoadedCoreEntity (..))
@@ -28,7 +31,7 @@ instance GenericallyVersioned Book where
 
   fromViewRow row =
     CoreEntity { bbid = row ! "bbid"
-               , coreEntityRevision = row ! "revision"
+               , coreEntityRevision = row ! "rev_id"
                , coreEntityTree = row ! "book_tree_id"
                , coreEntityConcept = row ! "book_id"
                , coreEntityInfo = Book { bookName = row ! "name" }
@@ -67,3 +70,15 @@ instance GenericallyVersioned Book where
 listAllBooks :: (Functor a, HasDatabase a)
              => a [LoadedCoreEntity Book]
 listAllBooks = map fromViewRow `fmap` query "SELECT * FROM book" [ ]
+
+--------------------------------------------------------------------------------
+-- | Create a new a book.
+create :: (HasDatabase m)
+       => Book                       {-^ The information about this book.. -}
+       -> Ref Editor                 {-^ The editor creating this book. -}
+       -> m (LoadedCoreEntity Book)  {-^ The book, loaded from the database
+                                      (complete with BBID). -}
+create bookData editor = do
+  book <- Model.create bookData editor
+  indexBook book []
+  return book

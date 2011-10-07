@@ -87,7 +87,7 @@ create :: (HasDatabase m, CoreEntity a)
        => a                       {-^ The information about the entity to
                                       insert. -}
        -> Ref Editor              {-^ The editor creating this core entity. -}
-       -> m (LoadedCoreEntity a)  {-^ The book, loaded from the database
+       -> m (LoadedCoreEntity a)  {-^ The entity, loaded from the database
                                       (complete with BBID). -}
 create dat editorRef = do
   bbid' <- newSystemConcept

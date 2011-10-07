@@ -19,7 +19,7 @@ import           Text.Digestive.Blaze.Html5
 import           Text.Digestive.Forms.Snap  (eitherSnapForm)
 
 import qualified BookBrainz.Forms as Forms
-import           BookBrainz.Model.Book
+import           BookBrainz.Model.Book      (create, listAllBooks)
 import           BookBrainz.Model.Edition
 import           BookBrainz.Model.Publisher ()
 import           BookBrainz.Model.Role      (findRoles)
@@ -28,7 +28,8 @@ import           BookBrainz.Web.Handler     (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Book   as V
 import           BrainzStem.Database        (withTransaction)
-import           BrainzStem.Model
+import           BrainzStem.Model           (getByBbid, getByConcept, update
+                                            ,findMasterBranch)
 
 --------------------------------------------------------------------------------
 -- | List all known books.

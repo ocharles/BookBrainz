@@ -109,9 +109,9 @@ instance FromJSON (BBID a) where
 instance FromJSON entity => FromJSON (LoadedCoreEntity entity) where
   parseJSON json@(Object o) = CoreEntity <$> o .: "bbid"
                                          <*> o .: "_revision"
-                                         <*> o .: "_version"
+                                         <*> o .: "_tree"
                                          <*> parseJSON json
-                                         <*> o .: "_id"
+                                         <*> o .: "_concept"
   parseJSON v = typeMismatch "LoadedCoreEntity" v
 
 instance ToJSON ent => ToJSON (LoadedCoreEntity ent) where
