@@ -1,13 +1,15 @@
 -- | Functions for working with 'BookBrainz.Types.Publisher.Publisher' entities.
 module BookBrainz.Model.Publisher
        ( allPublishers
+       , publishedEditions
        ) where
 
 import Database.HDBC (fromSql, toSql)
 
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
-import BookBrainz.Types                   (Publisher (..))
+import BookBrainz.Model.Edition           ()
+import BookBrainz.Types
 import BrainzStem.Database                ((!), queryOne, safeQueryOne
                                           ,HasDatabase, query)
 import BrainzStem.Types                   (LoadedCoreEntity (..))
@@ -60,3 +62,13 @@ instance GenericallyVersioned Publisher where
 -- | Get all publishers in the system
 allPublishers :: HasDatabase m => m [LoadedCoreEntity Publisher]
 allPublishers = map fromViewRow `fmap` query "SELECT * FROM publisher" []
+
+--------------------------------------------------------------------------------
+-- | Find all 'Edition's that this 'Publisher' published.
+publishedEditions :: HasDatabase m
+                  => Ref (Concept Publisher)
+                  -> m [LoadedCoreEntity Edition]
+publishedEditions pubRef =
+  map fromViewRow `fmap` query sql [ toSql pubRef ]
+
+  where sql = "SELECT * FROM edition WHERE publisher_id = ?"

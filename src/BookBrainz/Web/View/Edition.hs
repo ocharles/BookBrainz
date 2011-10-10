@@ -6,6 +6,9 @@ module BookBrainz.Web.View.Edition
          showEdition
        , addEdition
        , editEdition
+
+         -- * Components
+       , editionTable
        ) where
 
 import           Control.Monad       (when)
@@ -20,7 +23,8 @@ import           Text.Digestive.Forms.Html (FormEncType)
 
 import           BookBrainz.Types
 import           BookBrainz.Web.View (pageLayout, linkBook, linkEdition
-                                     ,linkPublisher, optionalDl, View)
+                                     ,linkPublisher, optionalDl, View
+                                     ,detailTable)
 import qualified BookBrainz.Web.View.Sidebar as Sidebar
 
 --------------------------------------------------------------------------------
@@ -75,3 +79,23 @@ editEdition (formHtml, enctype) =
     H.form ! A.method "POST" ! A.enctype (toValue enctype) $ do
       formHtml
       H.p $ H.input ! A.type_ "submit" ! A.value "Edit Edition"
+
+--------------------------------------------------------------------------------
+-- | Display a table of 'Edition's.
+editionTable :: [(LoadedCoreEntity Edition, Maybe (LoadedCoreEntity Publisher))]
+             -> Html
+editionTable =
+  detailTable [("Name", [])
+              ,("Year", [])
+              ,("ISBN", [])
+              ,("Publisher",[])]
+    . map editionRow
+  where
+    editionRow (edition, publisher) =
+      let edition' = copoint edition in
+      [ toHtml $ linkEdition edition
+      , maybeCell toHtml $ editionYear edition'
+      , maybeCell (toHtml . show) $ editionIsbn edition'
+      , maybeCell linkPublisher publisher
+      ]
+    maybeCell f = toHtml . maybe "-" f
