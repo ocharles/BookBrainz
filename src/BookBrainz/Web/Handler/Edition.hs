@@ -5,6 +5,7 @@
 module BookBrainz.Web.Handler.Edition
        ( showEdition
        , addEdition
+       , editEdition
        ) where
 
 import           Control.Applicative            ((<*>), (<$>))
@@ -59,4 +60,20 @@ addEdition bookBbid = do
       Right submission -> do
         edition <- withTransaction $
           create submission $ editorRef user
+        redirect $ pack . ("/edition/" ++) . show . bbid $ edition
+
+--------------------------------------------------------------------------------
+-- | Allow editing an existing 'Edition'.
+editEdition :: BBID Edition -> BookBrainzHandler ()
+editEdition editionBbid = do
+  withUser $ \user -> do
+    edition <- getByBbid editionBbid `onNothing` "Edition not found"
+    editionForm <- Forms.editEdition $ copoint edition
+    r <- eitherSnapForm editionForm "edition"
+    case r of
+      Left form' -> output $ V.editEdition $ renderFormHtml form'
+      Right submission -> do
+        withTransaction $ do
+          master <- findMasterBranch $ coreEntityConcept edition
+          update master submission $ editorRef user
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition

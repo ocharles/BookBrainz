@@ -43,6 +43,7 @@ routeUrl url = liftRouteT $ case url of
   Person bbid     -> showPerson bbid
   AddEdition bbid -> addEdition bbid
   Edition bbid    -> showEdition bbid
+  EditEdition bbid -> editEdition bbid
   Publisher bbid  -> showPublisher bbid
   AddPublisher    -> addPublisher
   Search          -> search

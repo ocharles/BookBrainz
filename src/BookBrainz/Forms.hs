@@ -64,8 +64,8 @@ year def = inputText ((T.pack . show) `fmap` def)
                                       Right (d, _) -> Right $ Just d
 
 isbn13 :: (Monad m, MonadSnap m)
-       => Maybe [Int] -> SnapForm m Html BlazeFormHtml (Maybe Isbn)
-isbn13 def = inputString ((concat . map show) `fmap` def)
+       => Maybe Isbn -> SnapForm m Html BlazeFormHtml (Maybe Isbn)
+isbn13 def = inputString (show `fmap` def)
                `validate` checkIsbn `transform` transIsbn
   where
     checkIsbn = check "This is not a valid ISBN-13 identifier"
@@ -152,6 +152,25 @@ addEdition book = do
             <*> simpleField "Country:" countryField
             <*> simpleField "Language:" languageField
             <*> simpleField "ISBN:" (isbn13 Nothing)
+            <*> pure Nothing
+
+editEdition :: (MonadSnap m, HasDatabase m)
+            => Edition
+            -> m (SnapForm m Html BlazeFormHtml Edition)
+editEdition edition = do
+  formatField    <- editionFormat $ BB.editionFormat edition
+  countryField   <- country       $ BB.editionCountry edition
+  languageField  <- language      $ BB.editionLanguage edition
+  publisherField <- publisherRef  $ BB.editionPublisher edition
+  return $
+    Edition <$> simpleField "Name:" (entityName . Just $ BB.editionName edition)
+            <*> simpleField "Format:" formatField
+            <*> pure (BB.editionBook edition)
+            <*> simpleField "Year:" (year $ BB.editionYear edition)
+            <*> simpleField "Publisher:" publisherField
+            <*> simpleField "Country:" countryField
+            <*> simpleField "Language:" languageField
+            <*> simpleField "ISBN:" (isbn13 $ BB.editionIsbn edition)
             <*> pure Nothing
 
 addPublisher :: (MonadSnap m)

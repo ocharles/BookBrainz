@@ -5,6 +5,7 @@ module BookBrainz.Web.View.Edition
        ( -- * Pages
          showEdition
        , addEdition
+       , editEdition
        ) where
 
 import           Control.Monad       (when)
@@ -63,3 +64,14 @@ addEdition (formHtml, enctype) =
     H.form ! A.method "POST" ! A.enctype (toValue enctype) $ do
       formHtml
       H.p $ H.input ! A.type_ "submit" ! A.value "Add Edition"
+
+--------------------------------------------------------------------------------
+-- | A form for editing existing 'Edition's.
+editEdition :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
+            -> View
+editEdition (formHtml, enctype) =
+  pageLayout Nothing $ do
+    H.h1 "Edit Edition"
+    H.form ! A.method "POST" ! A.enctype (toValue enctype) $ do
+      formHtml
+      H.p $ H.input ! A.type_ "submit" ! A.value "Edit Edition"
