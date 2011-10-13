@@ -17,5 +17,6 @@ allCountries = map fromRow `fmap` query "SELECT * FROM country" []
 fromRow :: Row -> LoadedEntity Country
 fromRow r = Entity { entityInfo = Country { countryName = r ! "name"
                                           , countryIsoCode = r ! "iso_code"
-                                          , countryRef = r ! "iso_code"
-                                          } }
+                                          }
+                   , entityRef = r ! "iso_code"
+                   }

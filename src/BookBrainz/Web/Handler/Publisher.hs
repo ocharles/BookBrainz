@@ -46,5 +46,5 @@ addPublisher = do
     case r of
       Left form' -> output $ V.addPublisher $ renderFormHtml form'
       Right submission -> do
-        publisher <- withTransaction  $ create submission $ editorRef user
+        publisher <- withTransaction  $ create submission $ entityRef user
         redirect $ pack . ("/publisher/" ++) . show . bbid $ publisher

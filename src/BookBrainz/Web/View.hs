@@ -48,18 +48,18 @@ genericError message =
     H.p $ toHtml message
 
 --------------------------------------------------------------------------------
-data ViewData = ViewData { vdCurrentEditor :: Maybe Editor }
+data ViewData = ViewData { vdCurrentEditor :: Maybe (LoadedEntity Editor) }
 
 -- | A page on the web site, with access to the current request environment.
 type View = Reader ViewData Html
 
 -- | Run a 'View' against a specific environment, generating 'Html'.
-runView :: View -> Maybe Editor -> Html
+runView :: View -> Maybe (LoadedEntity Editor) -> Html
 runView view = runReader view . ViewData
 
 -- | Get the current 'Editor' for rendering this 'View'. May be 'Nothing' if no
 -- editor is logged in.
-currentEditor :: ReaderT ViewData Identity (Maybe Editor)
+currentEditor :: ReaderT ViewData Identity (Maybe (LoadedEntity Editor))
 currentEditor = asks vdCurrentEditor
 
 --------------------------------------------------------------------------------

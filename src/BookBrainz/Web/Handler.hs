@@ -46,7 +46,7 @@ output :: View -- ^ The 'View' to display.
        -> BookBrainzHandler ()
 output view = do
   u <- currentUser
-  blaze $  runView view u
+  blaze $ runView view u
 
 --------------------------------------------------------------------------------
 {-| Run an action with a 'Maybe' result, and if it returns 'Nothing', then a
@@ -61,13 +61,14 @@ action `onNothing` msg = action >>= maybe (throw $ Http404 msg) return
 
 --------------------------------------------------------------------------------
 -- | Get the current user, as a BrainzStem specific 'Editor' type.
-currentUser :: BookBrainzHandler (Maybe Editor)
+currentUser :: BookBrainzHandler (Maybe (LoadedEntity Editor))
 currentUser = fmap auToBbE `fmap` (with auth $ SnapAuth.currentUser)
   where auToBbE user =
-          Editor { editorName = userLogin user
-                 , editorRef = Ref . toSql . uidResult . decimal . unUid . fromJust $
-                               userId user
-                 }
+          Entity {
+            entityInfo = Editor { editorName = userLogin user }
+          , entityRef = Ref . toSql . uidResult . decimal . unUid . fromJust $
+                          userId user
+          }
         uidResult :: Either String (Int, Text) -> Int
         uidResult (Left _) = error "Could not read user ID"
         uidResult (Right (id', _)) = id'
@@ -75,7 +76,7 @@ currentUser = fmap auToBbE `fmap` (with auth $ SnapAuth.currentUser)
 --------------------------------------------------------------------------------
 -- | If the user is not logged in, redirect them to the login page with a sane
 -- redirection handler. Otherwise, return the currently logged in user.
-withUser :: (Editor -> BookBrainzHandler ()) -> BookBrainzHandler ()
+withUser :: (LoadedEntity Editor -> BookBrainzHandler ()) -> BookBrainzHandler ()
 withUser f = do
   u <- currentUser
   case u of

@@ -27,7 +27,8 @@ import           BookBrainz.Model.Editor (getEditorByName)
 import           BookBrainz.Model.Publisher (allPublishers)
 import           BookBrainz.Types (Book (Book), Edition (Edition)
                                   ,EditionFormat, Ref, Concept, Isbn
-                                  ,Language, Country, Publisher (Publisher))
+                                  ,Language, Country, Publisher (Publisher)
+                                  ,entityRef, coreEntityConcept)
 import qualified BookBrainz.Types as BB
 import           BookBrainz.Web.Sitemap (showURL)
 import qualified BookBrainz.Web.Sitemap as URL
@@ -97,7 +98,7 @@ editionFormat :: (Monad m, MonadSnap m, HasDatabase m)
               => Maybe (Ref EditionFormat)
               -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref EditionFormat)))
 editionFormat def =
-  optionalDbSelect def (BB.editionFormatRef . copoint)
+  optionalDbSelect def entityRef
                        (toHtml . BB.editionFormatName)
     <$> allEditionFormats
 
@@ -105,7 +106,7 @@ language :: (Monad m, MonadSnap m, HasDatabase m)
          => Maybe (Ref Language)
          -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref Language)))
 language def =
-  optionalDbSelect def (BB.languageRef . copoint)
+  optionalDbSelect def entityRef
                        (toHtml . BB.languageName)
     <$> allLanguages
 
@@ -113,7 +114,7 @@ country :: (Monad m, MonadSnap m, HasDatabase m)
         => Maybe (Ref Country)
         -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref Country)))
 country def =
-  optionalDbSelect def (BB.countryRef . copoint)
+  optionalDbSelect def entityRef
                        (toHtml . BB.countryName)
     <$> allCountries
 
@@ -125,7 +126,7 @@ publisherRef def = do
   return (buildField opts <++ viewHtml addNew)
   where
     buildField opts =
-      optionalDbSelect def BB.coreEntityConcept (toHtml . BB.publisherName) opts
+      optionalDbSelect def coreEntityConcept (toHtml . BB.publisherName) opts
     addNew = H.a ! A.target "_blank"
                  ! A.href (toValue . showURL $ URL.AddPublisher) $
                "Add a new publisher"

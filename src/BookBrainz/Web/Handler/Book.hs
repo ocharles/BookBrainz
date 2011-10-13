@@ -60,7 +60,7 @@ addBook = do
     case r of
       Left form' -> output $ V.addBook $ renderFormHtml form'
       Right submission -> do
-        book <- withTransaction  $ create submission $ editorRef user
+        book <- withTransaction  $ create submission $ entityRef user
         redirect $ pack . ("/book/" ++) . show . bbid $ book
 
 ---------------------------------------------------------------------------------
@@ -76,5 +76,5 @@ editBook bbid' = do
       Right submission -> do
         master <- findMasterBranch $ coreEntityConcept book
         withTransaction $
-          update master submission (editorRef user)
+          update master submission (entityRef user)
         redirect $ pack . ("/book/" ++) . show . bbid $ book

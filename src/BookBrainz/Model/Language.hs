@@ -18,5 +18,6 @@ fromRow :: Row -> LoadedEntity Language
 fromRow r = Entity { entityInfo =
                        Language { languageName = r ! "name"
                                 , languageIsoCode = r ! "iso_code"
-                                , languageRef = r ! "iso_code"
-                                } }
+                                }
+                   , entityRef = r ! "iso_code"
+                   }

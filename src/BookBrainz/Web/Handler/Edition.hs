@@ -59,7 +59,7 @@ addEdition bookBbid = do
       Left form' -> output $ V.addEdition $ renderFormHtml form'
       Right submission -> do
         edition <- withTransaction $
-          create submission $ editorRef user
+          create submission $ entityRef user
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition
 
 --------------------------------------------------------------------------------
@@ -75,5 +75,5 @@ editEdition editionBbid = do
       Right submission -> do
         withTransaction $ do
           master <- findMasterBranch $ coreEntityConcept edition
-          update master submission $ editorRef user
+          update master submission $ entityRef user
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition

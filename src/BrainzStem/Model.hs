@@ -124,7 +124,7 @@ update branch dat editorRef = do
   return ()
   where forwardBranch revId =
           query forwardSql [ toSql revId
-                           , toSql . branchId $ copoint branch
+                           , toSql $ entityRef branch
                            ]
         forwardSql = unlines [ "UPDATE bookbrainz_v.branch SET rev_id = ?"
                              , "WHERE branch_id = ?"

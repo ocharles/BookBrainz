@@ -19,5 +19,6 @@ allEditionFormats = map fromRow `fmap` query "SELECT * FROM edition_format" []
 
 fromRow :: Row -> LoadedEntity EditionFormat
 fromRow r = Entity { entityInfo =
-                       EditionFormat { editionFormatRef = r ! "id"
-                                     , editionFormatName = r ! "name" } }
+                       EditionFormat { editionFormatName = r ! "name" }
+                   , entityRef = r ! "id"
+                   }

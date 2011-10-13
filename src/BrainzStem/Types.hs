@@ -59,6 +59,8 @@ a full core entity. -}
 data LoadedEntity a = Entity
     { -- | The underlying information about this entity.
       entityInfo :: a
+      -- | A reference to this entity in the database.
+    , entityRef :: Ref a
     } deriving Show
 
 instance Copointed LoadedEntity where
@@ -66,19 +68,15 @@ instance Copointed LoadedEntity where
 
 --------------------------------------------------------------------------------
 -- | Represents a single revision of an entity of type @a@.
-data Revision a = Revision { -- | The ID of the revision.
-                             revisionId :: Int
-                             -- | The 'Tree' this revision refers to.
-                           , revisionTree :: Ref (Tree a)
+data Revision a = Revision { -- | The 'Tree' this revision refers to.
+                             revisionTree :: Ref (Tree a)
                            }
 
 --------------------------------------------------------------------------------
 -- | Represents a branch of revisions for an entity of type @a@.
-data Branch a = Branch { -- | The ID of the branch.
-                         branchId :: Int
-                         -- | True is the branch is the master branch, false for
+data Branch a = Branch { -- | True is the branch is the master branch, false for
                          -- all other branches
-                       , branchIsMaster :: Bool
+                         branchIsMaster :: Bool
                          -- | The 'Concept' this branch contains revisions of.
                        , branchConcept :: Ref (Concept a)
                          -- | The 'Revision' at the tip of this branch.
@@ -108,8 +106,6 @@ data Tree a
 {-| An editon within the BrainzStem system. -}
 data Editor = Editor { -- | The name of the editor.
                        editorName :: Text
-                       -- | A reference to this editor.
-                     , editorRef :: Ref Editor
                      }
 
 --------------------------------------------------------------------------------
@@ -126,3 +122,4 @@ instance Show (BBID a) where
 -- fails.
 parseBbid :: String -> Maybe (BBID a)
 parseBbid = fmap BBID . fromString
+ 

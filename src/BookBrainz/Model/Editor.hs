@@ -17,4 +17,6 @@ getEditorByName name =
 
 fromRow :: Row -> LoadedEntity Editor
 fromRow r = Entity { entityInfo = Editor { editorName = r ! "name"
-                                         , editorRef = r ! "editor_id" } }
+                                         }
+                   , entityRef = r ! "editor_id"
+                   }

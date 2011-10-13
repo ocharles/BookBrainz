@@ -46,7 +46,7 @@ instance ToJSON Person where
   toJSON person = object [ "name" .= personName person ]
 
 instance ToJSON (LoadedEntity Role, LoadedCoreEntity Person) where
-  toJSON (role, person) = object [ "role" .= roleName (copoint role)
+  toJSON (role, person) = object [ "role" .= role
                                  , "person" .= person
                                  ]
 
@@ -61,6 +61,9 @@ instance FromJSON SearchableBook where
 instance FromJSON BB.Book where
   parseJSON (Object b) = BB.Book <$> b .: "name"
   parseJSON v = typeMismatch "Book" v
+
+instance ToJSON BB.Role where
+  toJSON role = object [ "role" .= roleName role ]
 
 instance FromJSON BB.Role where
   parseJSON (String r) = return $ BB.Role r
@@ -123,8 +126,15 @@ instance ToJSON ent => ToJSON (LoadedCoreEntity ent) where
                `unionObject`
                toJSON (copoint ent)
 
+instance ToJSON a => ToJSON (LoadedEntity a) where
+  toJSON loaded = object [ "_ref" .= entityRef loaded ]
+                  `unionObject`
+                  toJSON (copoint loaded)
+
 instance (FromJSON entity) => FromJSON (LoadedEntity entity) where
-  parseJSON json = Entity <$> parseJSON json
+  parseJSON json@(Object o) = Entity <$> parseJSON json
+                                     <*> o .: "_ref"
+  parseJSON v = typeMismatch "LoadedEntity" v
 
 instance ToJSON (Ref a) where
   toJSON ref = toJSON (fromSql $ rowKey ref :: String)

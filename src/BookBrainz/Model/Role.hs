@@ -21,7 +21,9 @@ instance Entity Role where
     where sql = "SELECT * FROM person_role WHERE id = ?"
 
 fromRow :: Row -> LoadedEntity Role
-fromRow r = Entity { entityInfo = Role { roleName = r ! "name" } }
+fromRow r = Entity { entityInfo = Role { roleName = r ! "name" }
+                   , entityRef = r ! "role_id"
+                   }
 
 --------------------------------------------------------------------------------
 -- | The 'HasRoles' type class specifies that @entity@ has person-roles

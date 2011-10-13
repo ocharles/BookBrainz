@@ -121,9 +121,9 @@ instance GenericallyVersioned a => CoreEntity a where
                        ]
       revisionFromRow row =
         Entity { entityInfo =
-                    Revision { revisionId = row ! "rev_id"
-                             , revisionTree = row ! ((cfgTree config) ++ "_id")
+                    Revision { revisionTree = row ! ((cfgTree config) ++ "_id")
                              }
+               , entityRef = row ! "rev_id"
                }
 
   findMasterBranch concept =
@@ -136,8 +136,10 @@ instance GenericallyVersioned a => CoreEntity a where
                           , "WHERE " ++ (cfgConcept config) ++ "_id = ?"
                           , "AND master = TRUE"
                           ]
-      branchFromRow row = Entity $ Branch { branchId = row ! "branch_id"
-                                          , branchIsMaster = row ! "master"
-                                          , branchConcept = row ! (cfgConcept config)
-                                          , branchRevision = row ! "rev_id"
-                                          }
+      branchFromRow row =
+        Entity { entityInfo = Branch { branchIsMaster = row ! "master"
+                                     , branchConcept = row ! (cfgConcept config)
+                                     , branchRevision = row ! "rev_id"
+                                     }
+               , entityRef = row ! "branch_id"
+               }
