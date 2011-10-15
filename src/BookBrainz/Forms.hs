@@ -32,7 +32,7 @@ import           BookBrainz.Model.Role (allRoles)
 import           BookBrainz.Types (Book (Book), Edition (Edition)
                                   ,EditionFormat, Ref, Concept, Isbn
                                   ,Language, Country, Publisher (Publisher)
-                                  ,Person, Role
+                                  ,Person (Person), Role
                                   ,entityRef, coreEntityConcept)
 import qualified BookBrainz.Types as BB
 import           BookBrainz.Web.Sitemap (showURL)
@@ -225,6 +225,10 @@ editEdition edition = do
 addPublisher :: (MonadSnap m)
              => SnapForm m Html BlazeFormHtml Publisher
 addPublisher = Publisher <$> simpleField "Name:" (entityName Nothing)
+
+addPerson :: (MonadSnap m)
+          => SnapForm m Html BlazeFormHtml Person
+addPerson = Person <$> simpleField "Name:" (entityName Nothing)
 
 personRole :: (HasDatabase m, MonadSnap m)
            => m (SnapForm m Html BlazeFormHtml (Ref (Concept Person), Ref Role))

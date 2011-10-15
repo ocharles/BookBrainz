@@ -42,6 +42,7 @@ routeUrl url = liftRouteT $ case url of
   EditBook bbid    -> editBook bbid
   AddBookRole bbid -> addBookRole bbid
   Person bbid      -> showPerson bbid
+  AddPerson        -> addPerson
   AddEdition bbid  -> addEdition bbid
   Edition bbid     -> showEdition bbid
   EditEdition bbid -> editEdition bbid

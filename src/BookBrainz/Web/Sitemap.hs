@@ -68,6 +68,7 @@ sitemap =
   <> rEditBook . ("book" </> uuid . "edit")
   <> rAddBookRole . ("book" </> uuid . "add-role")
 
+  <> rAddPerson . ("person" </> "add")
   <> rPerson . ("person" </> uuid)
 
   <> rEdition . ("edition" </> uuid)
