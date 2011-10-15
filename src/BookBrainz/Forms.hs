@@ -1,9 +1,11 @@
-{-# LANGUAGE OverloadedStrings, TypeSynonymInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TupleSections #-}
 module BookBrainz.Forms where
 
 import           Data.Char                   (isDigit, digitToInt)
 import           Control.Applicative         ((<$>), (<*>), pure)
-import           Data.Maybe                  (fromMaybe)
+import           Data.Maybe                  (fromMaybe, fromJust)
 
 import           Data.Copointed              (copoint, Copointed)
 import           Data.Text                   (Text)
@@ -24,10 +26,13 @@ import           BookBrainz.Model.Country  (allCountries)
 import           BookBrainz.Model.EditionFormat (allEditionFormats)
 import           BookBrainz.Model.Language (allLanguages)
 import           BookBrainz.Model.Editor (getEditorByName)
+import           BookBrainz.Model.Person (allPersons)
 import           BookBrainz.Model.Publisher (allPublishers)
+import           BookBrainz.Model.Role (allRoles)
 import           BookBrainz.Types (Book (Book), Edition (Edition)
                                   ,EditionFormat, Ref, Concept, Isbn
                                   ,Language, Country, Publisher (Publisher)
+                                  ,Person, Role
                                   ,entityRef, coreEntityConcept)
 import qualified BookBrainz.Types as BB
 import           BookBrainz.Web.Sitemap (showURL)
@@ -94,6 +99,16 @@ optionalDbSelect def fVal fLabel options =
   inputSelect def $ [(Nothing,"")] ++ map fOption options
   where fOption v = (Just . fVal $ v, fLabel . copoint $ v)
 
+justDbSelect :: (Monad m, MonadSnap m, HasDatabase m, Eq a, Copointed cont)
+             => Maybe a
+             -> (cont b -> a)
+             -> (b -> Html)
+             -> [cont b]
+             -> SnapForm m Html BlazeFormHtml a
+justDbSelect def fVal fLabel options =
+  fromJust <$> inputSelect def (map fOption options)
+  where fOption v = (Just . fVal $ v, fLabel . copoint $ v)
+
 editionFormat :: (Monad m, MonadSnap m, HasDatabase m)
               => Maybe (Ref EditionFormat)
               -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref EditionFormat)))
@@ -130,6 +145,39 @@ publisherRef def = do
     addNew = H.a ! A.target "_blank"
                  ! A.href (toValue . showURL $ URL.AddPublisher) $
                "Add a new publisher"
+
+personRef :: (Monad m, MonadSnap m, HasDatabase m)
+             => Maybe (Ref (Concept Person))
+             -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref (Concept Person))))
+personRef def = do
+  opts <- allPersons
+  return (buildField opts <++ viewHtml addNew)
+  where
+    buildField opts =
+      optionalDbSelect def coreEntityConcept (toHtml . BB.personName) opts
+    addNew = H.a ! A.target "_blank"
+                 ! A.href (toValue . showURL $ URL.AddPerson) $
+               "Add a new person"
+
+justPersonRef :: (Monad m, MonadSnap m, HasDatabase m)
+              => Maybe (Ref (Concept Person))
+              -> m (SnapForm m Html BlazeFormHtml (Ref (Concept Person)))
+justPersonRef def = do
+  opts <- allPersons
+  return (buildField opts <++ viewHtml addNew)
+  where
+    buildField opts =
+      justDbSelect def coreEntityConcept (toHtml . BB.personName) opts
+    addNew = H.a ! A.target "_blank"
+                 ! A.href (toValue . showURL $ URL.AddPerson) $
+               "Add a new person"
+
+role :: (Monad m, MonadSnap m, HasDatabase m)
+         => Maybe (Ref Role)
+         -> m (SnapForm m Html BlazeFormHtml (Ref Role))
+role def =
+  justDbSelect def entityRef (toHtml . BB.roleName)
+    <$> allRoles
 
 bookForm :: (Monad m, MonadSnap m)
          => Maybe Book
@@ -177,6 +225,15 @@ editEdition edition = do
 addPublisher :: (MonadSnap m)
              => SnapForm m Html BlazeFormHtml Publisher
 addPublisher = Publisher <$> simpleField "Name:" (entityName Nothing)
+
+personRole :: (HasDatabase m, MonadSnap m)
+           => m (SnapForm m Html BlazeFormHtml (Ref (Concept Person), Ref Role))
+personRole = do
+  personField <- justPersonRef Nothing
+  roleField   <- role Nothing
+  return $
+    (,) <$> simpleField "Person:" personField
+        <*> simpleField "Role:" roleField
 
 --------------------------------------------------------------------------------
 searchForm :: (Monad m, MonadSnap m) => SnapForm m Html BlazeFormHtml SearchQuery

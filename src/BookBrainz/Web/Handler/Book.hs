@@ -7,6 +7,7 @@ module BookBrainz.Web.Handler.Book
        , showBook
        , addBook
        , editBook
+       , addBookRole
        ) where
 
 import           Control.Applicative        ((<$>))
@@ -19,7 +20,7 @@ import           Text.Digestive.Blaze.Html5
 import           Text.Digestive.Forms.Snap  (eitherSnapForm)
 
 import qualified BookBrainz.Forms as Forms
-import           BookBrainz.Model.Book      (create, listAllBooks)
+import           BookBrainz.Model.Book      (create, listAllBooks, addRole)
 import           BookBrainz.Model.Edition
 import           BookBrainz.Model.Publisher ()
 import           BookBrainz.Model.Role      (findRoles)
@@ -77,4 +78,21 @@ editBook bbid' = do
         master <- findMasterBranch $ coreEntityConcept book
         withTransaction $
           update master submission (entityRef user)
+        redirect $ pack . ("/book/" ++) . show . bbid $ book
+
+--------------------------------------------------------------------------------
+{-| Present an interface for adding a new role to this book. -}
+addBookRole :: BBID Book -> BookBrainzHandler ()
+addBookRole bbid' = do
+  withUser $ \user -> do
+    book <- getByBbid bbid' `onNothing` "Book not found"
+    roleForm <- Forms.personRole
+    r <- eitherSnapForm roleForm "book"
+    case r of
+      Left form' -> output $ V.addBook $ renderFormHtml form'
+      Right submission -> do
+        withTransaction $ do
+          master <- (findMasterBranch $ coreEntityConcept book)
+          addRole master
+                  book submission (entityRef user)
         redirect $ pack . ("/book/" ++) . show . bbid $ book

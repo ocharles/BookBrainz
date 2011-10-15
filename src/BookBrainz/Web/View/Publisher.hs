@@ -39,4 +39,4 @@ addPublisher (formHtml, enctype) = do
     H.h1 "Add Publisher"
     H.form ! A.method "POST" ! A.enctype (toValue enctype) $ do
       formHtml
-      H.p $ H.input ! A.type_ "submit" ! A.value "Add Book"
+      H.p $ H.input ! A.type_ "submit" ! A.value "Add Publisher"

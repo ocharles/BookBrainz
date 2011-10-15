@@ -1,5 +1,7 @@
 -- | Functions for working with 'BookBrainz.Types.Person.Person' entities.
-module BookBrainz.Model.Person () where
+module BookBrainz.Model.Person
+       ( allPersons
+       ) where
 
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
@@ -7,7 +9,8 @@ import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
 import Database.HDBC                      (toSql, fromSql)
 
 import BookBrainz.Types                   (Person (..))
-import BrainzStem.Database                (queryOne, safeQueryOne, (!))
+import BrainzStem.Database                (queryOne, safeQueryOne, (!), query
+                                          ,HasDatabase)
 import BrainzStem.Types                   (LoadedCoreEntity (..))
 
 instance GenericallyVersioned Person where
@@ -53,3 +56,9 @@ instance GenericallyVersioned Person where
                                 , "RETURNING version"
                                 ]
         in queryOne insertSql [ toSql $ personName pubData ]
+
+
+--------------------------------------------------------------------------------
+-- | Get all persons in the system.
+allPersons :: HasDatabase m => m [LoadedCoreEntity Person]
+allPersons = map fromViewRow `fmap` query "SELECT * FROM person" []

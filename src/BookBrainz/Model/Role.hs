@@ -4,6 +4,7 @@
 -- | Functions for working with 'BookBrainz.Types.Role.Role' entities.
 module BookBrainz.Model.Role
        ( HasRoles (..)
+       , allRoles
        ) where
 
 import Control.Monad (void)
@@ -86,3 +87,8 @@ copyRoles' tableName' baseTreeId newTreeId =
                          , "FROM " ++ fullTable
                          , "WHERE " ++ col ++ " = ?"
                          ]
+
+--------------------------------------------------------------------------------
+-- | Get all roles in the system.
+allRoles :: HasDatabase m => m [LoadedEntity Role]
+allRoles = map fromRow `fmap` query "SELECT * FROM person_role" []

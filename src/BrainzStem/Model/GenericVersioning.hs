@@ -8,7 +8,6 @@ module BrainzStem.Model.GenericVersioning
        , VersionConfig (..)
        ) where
 
-import Control.Monad          (void)
 import Data.Maybe             (listToMaybe)
 
 import Database.HDBC          (toSql, fromSql)
@@ -88,7 +87,7 @@ instance GenericallyVersioned a => CoreEntity a where
                                , toSql bbid' ]
 
   newRevision baseTree entData revId =
-    void $ newTree baseTree entData >>= newRevision'
+    newTree baseTree entData >>= newRevision'
     where
       config = versioningConfig :: VersionConfig a
       newRevision' treeId =
@@ -97,7 +96,11 @@ instance GenericallyVersioned a => CoreEntity a where
                                 , "(rev_id, " ++ (cfgTree config) ++ "_id)"
                                 , "VALUES (?, ?)"
                                 ]
-        in queryOne pubRevSql [ toSql revId, toSql treeId ]
+            revFromRow _ =
+              Entity { entityInfo = Revision { revisionTree = treeId }
+                     , entityRef = revId
+                     }
+        in revFromRow `fmap` queryOne pubRevSql [ toSql revId, toSql treeId ]
 
   attachBranchToConcept branch concept = do
     query branchSql [ toSql branch, toSql concept ]

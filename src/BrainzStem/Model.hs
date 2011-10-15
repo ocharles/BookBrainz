@@ -13,8 +13,13 @@ module BrainzStem.Model
 
          -- * Helper Functions
        , (!)
+
+       , newSystemRevision
+       , parentRevision
+       , resetBranch
        ) where
 
+import Control.Monad          (void)
 import Control.Monad.IO.Class (liftIO, MonadIO)
 import Data.Copointed         (copoint)
 import Database.HDBC          (toSql, fromSql)
@@ -54,7 +59,7 @@ class CoreEntity a where
               => Maybe (Ref (Tree a))
               -> a
               -> Ref (Revision a)
-              -> m ()
+              -> m (LoadedEntity (Revision a))
 
   -- | Create a completely new concept and attach a BBID to it.
   newConcept :: HasDatabase m
@@ -93,7 +98,7 @@ create dat editorRef = do
   bbid' <- newSystemConcept
   concept <- newConcept bbid'
   revision <- newSystemRevision Nothing dat editorRef
-  newSystemBranch concept revision True
+  newSystemBranch concept (entityRef revision) True
   getByConcept concept
 
 --------------------------------------------------------------------------------
@@ -119,14 +124,18 @@ update branch dat editorRef = do
   let parent = branchRevision $ copoint branch
   currentRev <- getRevision $ branchRevision (copoint branch)
   newRev <- newSystemRevision (Just $ revisionTree $ copoint currentRev) dat editorRef
-  parentRevision newRev parent
-  forwardBranch newRev
-  return ()
-  where forwardBranch revId =
-          query forwardSql [ toSql revId
-                           , toSql $ entityRef branch
-                           ]
-        forwardSql = unlines [ "UPDATE bookbrainz_v.branch SET rev_id = ?"
+  parentRevision (entityRef newRev) parent
+  resetBranch (entityRef branch) (entityRef newRev)
+
+resetBranch :: (HasDatabase m, CoreEntity a)
+            => Ref (Branch a)
+            -> Ref (Revision a)
+            -> m ()
+resetBranch branch rev = do
+  void $ query forwardSql [ toSql rev
+                          , toSql branch
+                          ]
+  where forwardSql = unlines [ "UPDATE bookbrainz_v.branch SET rev_id = ?"
                              , "WHERE branch_id = ?"
                              ]
 
@@ -145,11 +154,10 @@ newSystemRevision :: (CoreEntity a, HasDatabase m)
                   => Maybe (Ref (Tree a))
                   -> a
                   -> Ref Editor
-                  -> m (Ref (Revision a))
+                  -> m (LoadedEntity (Revision a))
 newSystemRevision base dat editor = do
   revId <- fromSql `fmap` queryOne revSql [ toSql editor ]
   newRevision base dat revId
-  return revId
   where revSql = unlines [ "INSERT INTO bookbrainz_v.revision"
                          , "(editor) VALUES (?)"
                          , "RETURNING rev_id"

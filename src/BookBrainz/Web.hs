@@ -35,21 +35,22 @@ import qualified BookBrainz.Web.View                         as V
 
 routeUrl :: Sitemap -> RouteT Sitemap BookBrainzHandler ()
 routeUrl url = liftRouteT $ case url of
-  Home            -> listBooks
-  Resource _      -> error "Resource should have been served by Snap"
-  Book bbid       -> showBook bbid
-  AddBook         -> addBook
-  EditBook bbid   -> editBook bbid
-  Person bbid     -> showPerson bbid
-  AddEdition bbid -> addEdition bbid
-  Edition bbid    -> showEdition bbid
+  Home             -> listBooks
+  Resource _       -> error "Resource should have been served by Snap"
+  Book bbid        -> showBook bbid
+  AddBook          -> addBook
+  EditBook bbid    -> editBook bbid
+  AddBookRole bbid -> addBookRole bbid
+  Person bbid      -> showPerson bbid
+  AddEdition bbid  -> addEdition bbid
+  Edition bbid     -> showEdition bbid
   EditEdition bbid -> editEdition bbid
-  Publisher bbid  -> showPublisher bbid
-  AddPublisher    -> addPublisher
-  Search          -> search
-  Login           -> login
-  Register        -> register
-  Logout          -> logout
+  Publisher bbid   -> showPublisher bbid
+  AddPublisher     -> addPublisher
+  Search           -> search
+  Login            -> login
+  Register         -> register
+  Logout           -> logout
 
 -- | A handler that routes the entire BookBrainz website.
 routeSite :: Site Sitemap (BookBrainzHandler ())
