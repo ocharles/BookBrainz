@@ -103,8 +103,8 @@ addRole branch book (person, role) editor = do
                                     (copoint book)
                                     editor
   Model.parentRevision (entityRef newRev) (coreEntityRevision book)
-  query addRoleSql [ toSql person
-                   , toSql role
+  query addRoleSql [ toSql role
+                   , toSql person
                    , toSql $ revisionTree $ copoint newRev
                    ]
   void $ Model.resetBranch (entityRef branch) (entityRef newRev)
