@@ -20,10 +20,10 @@ import           Text.Digestive.Blaze.Html5
 import           Text.Digestive.Forms.Snap  (eitherSnapForm)
 
 import qualified BookBrainz.Forms as Forms
-import           BookBrainz.Model.Book      (create, listAllBooks, addRole)
+import           BookBrainz.Model.Book      (create, listAllBooks)
 import           BookBrainz.Model.Edition
 import           BookBrainz.Model.Publisher ()
-import           BookBrainz.Model.Role      (findRoles)
+import           BookBrainz.Model.Role      (findRoles, addRole)
 import           BookBrainz.Types
 import           BookBrainz.Web.Handler     (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet     (BookBrainzHandler)

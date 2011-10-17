@@ -3,13 +3,10 @@ module BookBrainz.Model.Book
        ( -- * Working With Books
          listAllBooks
        , BookBrainz.Model.Book.create
-       , addRole
        ) where
 
-import Control.Monad                      (void)
 import Data.Traversable                   (traverse)
 
-import Data.Copointed                     (copoint)
 import Database.HDBC                      (toSql, fromSql)
 
 import BookBrainz.Model.Role              (copyRoles)
@@ -19,11 +16,8 @@ import BrainzStem.Database                (queryOne, safeQueryOne
 import BrainzStem.Model as Model
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
-import BookBrainz.Types                   (LoadedCoreEntity (..), Person
-                                          ,Book(..), Role, Editor, Ref
-                                          ,revisionTree, Concept
-                                          ,Tree, Revision, LoadedEntity, Branch
-                                          ,branchRevision, entityRef)
+import BookBrainz.Types                   (LoadedCoreEntity (..), Book(..)
+                                          ,Editor, Ref)
 
 instance GenericallyVersioned Book where
   versioningConfig = VersionConfig { cfgView = "book"
@@ -88,27 +82,3 @@ create bookData editor = do
   book <- Model.create bookData editor
   indexBook book []
   return book
-
---------------------------------------------------------------------------------
--- | Add a role to a 'Book'. This will create a new commit
-addRole :: HasDatabase m
-        => LoadedEntity (Branch Book)
-        -> LoadedCoreEntity Book
-        -> (Ref (Concept Person), Ref Role)
-        -> Ref Editor
-        -> m ()
-addRole branch book (person, role) editor = do
-  currentRev <- Model.getRevision $ branchRevision (copoint branch)
-  newRev <- Model.newSystemRevision (Just $ revisionTree $ copoint currentRev)
-                                    (copoint book)
-                                    editor
-  Model.parentRevision (entityRef newRev) (coreEntityRevision book)
-  query addRoleSql [ toSql role
-                   , toSql person
-                   , toSql $ revisionTree $ copoint newRev
-                   ]
-  void $ Model.resetBranch (entityRef branch) (entityRef newRev)
-  where addRoleSql = unlines [ "INSERT INTO bookbrainz.book_person_role"
-                             , "(role_id, person_id, book_tree_id)"
-                             , "VALUES (?, ?, ?)"
-                             ]

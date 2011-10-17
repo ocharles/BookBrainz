@@ -8,12 +8,14 @@ module BookBrainz.Model.Role
        ) where
 
 import Control.Monad (void)
-       
+
+import Data.Copointed (copoint)
 import Database.HDBC (toSql)
 
-import BrainzStem.Model.GenericVersioning (fromViewRow)
+import BrainzStem.Model.GenericVersioning (fromViewRow, GenericallyVersioned)
 import BrainzStem.Database     (HasDatabase, prefixedRow, query, Row)
-import BrainzStem.Model        (Entity(..), (!))
+import BrainzStem.Model        (Entity(..), (!), getRevision, newSystemRevision
+                               ,parentRevision, resetBranch)
 import BookBrainz.Model.Person ()
 import BookBrainz.Types
 
@@ -40,14 +42,23 @@ class HasRoles entity where
   copyRoles :: HasDatabase m
             => Ref (Tree entity) -> Ref (Tree entity)
             -> m ()
-            
+
+  addRole :: (GenericallyVersioned entity, HasDatabase m)
+          => LoadedEntity (Branch entity)
+          -> LoadedCoreEntity entity
+          -> (Ref (Concept Person), Ref Role)
+          -> Ref Editor
+          -> m ()
+
 instance HasRoles Book where
   findRoles = findRoles' "book"
   copyRoles = copyRoles' "book"
+  addRole branch ent pr editor = addRole' branch ent pr editor "book"
 
 instance HasRoles Edition where
   findRoles = findRoles' "edition"
-  copyRoles = copyRoles' "edition"  
+  copyRoles = copyRoles' "edition"
+  addRole branch ent pr editor = addRole' branch ent pr editor "edition"
 
 -- Internal implementation with nasty string munging. Woohoo!
 findRoles' :: (HasDatabase m, HasRoles roleLike)
@@ -87,6 +98,32 @@ copyRoles' tableName' baseTreeId newTreeId =
                          , "FROM " ++ fullTable
                          , "WHERE " ++ col ++ " = ?"
                          ]
+
+addRole' :: (GenericallyVersioned entity, HasDatabase m)
+         => LoadedEntity (Branch entity)
+         -> LoadedCoreEntity entity
+         -> (Ref (Concept Person), Ref Role)
+         -> Ref Editor
+         -> String
+         -> m ()
+addRole' branch ent (person, role) editor tblName = do
+  currentRev <- getRevision $ branchRevision (copoint branch)
+  newRev <- newSystemRevision (Just $ revisionTree $ copoint currentRev)
+                                    (copoint ent)
+                                    editor
+  parentRevision (entityRef newRev) (coreEntityRevision ent)
+  query addRoleSql [ toSql role
+                   , toSql person
+                   , toSql $ revisionTree $ copoint newRev
+                   ]
+  void $ resetBranch (entityRef branch) (entityRef newRev)
+  where
+    addRoleSql =
+      unlines [ "INSERT INTO bookbrainz." ++ tblName ++ "_person_role"
+              , "(role_id, person_id, " ++ tblName ++ "_tree_id)"
+              , "VALUES (?, ?, ?)"
+              ]
+
 
 --------------------------------------------------------------------------------
 -- | Get all roles in the system.

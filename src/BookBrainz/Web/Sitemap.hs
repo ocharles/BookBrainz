@@ -42,6 +42,7 @@ data Sitemap
      | Edition (BBID Edition)
      | AddEdition (BBID Book)
      | EditEdition (BBID Edition)
+     | AddEditionRole (BBID Edition)
 
        -- /publisher
      | Publisher (BBID Publisher)
@@ -74,6 +75,7 @@ sitemap =
   <> rEdition . ("edition" </> uuid)
   <> rAddEdition . ("book" </> uuid . "add-edition")
   <> rEditEdition . ("edition" </> uuid . "edit")
+  <> rAddEditionRole . ("edition" </> uuid . "add-role")
 
   <> rAddPublisher . ("publisher" </> "add")
   <> rPublisher . ("publisher" </> uuid)

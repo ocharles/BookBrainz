@@ -6,6 +6,7 @@ module BookBrainz.Web.View.Edition
          showEdition
        , addEdition
        , editEdition
+       , addRole
 
          -- * Components
        , editionTable
@@ -99,3 +100,13 @@ editionTable =
       , maybeCell linkPublisher publisher
       ]
     maybeCell f = toHtml . maybe "-" f
+
+--------------------------------------------------------------------------------
+addRole :: (Html, FormEncType)  -- ^ The form 'Html' and the encoding of it.
+        -> View
+addRole (formHtml, enctype) =
+  pageLayout Nothing $ do
+    H.h1 "Add Edition"
+    H.form ! A.method "POST" ! A.enctype (toValue enctype) $ do
+      formHtml
+      H.p $ H.input ! A.type_ "submit" ! A.value "Add Edition"

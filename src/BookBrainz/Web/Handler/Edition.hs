@@ -6,6 +6,7 @@ module BookBrainz.Web.Handler.Edition
        ( showEdition
        , addEdition
        , editEdition
+       , addEditionRole
        ) where
 
 import           Control.Applicative            ((<*>), (<$>))
@@ -26,7 +27,7 @@ import           BookBrainz.Model.Edition       ()
 import           BookBrainz.Model.EditionFormat ()
 import           BookBrainz.Model.Language      ()
 import           BookBrainz.Model.Publisher     ()
-import           BookBrainz.Model.Role          (findRoles)
+import           BookBrainz.Model.Role          (findRoles, addRole)
 import           BookBrainz.Types
 import           BookBrainz.Web.Handler         (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet         (BookBrainzHandler)
@@ -76,4 +77,21 @@ editEdition editionBbid = do
         withTransaction $ do
           master <- findMasterBranch $ coreEntityConcept edition
           update master submission $ entityRef user
+        redirect $ pack . ("/edition/" ++) . show . bbid $ edition
+
+--------------------------------------------------------------------------------
+{-| Present an interface for adding a new role to this edition. -}
+addEditionRole :: BBID Edition -> BookBrainzHandler ()
+addEditionRole bbid' = do
+  withUser $ \user -> do
+    edition <- getByBbid bbid' `onNothing` "Edition not found"
+    roleForm <- Forms.personRole
+    r <- eitherSnapForm roleForm "edition"
+    case r of
+      Left form' -> output $ V.addRole $ renderFormHtml form'
+      Right submission -> do
+        withTransaction $ do
+          master <- (findMasterBranch $ coreEntityConcept edition)
+          addRole master
+                  edition submission (entityRef user)
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition
