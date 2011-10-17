@@ -38,8 +38,14 @@ showBook (book, roles) editions =
     H.h1 $ toHtml $ bookName book'
     H.h3 "Editions"
     editionTable editions
-    H.p $ H.a ! A.href (toValue . showURL $ AddEdition $ bbid book) $
-      "Add a new edition"
+    H.p $
+      H.ul $ do
+        H.li $ H.a ! A.href (toValue . showURL $ AddEdition $ bbid book) $
+                 "Add a new edition"
+        H.li $ H.a ! A.href (toValue . showURL $ EditBook $ bbid book) $
+                 "Edit this book"
+        H.li $ H.a ! A.href (toValue . showURL $ AddBookRole $ bbid book) $
+                 "Add a new person-role"
   where sidebar = Sidebar.roles roles
 
 --------------------------------------------------------------------------------

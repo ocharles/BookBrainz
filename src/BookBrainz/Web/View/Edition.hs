@@ -22,6 +22,7 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import           Text.Digestive.Forms.Html (FormEncType)
 
+import           BookBrainz.Web.Sitemap    (Sitemap(..), showURL)
 import           BookBrainz.Types
 import           BookBrainz.Web.View (pageLayout, linkBook, linkEdition
                                      ,linkPublisher, optionalDl, View
@@ -48,6 +49,12 @@ showEdition (edition, book, format, country, language, publisher, roles) =
       when (isJust year) $
         mconcat [" (", (toHtml . fromJust) year, ")"]
     H.h2 $ "A version of " `mappend` linkBook book
+    H.p $
+      H.ul $ do
+        H.li $ H.a ! A.href (toValue . showURL $ EditEdition $ bbid edition) $
+                 "Edit this edition"
+        H.li $ H.a ! A.href (toValue . showURL $ AddEditionRole $ bbid edition) $
+                 "Add a new person-role"
   where sidebar = do
           H.h2 "Edition information"
           optionalDl
