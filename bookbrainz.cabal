@@ -21,50 +21,91 @@ Maintainer:          bookbrainz@ocharles.org.uk
 Stability:           Experimental
 Category:            Web
 Build-type:          Simple
-Cabal-version:       >=1.2
+Cabal-version:       >=1.8
 
 Flag development
   Description: Whether to build the server in development (interpreted) mode
   Default: False
 
-Executable bookbrainz-server
+Library
   hs-source-dirs: src
+  Build-depends:
+    base >= 4 && < 5,
+    aeson >= 0.3.2.11,
+    containers >= 0.3.0.0,
+    convertible >= 1.0.10.0,
+    elasticsearch >= 0.1,
+    HDBC >= 2.2.7.0,
+    HDBC-postgresql >= 2.2.3.3,
+    MonadCatchIO-transformers >= 0.2.1 && < 0.3,
+    mtl >= 2 && < 3,
+    pointed >= 1.8.0,
+    random >= 1.0.0.3 && < 2,
+    text >= 0.11 && < 0.12,
+    transformers >= 0.2.2.0,
+    uuid >= 1.2.2
+
+  Exposed-modules:
+    BookBrainz.Types
+    BookBrainz.Model.Book
+    BookBrainz.Model.Country
+    BookBrainz.Model.EditionFormat
+    BookBrainz.Model.Edition
+    BookBrainz.Model.Editor
+    BookBrainz.Model.Role
+    BookBrainz.Model.Language
+    BookBrainz.Model.Person
+    BookBrainz.Model.Publisher
+    BookBrainz.Search
+    BrainzStem.Database
+    BrainzStem.Model
+    BrainzStem.Model.GenericVersioning
+    BrainzStem.Types
+
+  extensions: TypeSynonymInstances MultiParamTypeClasses
+
+  if impl(ghc >= 6.12.0)
+    ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                 -fno-warn-orphans -fno-warn-unused-do-bind
+  else
+    ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                 -fno-warn-orphans
+
+Executable bookbrainz-server
+  hs-source-dirs: bookbrainz-server
   main-is: Main.hs
 
   Build-depends:
+    bookbrainz,
     base >= 4 && < 5,
-    bytestring >= 0.9.1 && < 0.10,
-    MonadCatchIO-transformers >= 0.2.1 && < 0.3,
-    mtl >= 2 && < 3,
-    text >= 0.11 && < 0.12,
-    time >= 1.1 && < 1.3,
-    uuid >= 1.2.2,
     HDBC >= 2.2.7.0,
-    containers >= 0.3.0.0,
-    convertible >= 1.0.10.0,
     HDBC-postgresql >= 2.2.3.3,
-    snap >= 0.6,
-    snap-core >= 0.6,
-    snap-server >= 0.6,
+    MonadCatchIO-transformers >= 0.2.1 && < 0.3,
+    aeson >= 0.3.2.11,
     blaze-html >= 0.4.0.0,
-    pointed >= 1.8.0,
-    random >= 1.0.0.3,
-    transformers >= 0.2.2.0,
     boomerang >= 1.1.0,
-    web-routes-boomerang >= 0.25.1,
-    web-routes >= 0.25.1,
+    bytestring >= 0.9.1 && < 0.10,
+    clientsession >= 0.6.0,
+    configurator >= 0.0.1.1,
+    convertible >= 1.0.10.0,
     data-lens >= 2.0.1,
     data-lens-template >= 2.1.1.1,
     digestive-functors >= 0.1.0.1,
-    digestive-functors-snap >= 0.1.0.0,
     digestive-functors-blaze >= 0.1.1.0,
+    digestive-functors-snap >= 0.1.0.0,
     elasticsearch >= 0.1,
-    aeson >= 0.3.2.11,
-    configurator >= 0.0.1.1,
-    clientsession >= 0.6.0,
-    unordered-containers >= 0.1.4.2,
+    mtl >= 2 && < 3,
+    pointed >= 1.8.0,
+    snap >= 0.6,
+    snap-blaze >= 0.0.0.1,
+    snap-core >= 0.6,
+    snap-server >= 0.6,
     snaplet-hdbc >= 0.1.0,
-    snap-blaze >= 0.0.0.1
+    text >= 0.11 && < 0.12,
+    transformers >= 0.2.2.0,
+    unordered-containers >= 0.1.4.2,
+    web-routes >= 0.25.1,
+    web-routes-boomerang >= 0.25.1
 
   extensions: TypeSynonymInstances MultiParamTypeClasses
 
