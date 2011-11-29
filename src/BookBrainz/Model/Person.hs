@@ -7,10 +7,10 @@ import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
 
 import Database.HDBC                      (toSql, fromSql)
+import Snap.Snaplet.Hdbc (HasHdbc, query)
 
 import BookBrainz.Types                   (Person (..))
-import BrainzStem.Database                (queryOne, safeQueryOne, (!), query
-                                          ,HasDatabase)
+import BrainzStem.Database                (queryOne, safeQueryOne, (!))
 import BrainzStem.Types                   (LoadedCoreEntity (..))
 
 instance GenericallyVersioned Person where
@@ -60,5 +60,5 @@ instance GenericallyVersioned Person where
 
 --------------------------------------------------------------------------------
 -- | Get all persons in the system.
-allPersons :: HasDatabase m => m [LoadedCoreEntity Person]
+allPersons :: (Functor m, HasHdbc m c s) => m [LoadedCoreEntity Person]
 allPersons = map fromViewRow `fmap` query "SELECT * FROM person" []

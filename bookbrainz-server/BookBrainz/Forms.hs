@@ -12,6 +12,7 @@ import           Data.Text                   (Text)
 import qualified Data.Text                   as T
 import           Data.Text.Read              (decimal)
 import           Snap.Core
+import Snap.Snaplet.Hdbc (HasHdbc)
 import           Text.Blaze.Html5            (Html, (!), toValue, toHtml)
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -21,7 +22,6 @@ import           Text.Digestive.Forms        (FormInput(..))
 import qualified Text.Digestive.Forms        as Forms
 import           Text.Digestive.Forms.Snap
 
-import           BrainzStem.Database (HasDatabase)
 import           BookBrainz.Model.Country  (allCountries)
 import           BookBrainz.Model.EditionFormat (allEditionFormats)
 import           BookBrainz.Model.Language (allLanguages)
@@ -71,25 +71,25 @@ year def = inputText ((T.pack . show) `fmap` def)
 
 isbn13 :: (Monad m, MonadSnap m)
        => Maybe Isbn -> SnapForm m Html BlazeFormHtml (Maybe Isbn)
-isbn13 def = inputString (show `fmap` def)
+isbn13 def = inputText ((T.pack . show) `fmap` def)
                `validate` checkIsbn `transform` transIsbn
   where
     checkIsbn = check "This is not a valid ISBN-13 identifier"
-                      (or . zipWith ($) [null, validIsbn] . repeat)
-    validIsbn i = let digits = map digitToInt i :: [Int]
+                      (or . zipWith ($) [T.null, validIsbn] . repeat)
+    validIsbn i = let digits = map digitToInt (T.unpack i) :: [Int]
                       isbn = init digits
                       checkDigit = last digits
                       checkSum (x:y:xs) = x + (3 * y) + checkSum xs
                       checkSum (_:[]) = error "Checksum must contain 12 digits"
                       checkSum [] = 0
-                   in (all isDigit i) &&
-                        (length i == 13) &&
+                   in (all isDigit $ T.unpack i) &&
+                        (T.length i == 13) &&
                           ((10 - checkSum isbn `mod` 10) `mod` 10) == checkDigit
     transIsbn = transformEither goTransform
-    goTransform t | null t    = Right Nothing
-                  | otherwise = Right . Just $ read t
+    goTransform t | T.null t  = Right Nothing
+                  | otherwise = Right . Just $ read $ T.unpack t
 
-optionalDbSelect :: (Monad m, MonadSnap m, HasDatabase m, Eq a, Copointed cont)
+optionalDbSelect :: (Monad m, MonadSnap m, HasHdbc m c s, Eq a, Copointed cont)
                  => Maybe a
                  -> (cont b -> a)
                  -> (b -> Html)
@@ -99,7 +99,7 @@ optionalDbSelect def fVal fLabel options =
   inputSelect def $ [(Nothing,"")] ++ map fOption options
   where fOption v = (Just . fVal $ v, fLabel . copoint $ v)
 
-justDbSelect :: (Monad m, MonadSnap m, HasDatabase m, Eq a, Copointed cont)
+justDbSelect :: (Monad m, MonadSnap m, HasHdbc m c s, Eq a, Copointed cont)
              => Maybe a
              -> (cont b -> a)
              -> (b -> Html)
@@ -109,7 +109,7 @@ justDbSelect def fVal fLabel options =
   fromJust <$> inputSelect def (map fOption options)
   where fOption v = (Just . fVal $ v, fLabel . copoint $ v)
 
-editionFormat :: (Monad m, MonadSnap m, HasDatabase m)
+editionFormat :: (Monad m, MonadSnap m, HasHdbc m c s)
               => Maybe (Ref EditionFormat)
               -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref EditionFormat)))
 editionFormat def =
@@ -117,7 +117,7 @@ editionFormat def =
                        (toHtml . BB.editionFormatName)
     <$> allEditionFormats
 
-language :: (Monad m, MonadSnap m, HasDatabase m)
+language :: (Monad m, MonadSnap m, HasHdbc m c s)
          => Maybe (Ref Language)
          -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref Language)))
 language def =
@@ -125,7 +125,7 @@ language def =
                        (toHtml . BB.languageName)
     <$> allLanguages
 
-country :: (Monad m, MonadSnap m, HasDatabase m)
+country :: (Monad m, MonadSnap m, HasHdbc m c s)
         => Maybe (Ref Country)
         -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref Country)))
 country def =
@@ -133,7 +133,7 @@ country def =
                        (toHtml . BB.countryName)
     <$> allCountries
 
-publisherRef :: (Monad m, MonadSnap m, HasDatabase m)
+publisherRef :: (Monad m, MonadSnap m, HasHdbc m c s)
              => Maybe (Ref (Concept Publisher))
              -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref (Concept Publisher))))
 publisherRef def = do
@@ -146,7 +146,7 @@ publisherRef def = do
                  ! A.href (toValue . showURL $ URL.AddPublisher) $
                "Add a new publisher"
 
-personRef :: (Monad m, MonadSnap m, HasDatabase m)
+personRef :: (Monad m, MonadSnap m, HasHdbc m c s)
              => Maybe (Ref (Concept Person))
              -> m (SnapForm m Html BlazeFormHtml (Maybe (Ref (Concept Person))))
 personRef def = do
@@ -159,7 +159,7 @@ personRef def = do
                  ! A.href (toValue . showURL $ URL.AddPerson) $
                "Add a new person"
 
-justPersonRef :: (Monad m, MonadSnap m, HasDatabase m)
+justPersonRef :: (Monad m, MonadSnap m, HasHdbc m c s)
               => Maybe (Ref (Concept Person))
               -> m (SnapForm m Html BlazeFormHtml (Ref (Concept Person)))
 justPersonRef def = do
@@ -172,7 +172,7 @@ justPersonRef def = do
                  ! A.href (toValue . showURL $ URL.AddPerson) $
                "Add a new person"
 
-role :: (Monad m, MonadSnap m, HasDatabase m)
+role :: (Monad m, MonadSnap m, HasHdbc m c s)
          => Maybe (Ref Role)
          -> m (SnapForm m Html BlazeFormHtml (Ref Role))
 role def =
@@ -184,7 +184,7 @@ bookForm :: (Monad m, MonadSnap m)
          -> SnapForm m Html BlazeFormHtml Book
 bookForm book = Book <$> simpleField "Book title:" (entityName $ BB.bookName `fmap` book)
 
-addEdition :: (MonadSnap m, HasDatabase m)
+addEdition :: (MonadSnap m, HasHdbc m c s)
            => Ref (Concept Book)
            -> m (SnapForm m Html BlazeFormHtml Edition)
 addEdition book = do
@@ -203,7 +203,7 @@ addEdition book = do
             <*> simpleField "ISBN:" (isbn13 Nothing)
             <*> pure Nothing
 
-editEdition :: (MonadSnap m, HasDatabase m)
+editEdition :: (MonadSnap m, HasHdbc m c s)
             => Edition
             -> m (SnapForm m Html BlazeFormHtml Edition)
 editEdition edition = do
@@ -230,7 +230,7 @@ addPerson :: (MonadSnap m)
           => SnapForm m Html BlazeFormHtml Person
 addPerson = Person <$> simpleField "Name:" (entityName Nothing)
 
-personRole :: (HasDatabase m, MonadSnap m)
+personRole :: (HasHdbc m c s, MonadSnap m)
            => m (SnapForm m Html BlazeFormHtml (Ref (Concept Person), Ref Role))
 personRole = do
   personField <- justPersonRef Nothing
@@ -253,7 +253,7 @@ password :: (Monad m, MonadSnap m)
          => Maybe Text -> SnapForm m Html BlazeFormHtml Text
 password inp = inputPass inp `validate` nonEmpty "Please enter a password"
 
-registerForm :: (Monad m, MonadSnap m, HasDatabase m)
+registerForm :: (Monad m, MonadSnap m, HasHdbc m c s)
              => SnapForm m Html BlazeFormHtml Registration
 registerForm = (`transform` newUserCheck) $ (`validate` passwordsMatch) $ (errors ++>) $
                   Registration <$> simpleField "User name:" (userName Nothing)

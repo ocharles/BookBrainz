@@ -16,6 +16,7 @@ import           Data.Traversable           (traverse)
 import           Data.ByteString.Char8      (pack)
 import           Data.Copointed             (copoint)
 import           Snap.Core                  (redirect)
+import Snap.Snaplet.Hdbc (withTransaction')
 import           Text.Digestive.Blaze.Html5
 import           Text.Digestive.Forms.Snap  (eitherSnapForm)
 
@@ -28,7 +29,6 @@ import           BookBrainz.Types
 import           BookBrainz.Web.Handler     (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Book   as V
-import           BrainzStem.Database        (withTransaction)
 import           BrainzStem.Model           (getByBbid, getByConcept, update
                                             ,findMasterBranch)
 
@@ -61,7 +61,7 @@ addBook = do
     case r of
       Left form' -> output $ V.addBook $ renderFormHtml form'
       Right submission -> do
-        book <- withTransaction  $ create submission $ entityRef user
+        book <- withTransaction' $ create submission $ entityRef user
         redirect $ pack . ("/book/" ++) . show . bbid $ book
 
 ---------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ editBook bbid' = do
       Left form' -> output $ V.addBook $ renderFormHtml form'
       Right submission -> do
         master <- findMasterBranch $ coreEntityConcept book
-        withTransaction $
+        withTransaction' $
           update master submission (entityRef user)
         redirect $ pack . ("/book/" ++) . show . bbid $ book
 
@@ -91,7 +91,7 @@ addBookRole bbid' = do
     case r of
       Left form' -> output $ V.addBook $ renderFormHtml form'
       Right submission -> do
-        withTransaction $ do
+        withTransaction' $ do
           master <- (findMasterBranch $ coreEntityConcept book)
           addRole master
                   book submission (entityRef user)

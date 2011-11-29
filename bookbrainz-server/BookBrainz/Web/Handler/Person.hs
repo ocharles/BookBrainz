@@ -8,6 +8,7 @@ module BookBrainz.Web.Handler.Person
 
 import           Data.ByteString.Char8      (pack)
 import           Snap.Core
+import Snap.Snaplet.Hdbc (withTransaction')
 import           Text.Digestive.Blaze.Html5 (renderFormHtml)
 import           Text.Digestive.Forms.Snap  (eitherSnapForm)
 
@@ -17,7 +18,6 @@ import           BookBrainz.Types
 import           BookBrainz.Web.Handler     (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Person as V
-import           BrainzStem.Database        (withTransaction)
 import           BrainzStem.Model
 
 --------------------------------------------------------------------------------
@@ -38,5 +38,5 @@ addPerson = do
     case r of
       Left form' -> output $ V.addPerson $ renderFormHtml form'
       Right submission -> do
-        person <- withTransaction  $ create submission $ entityRef user
+        person <- withTransaction' $ create submission $ entityRef user
         redirect $ pack . ("/person/" ++) . show . bbid $ person

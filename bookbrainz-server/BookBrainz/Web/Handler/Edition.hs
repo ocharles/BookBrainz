@@ -17,8 +17,8 @@ import           Data.Copointed                 (copoint)
 import           Snap.Core
 import           Text.Digestive.Forms.Snap      (eitherSnapForm)
 import           Text.Digestive.Blaze.Html5     (renderFormHtml)
+import Snap.Snaplet.Hdbc (withTransaction')
 
-import           BrainzStem.Database        (withTransaction)
 import qualified BookBrainz.Forms as Forms
 import           BrainzStem.Model
 import           BookBrainz.Model.Book          ()
@@ -59,7 +59,7 @@ addEdition bookBbid = do
     case r of
       Left form' -> output $ V.addEdition $ renderFormHtml form'
       Right submission -> do
-        edition <- withTransaction $
+        edition <- withTransaction' $
           create submission $ entityRef user
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition
 
@@ -74,7 +74,7 @@ editEdition editionBbid = do
     case r of
       Left form' -> output $ V.editEdition $ renderFormHtml form'
       Right submission -> do
-        withTransaction $ do
+        withTransaction' $ do
           master <- findMasterBranch $ coreEntityConcept edition
           update master submission $ entityRef user
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition
@@ -90,7 +90,7 @@ addEditionRole bbid' = do
     case r of
       Left form' -> output $ V.addRole $ renderFormHtml form'
       Right submission -> do
-        withTransaction $ do
+        withTransaction' $ do
           master <- (findMasterBranch $ coreEntityConcept edition)
           addRole master
                   edition submission (entityRef user)

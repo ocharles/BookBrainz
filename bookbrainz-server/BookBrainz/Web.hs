@@ -9,6 +9,8 @@ import           Control.Monad.IO.Class                      (liftIO)
 import           Control.Monad.CatchIO                       (tryJust)
 import           Data.ByteString.Char8                       (unpack)
 import           Data.Configurator                           (require)
+import Data.Pool (createPool)
+import Database.HDBC (disconnect)
 import           Database.HDBC.PostgreSQL                    (connectPostgreSQL)
 import           Snap.Core
 import           Snap.Snaplet
@@ -63,9 +65,10 @@ routeSite = boomerangSiteRouteT routeUrl sitemap
 bookbrainz :: SnapletInit BookBrainz BookBrainz
 bookbrainz = makeSnaplet "bookbrainz" "BookBrainz" Nothing $ do
     config <- getSnapletUserConfig
-    conn <- liftIO $ connectToDatabase config
-    dbSnaplet <- nestSnaplet "hdbc" database $ hdbcInit conn
+    pool <- liftIO $ createPool (connectToDatabase config) (disconnect) 1 (1 * 60) 10
+    dbSnaplet <- nestSnaplet "hdbc" database $ hdbcInit pool
     sessionSnaplet <- nestSnaplet "session" session cookieSessionManager
+    conn <- liftIO $ connectToDatabase config
     authSnaplet <- nestSnaplet "auth" auth $
       initBookBrainzAuthManager defAuthSettings session conn
     addRoutes [ ("/static", serveDirectory "resources")

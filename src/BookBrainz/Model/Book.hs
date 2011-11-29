@@ -5,19 +5,20 @@ module BookBrainz.Model.Book
        , BookBrainz.Model.Book.create
        ) where
 
+import Control.Applicative (Applicative)
 import Data.Traversable                   (traverse)
 
 import Database.HDBC                      (toSql, fromSql)
+import Snap.Snaplet.Hdbc (HasHdbc, query)
 
 import BookBrainz.Model.Role              (copyRoles)
 import BookBrainz.Search                  (indexBook)
-import BrainzStem.Database                (queryOne, safeQueryOne
-                                          ,HasDatabase, query)
 import BrainzStem.Model as Model
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
 import BookBrainz.Types                   (LoadedCoreEntity (..), Book(..)
                                           ,Editor, Ref)
+import BrainzStem.Database (queryOne, safeQueryOne)
 
 instance GenericallyVersioned Book where
   versioningConfig = VersionConfig { cfgView = "book"
@@ -67,13 +68,13 @@ instance GenericallyVersioned Book where
 
 --------------------------------------------------------------------------------
 -- | List the latest version of all known books.
-listAllBooks :: (Functor a, HasDatabase a)
-             => a [LoadedCoreEntity Book]
+listAllBooks :: (Functor m, HasHdbc m c s)
+             => m [LoadedCoreEntity Book]
 listAllBooks = map fromViewRow `fmap` query "SELECT * FROM book" [ ]
 
 --------------------------------------------------------------------------------
 -- | Create a new a book.
-create :: (HasDatabase m)
+create :: (Functor m, HasHdbc m c s, Applicative m)
        => Book                       {-^ The information about this book.. -}
        -> Ref Editor                 {-^ The editor creating this book. -}
        -> m (LoadedCoreEntity Book)  {-^ The book, loaded from the database

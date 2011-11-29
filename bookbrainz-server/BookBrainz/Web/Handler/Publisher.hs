@@ -13,6 +13,7 @@ import           Data.Traversable           (traverse)
 import           Data.ByteString.Char8      (pack)
 import           Data.Copointed             (copoint)
 import           Snap.Core
+import Snap.Snaplet.Hdbc (withTransaction')
 import           Text.Digestive.Blaze.Html5 (renderFormHtml)
 import           Text.Digestive.Forms.Snap  (eitherSnapForm)
 
@@ -22,7 +23,6 @@ import           BookBrainz.Model.Publisher (publishedEditions)
 import           BookBrainz.Web.Handler  (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet  (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Publisher as V
-import           BrainzStem.Database (withTransaction)
 import           BrainzStem.Model
 
 --------------------------------------------------------------------------------
@@ -46,5 +46,5 @@ addPublisher = do
     case r of
       Left form' -> output $ V.addPublisher $ renderFormHtml form'
       Right submission -> do
-        publisher <- withTransaction  $ create submission $ entityRef user
+        publisher <- withTransaction' $ create submission $ entityRef user
         redirect $ pack . ("/publisher/" ++) . show . bbid $ publisher

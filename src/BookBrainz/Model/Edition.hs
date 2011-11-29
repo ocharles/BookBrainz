@@ -14,10 +14,11 @@ import Database.HDBC                      (toSql, fromSql, SqlValue)
 
 import BookBrainz.Model.Role              (copyRoles)
 import BookBrainz.Types
-import BrainzStem.Database                (queryOne, safeQueryOne, (!)
-                                          ,HasDatabase, query)
+import BrainzStem.Database                (queryOne, safeQueryOne, (!))
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
+
+import Snap.Snaplet.Hdbc (query, HasHdbc)
 
 instance Convertible Isbn SqlValue where
   safeConvert = Right . toSql . show
@@ -102,7 +103,7 @@ instance GenericallyVersioned Edition where
 --------------------------------------------------------------------------------
 -- | Find all editions of a specific 'Book'.
 -- The book must be a 'LoadedCoreEntity', ensuring it exists in the database.
-findBookEditions :: HasDatabase m
+findBookEditions :: (Functor m, HasHdbc m c s)
                  => Ref (Concept Book)
                  -- ^ The book to find editions of.
                  -> m [LoadedCoreEntity Edition]

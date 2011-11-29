@@ -5,8 +5,8 @@ module BookBrainz.Model.EditionFormat
        where
 
 import Database.HDBC (toSql)
+import Snap.Snaplet.Hdbc (query, HasHdbc, Row)
 
-import BrainzStem.Database (query, HasDatabase, Row)
 import BrainzStem.Model (Entity(..), (!))
 import BookBrainz.Types
 
@@ -14,7 +14,7 @@ instance Entity EditionFormat where
   getByPk pk = (fromRow . head) `fmap` query sql [ toSql pk ]
     where sql = "SELECT * FROM edition_format WHERE id = ?"
 
-allEditionFormats :: HasDatabase m => m [LoadedEntity EditionFormat]
+allEditionFormats :: (Functor m, HasHdbc m c s) => m [LoadedEntity EditionFormat]
 allEditionFormats = map fromRow `fmap` query "SELECT * FROM edition_format" []
 
 fromRow :: Row -> LoadedEntity EditionFormat

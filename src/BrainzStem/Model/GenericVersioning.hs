@@ -8,12 +8,13 @@ module BrainzStem.Model.GenericVersioning
        , VersionConfig (..)
        ) where
 
+import Control.Applicative (Applicative)
 import Data.Maybe             (listToMaybe)
 
 import Database.HDBC          (toSql, fromSql)
+import Snap.Snaplet.Hdbc      (query, Row, HasHdbc)
 
-import BrainzStem.Database    (query, queryOne, (!), Row,
-                              HasDatabase)
+import BrainzStem.Database    (queryOne, (!))
 import BrainzStem.Model       (CoreEntity(..))
 import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
                               ,Revision (..), Ref (..), Branch (..), Tree)
@@ -40,7 +41,7 @@ class GenericallyVersioned a where
 
   -- | Create a new 'Tree' for this @a@, optionally basing on an existing
   -- tree.
-  newTree :: HasDatabase m
+  newTree :: (Applicative m, Functor m, HasHdbc m c s)
           => Maybe (Ref (Tree a))
           -> a
           -> m (Ref (Tree a))

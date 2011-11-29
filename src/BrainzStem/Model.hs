@@ -19,13 +19,14 @@ module BrainzStem.Model
        , resetBranch
        ) where
 
+import Control.Applicative (Applicative)
 import Control.Monad          (void)
 import Control.Monad.IO.Class (liftIO, MonadIO)
 import Data.Copointed         (copoint)
-import Database.HDBC          (toSql, fromSql)
+import Snap.Snaplet.Hdbc
 import System.Random          (randomIO)
 
-import BrainzStem.Database    (HasDatabase, (!), queryOne, query)
+import BrainzStem.Database (queryOne, (!))
 import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
                               ,Ref (..), Branch (..), Concept
                               ,Editor, Revision (..), Tree, BBID)
@@ -36,7 +37,7 @@ and is also versioned. This type class defines how they can be interacted with
 via the database. -}
 class CoreEntity a where
   -- | Get a core entity by its BBID.
-  getByBbid :: HasDatabase m
+  getByBbid :: (Functor m, HasHdbc m c s)
             => BBID a
             -- ^ The BBID of the core entity.
             -> m (Maybe (LoadedCoreEntity a))
@@ -47,7 +48,7 @@ class CoreEntity a where
   -- This takes the tip of the master branch. You have to use a 'Ref' here
   -- because it's impossible to get a version of an entity without already
   -- knowing it's in the database.
-  getByConcept :: (HasDatabase m, CoreEntity a)
+  getByConcept :: (HasHdbc m c s, CoreEntity a, Functor m)
                => Ref (Concept a)
                -- ^ A reference to the version of the core entity.
                -> m (LoadedCoreEntity a)
@@ -55,19 +56,19 @@ class CoreEntity a where
   -- | Create a new revision. If an existing revision is passed, copy all
   -- data from that tree and update that. Otherwise, a fresh tree should be
   -- created.
-  newRevision :: HasDatabase m
+  newRevision :: (Applicative m, HasHdbc m c s, Functor m)
               => Maybe (Ref (Tree a))
               -> a
               -> Ref (Revision a)
               -> m (LoadedEntity (Revision a))
 
   -- | Create a completely new concept and attach a BBID to it.
-  newConcept :: HasDatabase m
+  newConcept :: HasHdbc m c s
              => BBID a
              -> m (Ref (Concept a))
 
   -- | Create a core entity specific branch and attach a concept reference to it
-  attachBranchToConcept :: HasDatabase m
+  attachBranchToConcept :: HasHdbc m c s
                         => Ref (Branch a)
                         -- ^ The reference the created branch should have.
                         -> Ref (Concept a)
@@ -75,12 +76,12 @@ class CoreEntity a where
                         -> m ()
 
   -- | Get a 'Revision' specific to this type of core entity.
-  getRevision :: HasDatabase m
+  getRevision :: (Functor m, HasHdbc m c s)
               => Ref (Revision a)
               -> m (LoadedEntity (Revision a))
 
   -- | Find the master 'Branch' for a specific concept.
-  findMasterBranch :: HasDatabase m
+  findMasterBranch :: (HasHdbc m c s, Functor m)
                    => Ref (Concept a)
                    -> m (LoadedEntity (Branch a))
 
@@ -88,7 +89,7 @@ class CoreEntity a where
 -- | Insert and version a new core entity, creating a master branch and concept
 -- at the same time. The creation of a concept will also assign a BBID to this
 -- entity.
-create :: (HasDatabase m, CoreEntity a)
+create :: (HasHdbc m c s, CoreEntity a, Functor m, Applicative m)
        => a                       {-^ The information about the entity to
                                       insert. -}
        -> Ref Editor              {-^ The editor creating this core entity. -}
@@ -104,7 +105,7 @@ create dat editorRef = do
 --------------------------------------------------------------------------------
 -- | Create a new branch that points to the same revision as an existing branch.
 -- This will usually be called with the master branch to create a new edit.
-fork :: (CoreEntity a, HasDatabase m)
+fork :: (CoreEntity a, HasHdbc m c s, Functor m)
      => LoadedEntity (Branch a)
      -> m (Ref (Branch a))
 fork branch =
@@ -115,7 +116,7 @@ fork branch =
 --------------------------------------------------------------------------------
 -- | Update a branch by creating a new revision at the tip of it, with the
 -- parent set to the original tip of the branch.
-update :: (CoreEntity a, HasDatabase m)
+update :: (Functor m, CoreEntity a, HasHdbc m c s, Applicative m)
        => LoadedEntity (Branch a)
        -> a
        -> Ref Editor
@@ -127,7 +128,7 @@ update branch dat editorRef = do
   parentRevision (entityRef newRev) parent
   resetBranch (entityRef branch) (entityRef newRev)
 
-resetBranch :: (HasDatabase m, CoreEntity a)
+resetBranch :: (Functor m, HasHdbc m c s, CoreEntity a)
             => Ref (Branch a)
             -> Ref (Revision a)
             -> m ()
@@ -139,18 +140,18 @@ resetBranch branch rev = do
                              , "WHERE branch_id = ?"
                              ]
 
-merge :: HasDatabase m
+merge :: HasHdbc m c s
       => Ref (Concept a)
       -> Ref (Concept a)
       -> m a
 merge = undefined
 
-delete :: HasDatabase m
+delete :: HasHdbc m c s
        => Ref (Concept a)
        -> m ()
 delete = undefined
 
-newSystemRevision :: (CoreEntity a, HasDatabase m)
+newSystemRevision :: (CoreEntity a, HasHdbc m c s, Functor m, Applicative m)
                   => Maybe (Ref (Tree a))
                   -> a
                   -> Ref Editor
@@ -163,7 +164,7 @@ newSystemRevision base dat editor = do
                          , "RETURNING rev_id"
                          ]
 
-newSystemConcept :: HasDatabase m
+newSystemConcept :: HasHdbc m c s
                  => m (BBID a)
 newSystemConcept = do
   uuid <- liftIO randomIO :: MonadIO m => m (BBID a)
@@ -171,7 +172,7 @@ newSystemConcept = do
   return uuid
   where bbidSql = "INSERT INTO bookbrainz_v.bbid (bbid) VALUES (?)"
 
-newSystemBranch :: (CoreEntity a, HasDatabase m)
+newSystemBranch :: (CoreEntity a, HasHdbc m c s, Functor m)
                 => Ref (Concept a)
                 -> Ref (Revision a)
                 -> Bool
@@ -186,7 +187,7 @@ newSystemBranch concept rev master = do
                             , "RETURNING branch_id"
                             ]
 
-parentRevision :: HasDatabase m
+parentRevision :: HasHdbc m c s
                => Ref (Revision a)
                -> Ref (Revision a)
                -> m ()
@@ -204,7 +205,7 @@ parentRevision child parent = do
 entity. -}
 class Entity a where
   {-| Get this entity by its primary key. -}
-  getByPk :: (HasDatabase m, Entity a)
+  getByPk :: (Functor m, HasHdbc m c s, Entity a)
           => Ref a
           -- ^ Some sort of reference to the entity to be fetched.
           -> m (LoadedEntity a)

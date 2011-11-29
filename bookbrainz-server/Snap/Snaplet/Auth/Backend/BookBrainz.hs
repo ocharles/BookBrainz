@@ -22,11 +22,12 @@ import           Snap.Snaplet.Auth (IAuthBackend (..)
                                                , AuthManager (..))
 import           Snap.Snaplet.Auth (UserId (..), AuthSettings (..)
                                          ,Password (..),AuthUser (..), unUid)
+import Snap.Snaplet.Hdbc (query, Row)
 import           Snap.Snaplet.Session    (SessionManager)
 import           Web.ClientSession       (getKey)
 
-import           BrainzStem.Database     (Database(Database), query, (!)
-                                         ,runDatabase, Row, queryOne)
+import           BrainzStem.Database     (Database(Database), (!)
+                                         ,runDatabase, queryOne)
 
 data BookBrainzAuthManager b = BookBrainzAuthManager
     { dbConn :: Connection

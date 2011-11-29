@@ -5,13 +5,13 @@ module BookBrainz.Model.Publisher
        ) where
 
 import Database.HDBC (fromSql, toSql)
+import Snap.Snaplet.Hdbc (HasHdbc, query)
 
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
 import BookBrainz.Model.Edition           ()
 import BookBrainz.Types
-import BrainzStem.Database                ((!), queryOne, safeQueryOne
-                                          ,HasDatabase, query)
+import BrainzStem.Database ((!), queryOne, safeQueryOne)
 import BrainzStem.Types                   (LoadedCoreEntity (..))
 
 instance GenericallyVersioned Publisher where
@@ -60,12 +60,12 @@ instance GenericallyVersioned Publisher where
 
 --------------------------------------------------------------------------------
 -- | Get all publishers in the system
-allPublishers :: HasDatabase m => m [LoadedCoreEntity Publisher]
+allPublishers :: (Functor m, HasHdbc m c s) => m [LoadedCoreEntity Publisher]
 allPublishers = map fromViewRow `fmap` query "SELECT * FROM publisher" []
 
 --------------------------------------------------------------------------------
 -- | Find all 'Edition's that this 'Publisher' published.
-publishedEditions :: HasDatabase m
+publishedEditions :: (Functor m, HasHdbc m c s)
                   => Ref (Concept Publisher)
                   -> m [LoadedCoreEntity Edition]
 publishedEditions pubRef =

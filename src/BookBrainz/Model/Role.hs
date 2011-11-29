@@ -7,13 +7,15 @@ module BookBrainz.Model.Role
        , allRoles
        ) where
 
+import Control.Applicative (Applicative)
 import Control.Monad (void)
 
 import Data.Copointed (copoint)
 import Database.HDBC (toSql)
+import Snap.Snaplet.Hdbc (HasHdbc, query, Row)
 
 import BrainzStem.Model.GenericVersioning (fromViewRow, GenericallyVersioned)
-import BrainzStem.Database     (HasDatabase, prefixedRow, query, Row)
+import BrainzStem.Database     (prefixedRow)
 import BrainzStem.Model        (Entity(..), (!), getRevision, newSystemRevision
                                ,parentRevision, resetBranch)
 import BookBrainz.Model.Person ()
@@ -33,17 +35,17 @@ fromRow r = Entity { entityInfo = Role { roleName = r ! "name" }
 -- associated with it.
 class HasRoles entity where
   -- | Find all roles people played, in regards to a given entity.
-  findRoles :: (HasDatabase m)
+  findRoles :: (Functor m, HasHdbc m c s)
             => Ref (Tree entity)
             -- ^ The entity to find roles for.
             -> m [(LoadedEntity Role, LoadedCoreEntity Person)]
             -- ^ A list of (role, person) tuples.
 
-  copyRoles :: HasDatabase m
+  copyRoles :: (Functor m, HasHdbc m c s)
             => Ref (Tree entity) -> Ref (Tree entity)
             -> m ()
 
-  addRole :: (GenericallyVersioned entity, HasDatabase m)
+  addRole :: (Functor m, GenericallyVersioned entity, HasHdbc m c s, Applicative m)
           => LoadedEntity (Branch entity)
           -> LoadedCoreEntity entity
           -> (Ref (Concept Person), Ref Role)
@@ -61,7 +63,7 @@ instance HasRoles Edition where
   addRole branch ent pr editor = addRole' branch ent pr editor "edition"
 
 -- Internal implementation with nasty string munging. Woohoo!
-findRoles' :: (HasDatabase m, HasRoles roleLike)
+findRoles' :: (HasHdbc m c s, HasRoles roleLike)
            => String
            -> Ref (Tree roleLike)
            -> m [(LoadedEntity Role, LoadedCoreEntity Person)]
@@ -84,7 +86,7 @@ findRoles' tableName' treeId = do
           )
         roleFromRow = fromRow . prefixedRow "r_"
 
-copyRoles' :: (HasDatabase m, HasRoles roleLike)
+copyRoles' :: (Functor m, HasHdbc m c s, HasRoles roleLike)
            => String
            -> Ref (Tree roleLike) -> Ref (Tree roleLike)
            -> m ()
@@ -99,7 +101,7 @@ copyRoles' tableName' baseTreeId newTreeId =
                          , "WHERE " ++ col ++ " = ?"
                          ]
 
-addRole' :: (GenericallyVersioned entity, HasDatabase m)
+addRole' :: (Functor m, GenericallyVersioned entity, HasHdbc m c s, Applicative m)
          => LoadedEntity (Branch entity)
          -> LoadedCoreEntity entity
          -> (Ref (Concept Person), Ref Role)
@@ -127,5 +129,5 @@ addRole' branch ent (person, role) editor tblName = do
 
 --------------------------------------------------------------------------------
 -- | Get all roles in the system.
-allRoles :: HasDatabase m => m [LoadedEntity Role]
+allRoles :: (Functor m, HasHdbc m c s) => m [LoadedEntity Role]
 allRoles = map fromRow `fmap` query "SELECT * FROM person_role" []
