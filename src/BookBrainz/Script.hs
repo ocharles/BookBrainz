@@ -7,6 +7,8 @@ module BookBrainz.Script
        , Script
        ) where
 
+import Control.Applicative (Applicative)
+import Control.Monad.CatchIO (MonadCatchIO)
 import Control.Monad.Reader
 import Data.Configurator        (load, require, Worth (..))
 import Database.HDBC.PostgreSQL (Connection)
@@ -21,7 +23,7 @@ data ScriptState = ScriptState {
 -- | The script monad.
 newtype Script a = Script {
     unScript :: ReaderT ScriptState IO a
-  } deriving (Monad, MonadReader ScriptState, Functor, MonadIO)
+  } deriving (Monad, MonadReader ScriptState, Functor, MonadIO, MonadCatchIO, Applicative)
 
 instance HasDatabase Script where
   askConnection = asks (connectionHandle . modelStateConn)

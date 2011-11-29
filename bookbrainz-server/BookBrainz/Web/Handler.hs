@@ -26,7 +26,7 @@ import Snap.Blaze (blaze)
 import Snap.Core
 import Snap.Snaplet             (with)
 import qualified Snap.Snaplet.Auth as SnapAuth
-import Snap.Snaplet.Auth.Types  (userLogin, userId, unUid)
+import Snap.Snaplet.Auth  (userLogin, userId, unUid)
 
 import BookBrainz.Types
 import BookBrainz.Web.Sitemap     (showURLParams, Sitemap(..))
