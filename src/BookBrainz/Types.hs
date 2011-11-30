@@ -32,7 +32,7 @@ abstraction of this set of editions, and is what people commonly talk about in
 discussions. -}
 data Book = Book
     { bookName :: Text  -- ^ The name of the book.
-    } deriving Show
+    } deriving (Show, Eq)
 
 --------------------------------------------------------------------------------
 -- | A country, as defined by ISO 3166-1.
@@ -41,18 +41,18 @@ data Country = Country
       countryName    :: Text
       -- | The ISO 3166-1 alpha-2 ISO code of the country.
     , countryIsoCode :: String
-    } deriving Show
+    } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | The actual format of the edition that people read.
 data EditionFormat = EditionFormat
     { -- | The human-readable name of the format.
       editionFormatName :: Text
-    } deriving Show
+    } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | A 13 digit ISBN code
-newtype Isbn = Isbn { unIsbn :: [Int] }
+newtype Isbn = Isbn { unIsbn :: [Int] } deriving (Eq)
 
 instance Show Isbn where
   show = concat . map show . unIsbn
@@ -82,7 +82,7 @@ data Edition = Edition
     , editionIsbn        :: Maybe Isbn
       -- | An index used for sorting this edition.
     , editionIndex       :: Maybe Int
-    } deriving Show
+    } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | A language, as defined by ISO-639-3.
@@ -91,7 +91,7 @@ data Language = Language
       languageName :: Text
       -- | The ISO-639-3 code for the language.
     , languageIsoCode :: String
-    } deriving Show
+    } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 {-| A person involved with a book, be it author, editor, illustrator,
@@ -99,18 +99,18 @@ etc. -}
 data Person = Person
     { -- | The name of the person.
       personName :: Text
-    } deriving Show
+    } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | An organization or company which publishes books.
 data Publisher = Publisher
     { -- | The name of the publisher.
       publisherName :: Text
-    } deriving Show
+    } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 {-| The role a 'Person' played on a core entity (author, translator, etc. -}
 data Role = Role
     { -- | The name of the role.
       roleName :: Text
-    }
+    } deriving (Eq, Show)

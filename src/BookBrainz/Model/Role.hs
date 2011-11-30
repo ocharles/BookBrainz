@@ -23,7 +23,7 @@ import BookBrainz.Types
 
 instance Entity Role where
   getByPk pk = (fromRow . head) `fmap` query sql [ toSql pk ]
-    where sql = "SELECT * FROM person_role WHERE id = ?"
+    where sql = "SELECT * FROM person_role WHERE role_id = ?"
 
 fromRow :: Row -> LoadedEntity Role
 fromRow r = Entity { entityInfo = Role { roleName = r ! "name" }
@@ -71,7 +71,7 @@ findRoles' tableName' treeId = do
   rows <- query roleSql [ rowKey treeId ]
   return $ personRoleFromRow `map` rows
   where roleSql =
-          unlines [ "SELECT person.*, role.role_id AS r_id, role.name AS r_name"
+          unlines [ "SELECT person.*, role.role_id AS r_role_id, role.name AS r_name"
                   , "FROM " ++ tableName' ++ "_person_role pr"
                   , "JOIN person_role role USING (role_id)"
                   , "JOIN person USING (person_id)"
@@ -91,7 +91,7 @@ copyRoles' :: (Functor m, HasHdbc m c s, HasRoles roleLike)
            -> Ref (Tree roleLike) -> Ref (Tree roleLike)
            -> m ()
 copyRoles' tableName' baseTreeId newTreeId =
-  void $ query sql [ toSql baseTreeId, toSql newTreeId ]
+  void $ query sql [ toSql newTreeId, toSql baseTreeId ]
   where sql = let fullTable = "bookbrainz." ++ tableName' ++ "_person_role"
                   col = tableName' ++ "_tree_id"
               in unlines [ "INSERT INTO " ++ fullTable

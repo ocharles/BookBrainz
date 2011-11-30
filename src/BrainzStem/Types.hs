@@ -48,7 +48,7 @@ data LoadedCoreEntity a = CoreEntity
     , coreEntityInfo :: a
       -- | The concept this entity defines.
     , coreEntityConcept :: Ref (Concept a)
-    } deriving Show
+    } deriving (Show, Eq)
 
 instance Copointed LoadedCoreEntity where
   copoint = coreEntityInfo
@@ -61,7 +61,7 @@ data LoadedEntity a = Entity
       entityInfo :: a
       -- | A reference to this entity in the database.
     , entityRef :: Ref a
-    } deriving Show
+    } deriving (Eq, Show)
 
 instance Copointed LoadedEntity where
   copoint = entityInfo

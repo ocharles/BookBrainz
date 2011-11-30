@@ -1,0 +1,1 @@
+cabal build --ghc-option=-fhpc && rm test-bookbrainz.tix && cabal test && hpc markup --exclude=Test --destdir=hpc test-bookbrainz.tix && chromium hpc/hpc_index.html

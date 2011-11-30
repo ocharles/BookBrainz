@@ -19,6 +19,7 @@ module BrainzStem.Database
 
          -- * Connection Handling
        , Database(Database)
+       , DatabaseContext
        ) where
 
 import Prelude hiding (catch)
