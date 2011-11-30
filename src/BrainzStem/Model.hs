@@ -1,3 +1,6 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleInstances #-}
+
 {-| Common functions for accessing entities. -}
 module BrainzStem.Model
        (
@@ -10,6 +13,11 @@ module BrainzStem.Model
          --, delete
          --, merge
        , fork
+       , Changes
+       , forkRevision
+       , applyChanges
+       , revisionUnderChange
+       , changeBranch
 
          -- * Helper Functions
        , (!)
@@ -22,14 +30,53 @@ module BrainzStem.Model
 import Control.Applicative (Applicative)
 import Control.Monad          (void)
 import Control.Monad.IO.Class (liftIO, MonadIO)
+import Control.Monad.IO.Control (MonadControlIO)
+import Control.Monad.Reader (ReaderT, MonadReader, runReaderT, asks)
 import Data.Copointed         (copoint)
 import Snap.Snaplet.Hdbc
 import System.Random          (randomIO)
+
+import Database.HDBC (IConnection)
 
 import BrainzStem.Database (queryOne, (!))
 import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
                               ,Ref (..), Branch (..), Concept
                               ,Editor, Revision (..), Tree, BBID)
+
+type ChangeEnvironment c a = (c, LoadedEntity (Revision a))
+newtype Changes c e a =
+    Changes { changeActions :: ReaderT (ChangeEnvironment c e) IO a }
+        deriving (Monad, MonadIO, MonadReader (ChangeEnvironment c e), MonadControlIO
+                 ,Applicative, Functor)
+
+instance IConnection c => HasHdbc (Changes c e) c IO where
+  getConnSrc = asks (return . fst)
+
+forkRevision :: (Applicative m, CoreEntity a, HasHdbc m c s)
+             => LoadedEntity (Revision a)
+             -> Ref Editor
+             -> Changes c a ()
+             -> m (LoadedEntity (Revision a))
+forkRevision revision editor changes = do
+  newRev <- newSystemRevision (revisionTree $ copoint revision) editor
+  parentRevision (entityRef newRev) (entityRef revision)
+  applyChanges changes newRev
+  return newRev
+
+applyChanges :: (HasHdbc m c s, Functor m)
+             => Changes c e a -> LoadedEntity (Revision e) -> m ()
+applyChanges changes revision = void $ withHdbc $ \conn ->
+  runReaderT (changeActions changes) (conn, revision)
+
+changeBranch :: (CoreEntity a, HasHdbc m c s, Applicative m)
+             => LoadedEntity (Branch a) -> Ref Editor -> Changes c a () -> m ()
+changeBranch branch editor changes = do
+  currentRev <- getRevision $ branchRevision $ copoint branch
+  newRev <- forkRevision currentRev editor changes
+  resetBranch (entityRef branch) (entityRef newRev)
+
+revisionUnderChange :: Changes c e (LoadedEntity (Revision e))
+revisionUnderChange = asks snd
 
 --------------------------------------------------------------------------------
 {-| A "core" entity is an entity that has both a BBID (BookBrainz identifier)
@@ -57,8 +104,7 @@ class CoreEntity a where
   -- data from that tree and update that. Otherwise, a fresh tree should be
   -- created.
   newRevision :: (Applicative m, HasHdbc m c s, Functor m)
-              => Maybe (Ref (Tree a))
-              -> a
+              => Ref (Tree a)
               -> Ref (Revision a)
               -> m (LoadedEntity (Revision a))
 
@@ -85,6 +131,12 @@ class CoreEntity a where
                    => Ref (Concept a)
                    -> m (LoadedEntity (Branch a))
 
+  getInfo :: (HasHdbc m c s) => Ref (Tree a) -> m a
+
+  newTree :: (HasHdbc m c s, Functor m) => a -> m (Ref (Tree a))
+
+  updateTree :: (HasHdbc m c s, Functor m) => a -> (Ref (Tree a)) -> m ()
+
 --------------------------------------------------------------------------------
 -- | Insert and version a new core entity, creating a master branch and concept
 -- at the same time. The creation of a concept will also assign a BBID to this
@@ -98,7 +150,8 @@ create :: (HasHdbc m c s, CoreEntity a, Functor m, Applicative m)
 create dat editorRef = do
   bbid' <- newSystemConcept
   concept <- newConcept bbid'
-  revision <- newSystemRevision Nothing dat editorRef
+  tree <- newTree dat
+  revision <- newSystemRevision tree editorRef
   newSystemBranch concept (entityRef revision) True
   getByConcept concept
 
@@ -116,17 +169,11 @@ fork branch =
 --------------------------------------------------------------------------------
 -- | Update a branch by creating a new revision at the tip of it, with the
 -- parent set to the original tip of the branch.
-update :: (Functor m, CoreEntity a, HasHdbc m c s, Applicative m)
-       => LoadedEntity (Branch a)
-       -> a
-       -> Ref Editor
-       -> m ()
-update branch dat editorRef = do
-  let parent = branchRevision $ copoint branch
-  currentRev <- getRevision $ branchRevision (copoint branch)
-  newRev <- newSystemRevision (Just $ revisionTree $ copoint currentRev) dat editorRef
-  parentRevision (entityRef newRev) parent
-  resetBranch (entityRef branch) (entityRef newRev)
+update :: (CoreEntity a, IConnection c)
+       => a
+       -> Changes c a ()
+update dat = ((revisionTree . copoint) `fmap` revisionUnderChange)
+               >>= updateTree dat
 
 resetBranch :: (Functor m, HasHdbc m c s, CoreEntity a)
             => Ref (Branch a)
@@ -151,14 +198,14 @@ delete :: HasHdbc m c s
        -> m ()
 delete = undefined
 
+-- XXX Bad name
 newSystemRevision :: (CoreEntity a, HasHdbc m c s, Functor m, Applicative m)
-                  => Maybe (Ref (Tree a))
-                  -> a
+                  => Ref (Tree a)
                   -> Ref Editor
                   -> m (LoadedEntity (Revision a))
-newSystemRevision base dat editor = do
+newSystemRevision tree editor = do
   revId <- fromSql `fmap` queryOne revSql [ toSql editor ]
-  newRevision base dat revId
+  newRevision tree revId
   where revSql = unlines [ "INSERT INTO bookbrainz_v.revision"
                          , "(editor) VALUES (?)"
                          , "RETURNING rev_id"

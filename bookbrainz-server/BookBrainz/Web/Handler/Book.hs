@@ -30,7 +30,7 @@ import           BookBrainz.Web.Handler     (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Book   as V
 import           BrainzStem.Model           (getByBbid, getByConcept, update
-                                            ,findMasterBranch)
+                                            ,findMasterBranch, changeBranch)
 
 --------------------------------------------------------------------------------
 -- | List all known books.
@@ -75,9 +75,10 @@ editBook bbid' = do
     case r of
       Left form' -> output $ V.addBook $ renderFormHtml form'
       Right submission -> do
-        master <- findMasterBranch $ coreEntityConcept book
-        withTransaction' $
-          update master submission (entityRef user)
+        withTransaction' $ do
+          master <- findMasterBranch $ coreEntityConcept book
+          changeBranch master (entityRef user) $
+            update submission
         redirect $ pack . ("/book/" ++) . show . bbid $ book
 
 --------------------------------------------------------------------------------
@@ -93,6 +94,6 @@ addBookRole bbid' = do
       Right submission -> do
         withTransaction' $ do
           master <- (findMasterBranch $ coreEntityConcept book)
-          addRole master
-                  book submission (entityRef user)
+          changeBranch master (entityRef user) $
+            addRole submission
         redirect $ pack . ("/book/" ++) . show . bbid $ book

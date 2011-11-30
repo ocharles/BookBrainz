@@ -76,7 +76,7 @@ editEdition editionBbid = do
       Right submission -> do
         withTransaction' $ do
           master <- findMasterBranch $ coreEntityConcept edition
-          update master submission $ entityRef user
+          changeBranch master (entityRef user) $ update submission
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition
 
 --------------------------------------------------------------------------------
@@ -92,6 +92,6 @@ addEditionRole bbid' = do
       Right submission -> do
         withTransaction' $ do
           master <- (findMasterBranch $ coreEntityConcept edition)
-          addRole master
-                  edition submission (entityRef user)
+          changeBranch master (entityRef user) $
+            addRole submission
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition

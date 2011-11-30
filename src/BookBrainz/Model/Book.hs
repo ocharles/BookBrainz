@@ -5,11 +5,12 @@ module BookBrainz.Model.Book
        , BookBrainz.Model.Book.create
        ) where
 
+import Control.Monad (void)
 import Control.Applicative (Applicative)
 import Data.Traversable                   (traverse)
 
 import Database.HDBC                      (toSql, fromSql)
-import Snap.Snaplet.Hdbc (HasHdbc, query)
+import Snap.Snaplet.Hdbc (HasHdbc, query, run)
 
 import BookBrainz.Model.Role              (copyRoles)
 import BookBrainz.Search                  (indexBook)
@@ -19,6 +20,24 @@ import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
 import BookBrainz.Types                   (LoadedCoreEntity (..), Book(..)
                                           ,Editor, Ref)
 import BrainzStem.Database (queryOne, safeQueryOne)
+
+findOrInsertVersion dat = do
+  foundId <- findVersion
+  case foundId of
+    Just id' -> return id'
+    Nothing -> newVersion
+  where findVersion =
+          let findSql = unlines [ "SELECT version"
+                                , "FROM bookbrainz_v.book_v"
+                                , "WHERE name = ?"
+                                ]
+          in safeQueryOne findSql [ toSql $ bookName dat ]
+        newVersion =
+          let insertSql = unlines [ "INSERT INTO bookbrainz_v.book_v"
+                                  , "(name) VALUES (?)"
+                                  , "RETURNING version"
+                                  ]
+          in queryOne insertSql [ toSql $ bookName dat ]
 
 instance GenericallyVersioned Book where
   versioningConfig = VersionConfig { cfgView = "book"
@@ -38,33 +57,20 @@ instance GenericallyVersioned Book where
                , coreEntityInfo = Book { bookName = row ! "name" }
                }
 
-  newTree baseTree pubData = do
-    versionId <- findOrInsertVersion
+  updateTreeImpl pubData tree = void $ do
+    versionId <- findOrInsertVersion pubData
+    run "UPDATE bookbrainz_v.book_tree SET version = ? WHERE book_tree_id = ?"
+        [ versionId, toSql tree ]
+
+  newTreeImpl pubData = do
+    versionId <- findOrInsertVersion pubData
     newTreeId <- fromSql `fmap` queryOne insertTreeSql [ versionId ]
-    traverse (\tree -> copyRoles tree newTreeId) baseTree
     return newTreeId
     where
-      findOrInsertVersion = do
-        foundId <- findVersion
-        case foundId of
-          Just id' -> return id'
-          Nothing -> newVersion
       insertTreeSql = unlines [ "INSERT INTO bookbrainz_v.book_tree"
                               , "(version) VALUES (?)"
                               , "RETURNING book_tree_id"
                               ]
-      findVersion =
-        let findSql = unlines [ "SELECT version"
-                              , "FROM bookbrainz_v.book_v"
-                              , "WHERE name = ?"
-                              ]
-        in safeQueryOne findSql [ toSql $ bookName pubData ]
-      newVersion =
-        let insertSql = unlines [ "INSERT INTO bookbrainz_v.book_v"
-                                , "(name) VALUES (?)"
-                                , "RETURNING version"
-                                ]
-        in queryOne insertSql [ toSql $ bookName pubData ]
 
 --------------------------------------------------------------------------------
 -- | List the latest version of all known books.

@@ -32,7 +32,7 @@ instance GenericallyVersioned Publisher where
                , coreEntityInfo = Publisher { publisherName = row ! "name" }
                }
 
-  newTree _ pubData = do
+  newTreeImpl pubData = do
     versionId <- findOrInsertVersion
     fromSql `fmap` queryOne insertTreeSql [ versionId ]
     where

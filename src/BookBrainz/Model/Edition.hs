@@ -53,14 +53,14 @@ instance GenericallyVersioned Edition where
                                           }
                }
 
-  newTree baseTree pubData = do
+  newTreeImpl pubData = do
     versionId <- findOrInsertVersion
     newTreeId <- fromSql `fmap`
                    queryOne insertTreeSql [ versionId
                                           , toSql $ editionBook pubData
                                           , toSql $ editionPublisher pubData
                                           ]
-    traverse (\tree -> copyRoles tree newTreeId) baseTree
+    --traverse (\tree -> copyRoles tree newTreeId) baseTree
     return newTreeId
     where
       findOrInsertVersion = do

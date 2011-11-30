@@ -7,17 +7,15 @@ module BookBrainz.Model.Role
        , allRoles
        ) where
 
-import Control.Applicative (Applicative)
 import Control.Monad (void)
 
 import Data.Copointed (copoint)
-import Database.HDBC (toSql)
+import Database.HDBC (toSql, IConnection)
 import Snap.Snaplet.Hdbc (HasHdbc, query, Row)
 
 import BrainzStem.Model.GenericVersioning (fromViewRow, GenericallyVersioned)
 import BrainzStem.Database     (prefixedRow)
-import BrainzStem.Model        (Entity(..), (!), getRevision, newSystemRevision
-                               ,parentRevision, resetBranch)
+import BrainzStem.Model        (Entity(..), (!), Changes, revisionUnderChange)
 import BookBrainz.Model.Person ()
 import BookBrainz.Types
 
@@ -45,22 +43,19 @@ class HasRoles entity where
             => Ref (Tree entity) -> Ref (Tree entity)
             -> m ()
 
-  addRole :: (Functor m, GenericallyVersioned entity, HasHdbc m c s, Applicative m)
-          => LoadedEntity (Branch entity)
-          -> LoadedCoreEntity entity
-          -> (Ref (Concept Person), Ref Role)
-          -> Ref Editor
-          -> m ()
+  addRole :: (GenericallyVersioned entity, IConnection c)
+          => (Ref (Concept Person), Ref Role)
+          -> Changes c entity ()
 
 instance HasRoles Book where
   findRoles = findRoles' "book"
   copyRoles = copyRoles' "book"
-  addRole branch ent pr editor = addRole' branch ent pr editor "book"
+  addRole = addRole' "book"
 
 instance HasRoles Edition where
   findRoles = findRoles' "edition"
   copyRoles = copyRoles' "edition"
-  addRole branch ent pr editor = addRole' branch ent pr editor "edition"
+  addRole = addRole' "edition"
 
 -- Internal implementation with nasty string munging. Woohoo!
 findRoles' :: (HasHdbc m c s, HasRoles roleLike)
@@ -101,24 +96,16 @@ copyRoles' tableName' baseTreeId newTreeId =
                          , "WHERE " ++ col ++ " = ?"
                          ]
 
-addRole' :: (Functor m, GenericallyVersioned entity, HasHdbc m c s, Applicative m)
-         => LoadedEntity (Branch entity)
-         -> LoadedCoreEntity entity
+addRole' :: (GenericallyVersioned entity, IConnection c)
+         => String
          -> (Ref (Concept Person), Ref Role)
-         -> Ref Editor
-         -> String
-         -> m ()
-addRole' branch ent (person, role) editor tblName = do
-  currentRev <- getRevision $ branchRevision (copoint branch)
-  newRev <- newSystemRevision (Just $ revisionTree $ copoint currentRev)
-                                    (copoint ent)
-                                    editor
-  parentRevision (entityRef newRev) (coreEntityRevision ent)
-  query addRoleSql [ toSql role
-                   , toSql person
-                   , toSql $ revisionTree $ copoint newRev
-                   ]
-  void $ resetBranch (entityRef branch) (entityRef newRev)
+         -> Changes c entity ()
+addRole' tblName (person, role) = do
+  r <- revisionUnderChange
+  void $ query addRoleSql [ toSql role
+                          , toSql person
+                          , toSql $ revisionTree $ copoint r
+                          ]
   where
     addRoleSql =
       unlines [ "INSERT INTO bookbrainz." ++ tblName ++ "_person_role"

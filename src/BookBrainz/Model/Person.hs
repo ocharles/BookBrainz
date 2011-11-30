@@ -31,7 +31,7 @@ instance GenericallyVersioned Person where
                , coreEntityInfo = Person { personName = row ! "name" }
                }
 
-  newTree _ pubData = do
+  newTreeImpl pubData = do
     versionId <- findOrInsertVersion
     fromSql `fmap` queryOne insertTreeSql [ versionId ]
     where

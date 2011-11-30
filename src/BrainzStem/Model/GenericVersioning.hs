@@ -8,7 +8,6 @@ module BrainzStem.Model.GenericVersioning
        , VersionConfig (..)
        ) where
 
-import Control.Applicative (Applicative)
 import Data.Maybe             (listToMaybe)
 
 import Database.HDBC          (toSql, fromSql)
@@ -17,7 +16,7 @@ import Snap.Snaplet.Hdbc      (query, Row, HasHdbc)
 import BrainzStem.Database    (queryOne, (!))
 import BrainzStem.Model       (CoreEntity(..))
 import BrainzStem.Types       (LoadedCoreEntity (..), LoadedEntity (..)
-                              ,Revision (..), Ref (..), Branch (..), Tree)
+                              ,Revision (..), Branch (..), Ref, Tree)
 
 data VersionConfig a = VersionConfig { cfgView :: String
                                      , cfgIdCol :: String
@@ -39,12 +38,8 @@ class GenericallyVersioned a where
   -- | Create a 'LoadedCoreEntity' from a row from the unified view.
   fromViewRow :: Row -> LoadedCoreEntity a
 
-  -- | Create a new 'Tree' for this @a@, optionally basing on an existing
-  -- tree.
-  newTree :: (Applicative m, Functor m, HasHdbc m c s)
-          => Maybe (Ref (Tree a))
-          -> a
-          -> m (Ref (Tree a))
+  newTreeImpl :: (Functor m, HasHdbc m c s) => a -> m (Ref (Tree a))
+  updateTreeImpl :: (Functor m, HasHdbc m c s) => a -> Ref (Tree a) -> m ()
 
 instance GenericallyVersioned a => CoreEntity a where
   getByBbid bbid' =
@@ -63,6 +58,9 @@ instance GenericallyVersioned a => CoreEntity a where
                               ]
           view = cfgView (versioningConfig :: VersionConfig a)
           idCol = cfgIdCol (versioningConfig :: VersionConfig a)
+
+  newTree = newTreeImpl
+  updateTree = updateTreeImpl
 
   newConcept bbid' = do
     concept <- createConcept
@@ -87,21 +85,19 @@ instance GenericallyVersioned a => CoreEntity a where
             in query attachSql [ conceptRef
                                , toSql bbid' ]
 
-  newRevision baseTree entData revId =
-    newTree baseTree entData >>= newRevision'
+  newRevision treeId revId =
+    let pubRevSql = unlines [ "INSERT INTO bookbrainz_v." ++
+                              (cfgRevision config)
+                            , "(rev_id, " ++ (cfgTree config) ++ "_id)"
+                            , "VALUES (?, ?)"
+                            ]
+        revFromRow _ =
+          Entity { entityInfo = Revision { revisionTree = treeId }
+                 , entityRef = revId
+                 }
+    in revFromRow `fmap` queryOne pubRevSql [ toSql revId, toSql treeId ]
     where
       config = versioningConfig :: VersionConfig a
-      newRevision' treeId =
-        let pubRevSql = unlines [ "INSERT INTO bookbrainz_v." ++
-                                  (cfgRevision config)
-                                , "(rev_id, " ++ (cfgTree config) ++ "_id)"
-                                , "VALUES (?, ?)"
-                                ]
-            revFromRow _ =
-              Entity { entityInfo = Revision { revisionTree = treeId }
-                     , entityRef = revId
-                     }
-        in revFromRow `fmap` queryOne pubRevSql [ toSql revId, toSql treeId ]
 
   attachBranchToConcept branch concept = do
     query branchSql [ toSql branch, toSql concept ]
