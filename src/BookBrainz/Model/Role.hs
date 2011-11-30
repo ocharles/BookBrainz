@@ -87,7 +87,7 @@ copyRoles' :: (Functor m, HasHdbc m c s, HasRoles roleLike)
            -> m ()
 copyRoles' tableName' baseTreeId newTreeId =
   void $ query sql [ toSql newTreeId, toSql baseTreeId ]
-  where sql = let fullTable = "bookbrainz." ++ tableName' ++ "_person_role"
+  where sql = let fullTable = "bookbrainz_v." ++ tableName' ++ "_person_role"
                   col = tableName' ++ "_tree_id"
               in unlines [ "INSERT INTO " ++ fullTable
                          , "(" ++ col ++ ", person_id, role_id)"
@@ -108,7 +108,7 @@ addRole' tblName (person, role) = do
                           ]
   where
     addRoleSql =
-      unlines [ "INSERT INTO bookbrainz." ++ tblName ++ "_person_role"
+      unlines [ "INSERT INTO bookbrainz_v." ++ tblName ++ "_person_role"
               , "(role_id, person_id, " ++ tblName ++ "_tree_id)"
               , "VALUES (?, ?, ?)"
               ]

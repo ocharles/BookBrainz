@@ -24,5 +24,5 @@ type DatabaseTest = DatabaseContext ()
 
 databaseTest :: DatabaseTest -> IO ()
 databaseTest action = do
-  db <- openConnection "bookbrainz" "bookbrainz"
+  db <- openConnection "bookbrainz_test" "bookbrainz"
   runDatabase db $ action >> rollback

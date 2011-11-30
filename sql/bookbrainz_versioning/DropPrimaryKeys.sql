@@ -1,0 +1,33 @@
+-- Automatically generated, do not edit.
+\unset ON_ERROR_STOP
+
+ALTER TABLE bbid DROP CONSTRAINT bbid_pkey;
+ALTER TABLE book DROP CONSTRAINT book_pkey;
+ALTER TABLE book_bbid DROP CONSTRAINT book_bbid_pkey;
+ALTER TABLE book_branch DROP CONSTRAINT book_branch_pkey;
+ALTER TABLE book_person_role DROP CONSTRAINT book_person_role_pkey;
+ALTER TABLE book_revision DROP CONSTRAINT book_revision_pkey;
+ALTER TABLE book_tree DROP CONSTRAINT book_tree_pkey;
+ALTER TABLE book_v DROP CONSTRAINT book_v_pkey;
+ALTER TABLE branch DROP CONSTRAINT branch_pkey;
+ALTER TABLE edition DROP CONSTRAINT edition_pkey;
+ALTER TABLE edition_bbid DROP CONSTRAINT edition_bbid_pkey;
+ALTER TABLE edition_branch DROP CONSTRAINT edition_branch_pkey;
+ALTER TABLE edition_person_role DROP CONSTRAINT edition_person_role_pkey;
+ALTER TABLE edition_revision DROP CONSTRAINT edition_revision_pkey;
+ALTER TABLE edition_tree DROP CONSTRAINT edition_tree_pkey;
+ALTER TABLE edition_v DROP CONSTRAINT edition_v_pkey;
+ALTER TABLE person DROP CONSTRAINT person_pkey;
+ALTER TABLE person_bbid DROP CONSTRAINT person_bbid_pkey;
+ALTER TABLE person_branch DROP CONSTRAINT person_branch_pkey;
+ALTER TABLE person_revision DROP CONSTRAINT person_revision_pkey;
+ALTER TABLE person_tree DROP CONSTRAINT person_tree_pkey;
+ALTER TABLE person_v DROP CONSTRAINT person_v_pkey;
+ALTER TABLE publisher DROP CONSTRAINT publisher_pkey;
+ALTER TABLE publisher_bbid DROP CONSTRAINT publisher_bbid_pkey;
+ALTER TABLE publisher_branch DROP CONSTRAINT publisher_branch_pkey;
+ALTER TABLE publisher_revision DROP CONSTRAINT publisher_revision_pkey;
+ALTER TABLE publisher_tree DROP CONSTRAINT publisher_tree_pkey;
+ALTER TABLE publisher_v DROP CONSTRAINT publisher_v_pkey;
+ALTER TABLE revision DROP CONSTRAINT revision_pkey;
+ALTER TABLE revision_parent DROP CONSTRAINT revision_parent_pkey;
