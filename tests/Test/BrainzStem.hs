@@ -9,6 +9,9 @@ module Test.BrainzStem ( DatabaseContext
                        , assertBool
                        , assertFailure
                        , liftIO
+
+                       , str
+                       , runRaw
                        ) where
 
 import Test.HUnit hiding (Test)
@@ -16,7 +19,8 @@ import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
 
 import Control.Monad.IO.Class (liftIO)
-import Snap.Snaplet.Hdbc (rollback)
+import Data.String.Interpolation
+import Snap.Snaplet.Hdbc (rollback, runRaw)
 
 import BrainzStem.Database (openConnection, runDatabase, DatabaseContext)
 
