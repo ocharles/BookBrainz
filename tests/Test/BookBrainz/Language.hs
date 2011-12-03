@@ -17,7 +17,6 @@ import qualified Snap.Snaplet.Hdbc as HDBC
 
 import Test.QuickCheck.Arbitrary (Arbitrary(..))
 import Test.QuickCheck.Gen (Gen, suchThat, listOf1)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
 
 instance Arbitrary Language where
   arbitrary = Language <$> (T.pack <$> name) <*> name `suchThat` (not . null)

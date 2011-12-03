@@ -4,6 +4,7 @@ module Test.BrainzStem ( DatabaseContext
                        , Test
                        , testCase
                        , testGroup
+                       , testProperty
 
                        , (@?=)
                        , assertBool
@@ -19,6 +20,7 @@ module Test.BrainzStem ( DatabaseContext
 import Test.HUnit hiding (Test)
 import Test.Framework (Test, testGroup)
 import Test.Framework.Providers.HUnit (testCase)
+import Test.Framework.Providers.QuickCheck2 (testProperty)
 
 import Control.Monad.IO.Class (liftIO)
 import Data.List (nubBy)

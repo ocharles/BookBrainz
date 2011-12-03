@@ -2,20 +2,36 @@
 module Test.BookBrainz.Role (tests) where
 
 import Test.BrainzStem
+import Test.BrainzStem.Gen
+import Test.BrainzStem.Model
+import Test.QuickCheck.Arbitrary (Arbitrary(..))
+import Test.QuickCheck.Gen (Gen, listOf1)
 
+import Control.Applicative
 import Database.HDBC (toSql)
 import Data.Maybe (fromJust)
+import qualified Data.Text as T
+import qualified Snap.Snaplet.Hdbc as HDBC
 
+import BrainzStem.Database
 import BookBrainz.Model.Book
 import BookBrainz.Model.Editor
 import BookBrainz.Model.Role
 import BookBrainz.Types
 import BrainzStem.Model
 
-test_role_getByPk :: DatabaseTest
-test_role_getByPk = do
-  role <- getByPk $ Ref (toSql (1 :: Int))
-  liftIO $ role @?= testRole
+instance Arbitrary Role where
+  arbitrary = Role <$> T.pack `fmap` name
+
+instance Arbitrary (InDB Role LoadedEntity) where
+  arbitrary = do
+    r <- arbitrary
+    return $ InDB r (insertRole r >>= toEnt r)
+    where insertRole r =
+            queryOne "INSERT INTO person_role (name) VALUES (?) RETURNING role_id"
+                     [ toSql $ roleName r ]
+          toEnt r id = return $ Entity { entityRef = Ref id
+                                       , entityInfo = r }
 
 testRole = Entity { entityRef = Ref (toSql (1 :: Int))
                   , entityInfo = Role { roleName = "Author" }}
@@ -102,7 +118,8 @@ test_role_addRole_edition = do
           (getByBbid (fromJust $ parseBbid "86bb2a9d-ac90-4c92-9dc1-2398b4283df4" :: BBID Edition))
 
 tests :: [Test]
-tests = [ testCase "getByPk" $ databaseTest test_role_getByPk
+tests = [ testProperty "getByPk" $ prop_getByPk
+          (listOf1 arbitrary :: Gen [InDB Role LoadedEntity])
         , testCase "allRoles" $ databaseTest test_role_allRoles
         , testGroup "HasRole Book"
              [ testCase "findRoles" $ databaseTest test_role_findRoles_book

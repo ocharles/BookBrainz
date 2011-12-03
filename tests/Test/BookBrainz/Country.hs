@@ -6,7 +6,6 @@ import Test.BrainzStem.Gen
 import Test.BrainzStem.Model
 import Test.QuickCheck.Arbitrary (Arbitrary(..))
 import Test.QuickCheck.Gen (Gen, suchThat, listOf1)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
 
 import Control.Applicative
 import Database.HDBC (toSql)
