@@ -108,14 +108,17 @@ test_book_getByBbid = do
     Just b -> b @?= testBook
     Nothing -> assertFailure "Expected to find a book"
 
-test_book_create :: DatabaseContext ()
-test_book_create = do
-  createdBook <- ((entityRef . fromJust) `fmap` getEditorByName "ocharles") >>=
-    create (Book { bookName = "My First Pony" })
-  maybeFetchedBook <- getByBbid $ bbid createdBook
-  liftIO $ case maybeFetchedBook of
-    Just fetchedBook -> fetchedBook @?= createdBook
-    Nothing -> assertFailure "Cannot retrieve created book"
+prop_create = monadicIO $ do
+  book <- pick arbitrary
+  dbEditor <- pick arbitrary
+  b <- run $ databaseTest $ do
+    editor <- initDb dbEditor
+    createdBook <- create book (entityRef editor)
+    maybeFetchedBook <- getByBbid $ bbid createdBook
+    case maybeFetchedBook of
+      Just fetchedBook -> return $ fetchedBook == createdBook
+      Nothing -> return False
+  assert b
 
 test_book_update :: DatabaseTest
 test_book_update = do
@@ -136,7 +139,7 @@ test_book_update = do
 tests :: [Test]
 tests = [ testProperty "listAllBooks" $ prop_listAllBooks
         , testCase "getByBbid" $ databaseTest test_book_getByBbid
-        , testCase "create" $ databaseTest test_book_create
+        , testProperty "create" $ prop_create
         , testCase "update" $ databaseTest test_book_update
         ]
 

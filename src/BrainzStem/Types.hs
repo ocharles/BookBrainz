@@ -106,7 +106,7 @@ data Tree a
 {-| An editon within the BrainzStem system. -}
 data Editor = Editor { -- | The name of the editor.
                        editorName :: Text
-                     }
+                     } deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | A BookBrainz identifier. @a@ is a phantom type, which stops you using this
