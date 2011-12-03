@@ -16,7 +16,7 @@ import BookBrainz.Model.Country
 import BookBrainz.Types
 
 instance Arbitrary Country where
-  arbitrary = Country <$> (T.pack <$> name) <*> name `suchThat` (not . null)
+  arbitrary = Country <$> name <*> str
 
 instance Arbitrary (InDB Country LoadedEntity) where
   arbitrary = do

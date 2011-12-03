@@ -149,4 +149,5 @@ Test-Suite test-bookbrainz
     Interpolation,
     text,
     QuickCheck,
-    test-framework-quickcheck2
+    test-framework-quickcheck2,
+    random

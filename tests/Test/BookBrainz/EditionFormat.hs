@@ -19,7 +19,7 @@ import BookBrainz.Types
 import BrainzStem.Model
 
 instance Arbitrary EditionFormat where
-  arbitrary = EditionFormat <$> T.pack `fmap` name
+  arbitrary = EditionFormat <$> name
 
 instance Arbitrary (InDB EditionFormat LoadedEntity) where
   arbitrary = do
@@ -42,10 +42,10 @@ test_editionFormat_allEditionFormats = do
     formats !! 1 @?= testFormat 2 "Hard back"
 
 initialEnvironment :: String
-initialEnvironment = [str|
-  INSERT INTO edition_format (id, name) VALUES (1, 'Paperback'),
-                                               (2, 'Hard back');
-|]
+initialEnvironment = unlines
+  [ "INSERT INTO edition_format (id, name) VALUES (1, 'Paperback'),"
+  , "                                             (2, 'Hard back');"
+  ]
 
 testFormat :: Int -> Text -> LoadedEntity EditionFormat
 testFormat fid name = Entity { entityRef = Ref (toSql fid)

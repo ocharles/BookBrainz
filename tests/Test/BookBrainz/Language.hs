@@ -19,7 +19,7 @@ import Test.QuickCheck.Arbitrary (Arbitrary(..))
 import Test.QuickCheck.Gen (Gen, suchThat, listOf1)
 
 instance Arbitrary Language where
-  arbitrary = Language <$> (T.pack <$> name) <*> name `suchThat` (not . null)
+  arbitrary = Language <$> name <*> str
 
 instance Arbitrary (InDB Language LoadedEntity) where
   arbitrary = do

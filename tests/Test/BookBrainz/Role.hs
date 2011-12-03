@@ -21,7 +21,7 @@ import BookBrainz.Types
 import BrainzStem.Model
 
 instance Arbitrary Role where
-  arbitrary = Role <$> T.pack `fmap` name
+  arbitrary = Role <$> name
 
 instance Arbitrary (InDB Role LoadedEntity) where
   arbitrary = do

@@ -11,7 +11,6 @@ module Test.BrainzStem ( DatabaseContext
                        , assertFailure
                        , liftIO
 
-                       , str
                        , runRaw
                        , InDB(..)
                        , setBy
@@ -24,7 +23,6 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 
 import Control.Monad.IO.Class (liftIO)
 import Data.List (nubBy)
-import Data.String.Interpolation
 import Snap.Snaplet.Hdbc (rollback, runRaw)
 
 import BrainzStem.Database (openConnection, runDatabase, DatabaseContext)
