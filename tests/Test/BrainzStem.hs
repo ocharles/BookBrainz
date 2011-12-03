@@ -26,7 +26,9 @@ import BrainzStem.Database (openConnection, runDatabase, DatabaseContext)
 
 type DatabaseTest = DatabaseContext ()
 
-databaseTest :: DatabaseTest -> IO ()
+databaseTest :: DatabaseContext a -> IO a
 databaseTest action = do
   db <- openConnection "bookbrainz_test" "bookbrainz"
-  runDatabase db $ action >> rollback
+  runDatabase db $ do r <- action
+                      rollback
+                      return r

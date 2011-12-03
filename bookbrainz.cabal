@@ -147,4 +147,6 @@ Test-Suite test-bookbrainz
     HUnit,
     bookbrainz,
     Interpolation,
-    text
+    text,
+    QuickCheck,
+    test-framework-quickcheck2
