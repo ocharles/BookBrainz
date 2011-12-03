@@ -1,16 +1,20 @@
 module Test.BrainzStem.Model (prop_getByPk) where
 
-import Test.BrainzStem (setBy, entity, initDb, databaseTest)
-import Test.QuickCheck.Gen (elements, Gen, suchThat, sized, listOf, listOf1)
+import Test.BrainzStem
+import Test.QuickCheck (Property)
+import Test.QuickCheck.Gen (Gen)
 import Test.QuickCheck.Monadic (monadicIO, pick, run, assert)
 
-import Control.Applicative
-
-import BrainzStem.Model (getByPk)
+import BrainzStem.Model (Entity, getByPk)
 import BrainzStem.Types
 
+prop_getByPk :: (Entity a, Show a, Eq a)
+             => Gen [InDB a LoadedEntity] -> Property
 prop_getByPk gen = monadicIO $ do
-  states <- setBy (entityRef . entity) <$> pick (listOf1 gen)
-  let e = head $ entity `map` states
-  fetched <- run $ databaseTest $ initDb `mapM` states >> getByPk (entityRef e)
-  assert $ e == fetched
+  db <- pick gen
+  b <- run $ databaseTest $ do
+    entities <- initDb `mapM` db
+    let e = head entities
+    fetched <- getByPk (entityRef e)
+    return $ e == fetched
+  assert b

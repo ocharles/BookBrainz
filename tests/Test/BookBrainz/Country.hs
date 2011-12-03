@@ -5,23 +5,24 @@ import Test.BrainzStem
 import Test.BrainzStem.Gen
 import Test.BrainzStem.Model
 import Test.QuickCheck.Arbitrary (Arbitrary(..))
-import Test.QuickCheck.Gen (Gen, suchThat)
+import Test.QuickCheck.Gen (Gen, suchThat, listOf1)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 
 import Control.Applicative
-import Control.Monad (void)
 import Database.HDBC (toSql)
 import qualified Data.Text as T
 import qualified Snap.Snaplet.Hdbc as HDBC
 
 import BookBrainz.Model.Country
 import BookBrainz.Types
-import BrainzStem.Model
 
-instance Arbitrary (DBState (LoadedEntity Country)) where
+instance Arbitrary Country where
+  arbitrary = Country <$> (T.pack <$> name) <*> name `suchThat` (not . null)
+
+instance Arbitrary (InDB Country LoadedEntity) where
   arbitrary = do
-    l <- Country <$> (T.pack <$> name) <*> name `suchThat` (not . null)
-    return $ DBState (void $ insertCountry l) (toEnt l)
+    c <- arbitrary
+    return $ InDB c (insertCountry c >> (return $ toEnt c))
     where insertCountry c =
             HDBC.run "INSERT INTO country (iso_code, name) VALUES (?, ?)"
                      [ toSql $ countryIsoCode c
@@ -43,5 +44,6 @@ testCountry = Entity { entityRef = Ref (toSql ("GB" :: String))
 tests :: [Test]
 tests = [ testCase "allCountries" $ databaseTest test_country_allCountries
         , testProperty "getByPk" $ prop_getByPk
-            (arbitrary :: Gen (DBState (LoadedEntity Country)))
+            (setBy (countryIsoCode . entity) <$> listOf1 arbitrary
+              :: Gen [InDB Country LoadedEntity])
         ]

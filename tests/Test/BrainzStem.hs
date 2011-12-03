@@ -12,7 +12,7 @@ module Test.BrainzStem ( DatabaseContext
 
                        , str
                        , runRaw
-                       , DBState(..)
+                       , InDB(..)
                        , setBy
                        ) where
 
@@ -36,12 +36,11 @@ databaseTest action = do
                       rollback
                       return r
 
-data DBState a = DBState { initDb :: DatabaseContext ()
-                         , entity :: a
-                         }
+data InDB a c = InDB { entity :: a
+                     , initDb :: DatabaseContext (c a) }
 
-instance Show a => Show (DBState a) where
-  show (DBState _ e) = show e
+instance Show a => Show (InDB a c) where
+  show (InDB e _) = show e
 
 setBy :: Eq b => (a -> b) -> [a] -> [a]
 setBy f = nubBy (\x y -> f x == f y)
