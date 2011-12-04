@@ -67,7 +67,7 @@ findRoles' tableName' treeId = do
   return $ personRoleFromRow `map` rows
   where roleSql =
           unlines [ "SELECT person.*, role.role_id AS r_role_id, role.name AS r_name"
-                  , "FROM " ++ tableName' ++ "_person_role pr"
+                  , "FROM bookbrainz_v." ++ tableName' ++ "_person_role pr"
                   , "JOIN person_role role USING (role_id)"
                   , "JOIN person USING (person_id)"
                   , unwords ["JOIN", "bookbrainz_v." ++ tableName' ++ "_revision r", "USING", "(", tableName' ++ "_tree_id" ,")" ]
