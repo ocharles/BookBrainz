@@ -32,16 +32,17 @@ instance Arbitrary (InDB Country LoadedEntity) where
 
 prop_allCountries :: Property
 prop_allCountries = monadicIO $ do
-  dbCountries <- pick (listOf1 arbitrary)
+  dbCountries <- pick uniqueCountries
   b <- run $ databaseTest $ do
     expect <- initDb `mapM` dbCountries
     actual <- allCountries
     return $ expect == actual
   assert b
 
+uniqueCountries :: Gen [InDB Country LoadedEntity]
+uniqueCountries = setBy (countryIsoCode . entity) <$> listOf1 arbitrary
+
 tests :: [Test]
 tests = [ testProperty "allCountries" $ prop_allCountries
-        , testProperty "getByPk" $ prop_getByPk
-            (setBy (countryIsoCode . entity) <$> listOf1 arbitrary
-              :: Gen [InDB Country LoadedEntity])
+        , testProperty "getByPk" $ prop_getByPk uniqueCountries
         ]
