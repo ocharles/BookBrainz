@@ -12,8 +12,8 @@ echo `date` : Upgrading database schema
 find sql -type f -name '*.sql' | \
     sed 's/^[^(]*(//' | while read LINE
     do
-        export PATCH_NAME="$( echo "$LINE" | cut -d\' -f2 )"
-        echo "$LINE" | sed "s/^[^']*'[^']\\+'[[:space:]]*,[[:space:]]*//" | \
+        export PATCH_NAME="$( cat "$LINE" |grep register_patch | cut -d\' -f2 )"
+        cat "$LINE" | grep register_patch | sed "s/^[^']*'[^']\\+'[[:space:]]*,[[:space:]]*//" | \
             perl -ne '
                 my @w;
                 if ( s/^ARRAY\s*\[// ) {
@@ -21,10 +21,10 @@ find sql -type f -name '*.sql' | \
                     @w = /\047([^\047]+)\047/g;
                 }
                 push @w, $ENV{"PATCH_NAME"} if ( 0 == @w ) || ( 0 == ( @w % 2 ) );
-                printf "%s %s\n", $ENV{"PATCH_NAME"}, $_ for @w;
+                printf "%s %s\n", $_, $ENV{"PATCH_NAME"} for @w;
             '
-    done | tsort | tac | while read LINE
+    done | tsort | while read LINE
     do
         echo `date` : Applyling $LINE
-        psql -U bookbrainz bookbrainz < $LINE
+        psql -U bookbrainz bookbrainz < sql/$LINE.sql
     done
