@@ -22,7 +22,7 @@ login :: Forms.View Html -- ^ The form 'Html' and the encoding of it.
 login v =
   pageLayout Nothing $ do
     H.h1 "Login"
-    H.form ! A.method "POST" ! A.enctype (toValue $ Forms.viewEncType v) $ do
+    H.form ! A.method "POST" ! A.enctype (toValue $ Forms.viewEncType v) $
       H.p $ H.input ! A.type_ "submit" ! A.value "Login"
 
 --------------------------------------------------------------------------------

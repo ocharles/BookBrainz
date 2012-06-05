@@ -89,7 +89,7 @@ sitemap =
   <> rLogout . "logout"
 
 -- Note that this currently consumes the trailing / !
-uuid :: PrinterParser StringsError [String] o ((BBID a) :- o)
+uuid :: PrinterParser StringsError [String] o (BBID a :- o)
 uuid = xmaph (fromJust . parseBbid) (Just . show) anyString
 
 --------------------------------------------------------------------------------

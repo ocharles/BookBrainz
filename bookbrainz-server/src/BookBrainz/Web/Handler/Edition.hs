@@ -50,7 +50,7 @@ showEdition bbid' = do
 --------------------------------------------------------------------------------
 -- | Allow adding a new edition to a book
 addEdition :: BBID Book -> BookBrainzHandler ()
-addEdition bookBbid = do
+addEdition bookBbid =
   withUser $ \user -> do
     book <- getByBbid bookBbid `onNothing` "Book not found"
     editionForm <- Forms.addEdition $ coreEntityConcept book
@@ -65,7 +65,7 @@ addEdition bookBbid = do
 --------------------------------------------------------------------------------
 -- | Allow editing an existing 'Edition'.
 editEdition :: BBID Edition -> BookBrainzHandler ()
-editEdition editionBbid = do
+editEdition editionBbid =
   withUser $ \user -> do
     edition <- getByBbid editionBbid `onNothing` "Edition not found"
     editionForm <- Forms.editEdition $ copoint edition
@@ -81,7 +81,7 @@ editEdition editionBbid = do
 --------------------------------------------------------------------------------
 {-| Present an interface for adding a new role to this edition. -}
 addEditionRole :: BBID Edition -> BookBrainzHandler ()
-addEditionRole bbid' = do
+addEditionRole bbid' =
   withUser $ \user -> do
     edition <- getByBbid bbid' `onNothing` "Edition not found"
     roleForm <- Forms.personRole
@@ -90,7 +90,7 @@ addEditionRole bbid' = do
       Nothing -> output $ V.addRole v
       Just submission -> do
         withTransaction $ do
-          master <- (findMasterBranch $ coreEntityConcept edition)
+          master <- findMasterBranch $ coreEntityConcept edition
           changeBranch master (entityRef user) $
             addRole submission
         redirect $ pack . ("/edition/" ++) . show . bbid $ edition

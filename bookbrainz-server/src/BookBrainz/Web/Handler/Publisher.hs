@@ -39,7 +39,7 @@ showPublisher bbid' = do
 -- | Display a form for adding new publishers, add on submission add the
 -- publisher.
 addPublisher :: BookBrainzHandler ()
-addPublisher = do
+addPublisher =
   withUser $  \user -> do
     (v, r) <- runForm "book" Forms.addPublisher
     case r of

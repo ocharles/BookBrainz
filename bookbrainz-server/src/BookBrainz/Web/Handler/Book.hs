@@ -54,7 +54,7 @@ showBook bbid' = do
 {-| Display a form for adding 'Book's, and on submission, add that book and
 redirect to view it. -}
 addBook :: BookBrainzHandler ()
-addBook = do
+addBook =
   withUser $ \user -> do
     (v, r) <- runForm "book" (Forms.bookForm Nothing)
     case r of
@@ -67,7 +67,7 @@ addBook = do
 {-| Display a form for adding 'Book's, and on submission, add that book and
 redirect to view it. -}
 editBook :: BBID Book -> BookBrainzHandler ()
-editBook bbid' = do
+editBook bbid' =
   withUser $ \user -> do
     book <- getByBbid bbid' `onNothing` "Book not found"
     (v, r) <- runForm "book" (Forms.bookForm . Just $ copoint book)
@@ -83,7 +83,7 @@ editBook bbid' = do
 --------------------------------------------------------------------------------
 {-| Present an interface for adding a new role to this book. -}
 addBookRole :: BBID Book -> BookBrainzHandler ()
-addBookRole bbid' = do
+addBookRole bbid' =
   withUser $ \user -> do
     book <- getByBbid bbid' `onNothing` "Book not found"
     roleForm <- Forms.personRole
@@ -92,7 +92,7 @@ addBookRole bbid' = do
       Nothing -> output $ V.addBook v
       Just submission -> do
         withTransaction $ do
-          master <- (findMasterBranch $ coreEntityConcept book)
+          master <- findMasterBranch $ coreEntityConcept book
           changeBranch master (entityRef user) $
             addRole submission
         redirect $ pack . ("/book/" ++) . show . bbid $ book

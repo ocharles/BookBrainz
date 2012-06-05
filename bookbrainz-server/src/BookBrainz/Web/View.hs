@@ -87,11 +87,11 @@ pageLayout sidebar body = do
           H.div $ do
             H.ul ! A.class_ "nav-left" $ do
               H.li $ navLink Home "BookBrainz" -- TODO Navigation menu
-              when loggedIn $ do
+              when loggedIn $
                 H.li $ navLink AddBook "Add Book"
             H.ul ! A.class_ "nav-right" $
               case cu of
-                Just _ -> do
+                Just _ ->
                   H.li $ navLink Logout "Logout"
                 Nothing -> do
                   H.li $ navLink Login "Login"

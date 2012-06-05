@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module BookBrainz.Web.Handler.User where
 
+import           Data.Maybe (fromMaybe)
 import           Data.Text.Encoding         as E
 import           Snap.Core                  (redirect, getParam)
 import           Snap.Snaplet               (with)
@@ -26,7 +27,7 @@ login = do
                         (ClearText $ E.encodeUtf8 $ loginFormPassword submission)
                         (loginFormRemember submission)
       case loginResult of
-        Right _ -> getParam "redirect" >>= redirect . maybe "/" id
+        Right _ -> getParam "redirect" >>= redirect . fromMaybe "/"
         Left _ -> return ()
 
 register :: BookBrainzHandler ()
@@ -43,6 +44,6 @@ register = do
 
 logout :: BookBrainzHandler ()
 logout = do
-  with auth $ Auth.logout
+  with auth Auth.logout
   redirect "/"
 

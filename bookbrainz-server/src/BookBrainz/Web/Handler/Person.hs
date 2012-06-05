@@ -31,7 +31,7 @@ showPerson bbid' = do
 -- | Display a form for adding new 'Person's, add on submission add the
 -- person.
 addPerson :: BookBrainzHandler ()
-addPerson = do
+addPerson =
   withUser $  \user -> do
     (v, r) <- runForm "person" Forms.addPerson
     case r of

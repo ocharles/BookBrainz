@@ -63,7 +63,7 @@ action `onNothing` msg = action >>= maybe (throw $ Http404 msg) return
 --------------------------------------------------------------------------------
 -- | Get the current user, as a BrainzStem specific 'Editor' type.
 currentUser :: BookBrainzHandler (Maybe (LoadedEntity Editor))
-currentUser = fmap auToBbE `fmap` (with auth $ SnapAuth.currentUser)
+currentUser = fmap auToBbE `fmap` with auth SnapAuth.currentUser
   where auToBbE user =
           Entity {
             entityInfo = Editor { editorName = userLogin user }

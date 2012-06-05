@@ -29,8 +29,8 @@ showPerson person =
 -- | Show a form for adding publishers.
 addPerson :: Form.View Html -- ^ The form 'Html' and the encoding of it.
           -> View
-addPerson v = do
+addPerson v =
   pageLayout Nothing $ do
     H.h1 "Add Person"
-    H.form ! A.method "POST" ! A.enctype (toValue $ Form.viewEncType v) $ do
+    H.form ! A.method "POST" ! A.enctype (toValue $ Form.viewEncType v) $
       H.p $ H.input ! A.type_ "submit" ! A.value "Add Person"

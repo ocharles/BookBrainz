@@ -74,7 +74,7 @@ addEdition :: Form.View Html  -- ^ The form 'Html' and the encoding of it.
 addEdition v =
   pageLayout Nothing $ do
     H.h1 "Add Edition"
-    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $ do
+    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $
       H.p $ H.input ! A.type_ "submit" ! A.value "Add Edition"
 
 --------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ editEdition :: Form.View Html -- ^ The form 'Html' and the encoding of it.
 editEdition v =
   pageLayout Nothing $ do
     H.h1 "Edit Edition"
-    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $ do
+    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $
       H.p $ H.input ! A.type_ "submit" ! A.value "Edit Edition"
 
 --------------------------------------------------------------------------------
@@ -113,5 +113,5 @@ addRole :: Form.View Html  -- ^ The form 'Html' and the encoding of it.
 addRole v =
   pageLayout Nothing $ do
     H.h1 "Add Edition"
-    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $ do
+    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $
       H.p $ H.input ! A.type_ "submit" ! A.value "Add Edition"

@@ -72,7 +72,7 @@ bookbrainz = makeSnaplet "bookbrainz" "BookBrainz" Nothing $ do
             Left e -> error e
         cookieSessionManager =
           initCookieSessionManager "site_key.txt" "_bbsession" Nothing
-        tryLogin h = (with auth $ loginByRememberToken) >> h
+        tryLogin h = with auth loginByRememberToken >> h
 
 runHandler :: BookBrainzHandler () -> BookBrainzHandler ()
 runHandler a = do

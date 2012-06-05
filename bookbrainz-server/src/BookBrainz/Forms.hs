@@ -103,11 +103,11 @@ editEdition edition = do
     Edition <$> "name" .: (nonEmptyText . Just $ BB.editionName edition)
             <*> "format" .: formatField
             <*> pure (BB.editionBook edition)
-            <*> "year" .: (year $ BB.editionYear edition)
+            <*> "year" .: year (BB.editionYear edition)
             <*> "publisher" .: publisherField
             <*> "country" .: countryField
             <*> "language" .: languageField
-            <*> "isbn" .: (isbn13 $ BB.editionIsbn edition)
+            <*> "isbn" .: isbn13 (BB.editionIsbn edition)
             <*> pure Nothing
 
 language :: (Monad m, MonadSnap m, HasPostgres m)
@@ -145,18 +145,18 @@ year def = validate yearCheck $ text ((T.pack . show) `fmap` def)
   where
     yearCheck y | T.null y = Success Nothing
                 | otherwise   =
-      case T.all isDigit y of
-        True -> case (decimal y :: Either String (Int, Text)) of
-          Left e -> Error $ toHtml e
-          Right (d, _) -> Success $ Just d
-        False -> Error "A year can only consist of integers"
+      if T.all isDigit y
+      then case (decimal y :: Either String (Int, Text)) of
+        Left e -> Error $ toHtml e
+        Right (d, _) -> Success $ Just d
+      else Error "A year can only consist of integers"
 
 isbn13 :: (Monad m, MonadSnap m)
        => Maybe Isbn -> Form Html m (Maybe Isbn)
 isbn13 def = validate checkIsbn $ text ((T.pack . show) `fmap` def)
   where
     checkIsbn isbn | T.null isbn    = Success Nothing
-                   | validIsbn isbn = Success $ read $ T.unpack $ isbn
+                   | validIsbn isbn = Success $ read $ T.unpack isbn
                    | otherwise      = Error "This is not a valid ISBN-13 identifier"
     validIsbn i = let digits = map digitToInt (T.unpack i) :: [Int]
                       isbn = init digits
@@ -164,7 +164,7 @@ isbn13 def = validate checkIsbn $ text ((T.pack . show) `fmap` def)
                       checkSum (x:y:xs) = x + (3 * y) + checkSum xs
                       checkSum (_:[]) = error "Checksum must contain 12 digits"
                       checkSum [] = 0
-                   in (all isDigit $ T.unpack i) &&
+                   in all isDigit (T.unpack i) &&
                         (T.length i == 13) &&
                           ((10 - checkSum isbn `mod` 10) `mod` 10) == checkDigit
 
