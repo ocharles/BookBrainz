@@ -1,0 +1,77 @@
+Name:                bookbrainz-server
+Version:             0.1
+License:             AllRightsReserved
+
+Description:
+  BookBrainz is a system for recording information about books - authors,
+  books and their various editions, publishing houses, and much much more. This
+  documentation is about the code behind BookBrainz and is intended for
+  developers.
+  .
+  This library contains BookBrainz.Web, which handles the BookBrainz website
+  itself that users interact with.
+
+Author:              Oliver Charles
+Maintainer:          bookbrainz@ocharles.org.uk
+Stability:           Experimental
+Category:            Web
+Build-type:          Simple
+Cabal-version:       >=1.9.2
+
+Flag development
+  Description: Whether to build the server in development (interpreted) mode
+  Default: False
+
+Executable bookbrainz-server
+  hs-source-dirs: src
+  main-is: Main.hs
+
+  Build-depends:
+    MonadCatchIO-transformers >= 0.3 && < 0.4,
+    aeson >= 0.3.2.11,
+    base >= 4 && < 5,
+    blaze-markup >= 0.5.1.0 && < 0.6,
+    blaze-html >= 0.4.0.0,
+    bookbrainz-data ==0.1,
+    boomerang >= 1.1.0,
+    bytestring >= 0.9.1 && < 0.10,
+    clientsession >= 0.6.0,
+    configurator >= 0.0.1.1,
+    data-lens >= 2.0.1,
+    data-lens-template >= 2.1.1.1,
+    digestive-functors >= 0.1.0.1,
+    digestive-functors-blaze >= 0.1.1.0,
+    digestive-functors-snap >= 0.1.0.0,
+    elasticsearch >= 0.1,
+    mtl >= 2 && < 3,
+    pointed >= 1.8.0,
+    resource-pool-catchio,
+    snap >= 0.9 && < 0.10,
+    snap-blaze >= 0.0.0.1,
+    snap-core >= 0.9 && < 0.10,
+    snap-server >= 0.9 && < 0.10,
+    snaplet-postgresql-simple,
+    text >= 0.11 && < 0.12,
+    transformers >= 0.2.2.0,
+    unordered-containers >= 0.1.4.2,
+    web-routes >= 0.25.1,
+    web-routes-boomerang >= 0.25.1
+
+  extensions: TypeSynonymInstances MultiParamTypeClasses
+
+  if flag(development)
+    cpp-options: -DDEVELOPMENT
+    build-depends: hint >= 0.3.2 && < 0.4
+    -- In development mode, speed is already going to suffer, so skip
+    -- the fancy optimization flags.  Additionally, disable all
+    -- warnings.  The hint library doesn't give an option to execute
+    -- compiled code when there were also warnings, so disabling
+    -- warnings allows quicker workflow.
+    ghc-options: -threaded -w
+  else
+    if impl(ghc >= 6.12.0)
+      ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                   -fno-warn-orphans -fno-warn-unused-do-bind
+    else
+      ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                   -fno-warn-orphans
