@@ -54,7 +54,7 @@ Executable bookbrainz-server
 
   if flag(development)
     cpp-options: -DDEVELOPMENT
-    build-depends: hint >= 0.3.2 && < 0.4
+    build-depends: snap-loader-dynamic == 0.9.*
     -- In development mode, speed is already going to suffer, so skip
     -- the fancy optimization flags.  Additionally, disable all
     -- warnings.  The hint library doesn't give an option to execute
@@ -62,6 +62,7 @@ Executable bookbrainz-server
     -- warnings allows quicker workflow.
     ghc-options: -threaded -w
   else
+    build-depends: snap-loader-static == 0.9.*
     if impl(ghc >= 6.12.0)
       ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
                    -fno-warn-orphans -fno-warn-unused-do-bind
