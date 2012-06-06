@@ -65,7 +65,8 @@ forkRevision :: (Applicative m, CoreEntity a, HasPostgres m, FromField (Ref (Rev
              -> Changes a ()
              -> m (LoadedEntity (Revision a))
 forkRevision revision editor changes = do
-  newRevRef <- newSystemRevision (revisionTree $ copoint revision) editor
+  newTreeRef <- cloneTree (revisionTree $ copoint revision)
+  newRevRef <- newSystemRevision newTreeRef editor
   parentRevision newRevRef (entityRef revision)
   newRev <- getRevision newRevRef
   applyChanges changes newRev
@@ -145,6 +146,8 @@ class CoreEntity a where
   getInfo :: (HasPostgres m) => Ref (Tree a) -> m a
 
   newTree :: (HasPostgres m, Functor m) => a -> m (Ref (Tree a))
+
+  cloneTree :: (HasPostgres m, Functor m) => Ref (Tree a) -> m (Ref (Tree a))
 
   updateTree :: a -> (Ref (Tree a)) -> Changes a ()
 

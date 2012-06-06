@@ -41,6 +41,7 @@ class GenericallyVersioned a where
 
   newTreeImpl :: (Functor m, HasPostgres m) => a -> m (Ref (Tree a))
   updateTreeImpl :: (Functor m, HasPostgres m) => a -> Ref (Tree a) -> m ()
+  cloneTreeImpl :: (Functor m, HasPostgres m) => Ref (Tree a) -> m (Ref (Tree a))
 
 instance ( GenericallyVersioned a, FromRow (LoadedCoreEntity a)
          , ToField (Ref (Concept a)), FromField (Ref (Concept a))
@@ -64,6 +65,7 @@ instance ( GenericallyVersioned a, FromRow (LoadedCoreEntity a)
 
   newTree = newTreeImpl
   updateTree = updateTreeImpl
+  cloneTree = cloneTreeImpl
 
   newConcept bbid' = do
     concept <- fmap (fromOnly . \x -> x `asTypeOf` (undefined :: Only (Ref (Concept a)))) createConcept

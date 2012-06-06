@@ -67,6 +67,17 @@ instance GenericallyVersioned Book where
                               , "RETURNING book_tree_id"
                               ]
 
+  cloneTreeImpl treeId = do
+    newTreeId <- fromOnly `fmap` queryOne insertTreeSql (Only treeId)
+    copyRoles treeId newTreeId
+    return newTreeId
+    where
+      insertTreeSql = fromString $ unlines [ "INSERT INTO bookbrainz_v.book_tree"
+                              , "(version) SELECT version FROM bookbrainz_v.book_tree"
+                              , " WHERE book_tree_id = ?"
+                              , "RETURNING book_tree_id"
+                              ]
+
 --------------------------------------------------------------------------------
 -- | List the latest version of all known books.
 listAllBooks :: (Functor m, HasPostgres m)
