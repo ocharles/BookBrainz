@@ -7,16 +7,17 @@ module BookBrainz.Web.View.Publisher
        , showPublisher
        ) where
 
-import Data.Copointed
-import Text.Blaze.Html5    (toHtml, (!), toValue, Html)
+import           Data.Copointed
+import           Text.Blaze.Html5    (toHtml, (!), toValue, Html)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import           Text.Digestive.Blaze.Html5
 import qualified Text.Digestive.View as Form
 
-import BookBrainz.Types
-import BookBrainz.Web.View.Edition (editionTable)
-import BookBrainz.Web.View (pageLayout, View)
-import BookBrainz.Web.View.Forms
+import           BookBrainz.Types
+import           BookBrainz.Web.View.Edition (editionTable)
+import           BookBrainz.Web.View (pageLayout, View)
+import           BookBrainz.Web.View.Forms
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Publisher'.
@@ -42,5 +43,6 @@ addPublisher v =
 
 publisherForm :: Form.View Html -> Html
 publisherForm v =
-  H.form ! A.method "POST" ! A.enctype (toValue $ Form.viewEncType v) $
+  H.form ! A.method "POST" ! A.enctype (toValue $ Form.viewEncType v) $ do
+    fieldRow v "name" "Publisher:" inputText
     submitRow "Add Publisher"

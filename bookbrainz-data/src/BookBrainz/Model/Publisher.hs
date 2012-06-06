@@ -49,7 +49,7 @@ instance GenericallyVersioned Publisher where
                                 , "(name) VALUES (?)"
                                 , "RETURNING version"
                                 ]
-        in (asTypeOf (undefined :: Int)) `fmap`
+        in (`asTypeOf` (undefined :: Int)) `fmap`
                (fmap fromOnly $ queryOne insertSql (Only $ publisherName pubData))
 
 --------------------------------------------------------------------------------
