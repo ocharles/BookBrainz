@@ -18,7 +18,7 @@ module BrainzStem.Database
        , runDatabase
 
          -- * Connection Handling
-       , Database(Database)
+       , Database(Database, connectionHandle)
        , DatabaseContext
        ) where
 

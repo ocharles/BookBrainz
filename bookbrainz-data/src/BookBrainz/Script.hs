@@ -11,9 +11,9 @@ import Control.Applicative (Applicative)
 import Control.Monad.CatchIO (MonadCatchIO)
 import Control.Monad.Reader
 import Data.Configurator        (load, require, Worth (..))
-import Database.HDBC.PostgreSQL (Connection)
+import Snap.Snaplet.PostgresqlSimple (HasPostgres(..))
 
-import BrainzStem.Database      (HasDatabase(..), Database(..), openConnection)
+import BrainzStem.Database      (Database(..), openConnection)
 
 -- | The state accessible to the script.
 data ScriptState = ScriptState {
@@ -25,9 +25,10 @@ newtype Script a = Script {
     unScript :: ReaderT ScriptState IO a
   } deriving (Monad, MonadReader ScriptState, Functor, MonadIO, MonadCatchIO, Applicative)
 
-instance HasDatabase Script where
-  askConnection = asks (connectionHandle . modelStateConn)
+instance HasPostgres Script where
+  getPostgresState = asks (connectionHandle . modelStateConn)
 
+runScript :: Script a -> IO a
 runScript action = do
   config <- load [Required "snaplets/database/snaplet.cfg"]
   dbName <- require config "database"

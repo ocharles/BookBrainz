@@ -27,3 +27,13 @@ Executable bookbrainz-search-indexer
     bookbrainz-data ==0.1,
     elasticsearch >= 0.1 && < 0.2,
     transformers >= 0.3.0.0 && < 0.4
+
+Executable bookbrainz-search-reindex
+  hs-source-dirs: src
+  main-is: Reindex.hs
+
+  Build-depends:
+    base >= 4.5 && < 5,
+    bookbrainz-data ==0.1,
+    elasticsearch >= 0.1 && < 0.2,
+    transformers >= 0.3.0.0 && < 0.4

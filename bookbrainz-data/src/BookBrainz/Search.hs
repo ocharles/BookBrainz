@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module BookBrainz.Search where
@@ -28,7 +29,7 @@ data SearchType = Book
 -- | A book is searchable by it's name, and all roles.
 data SearchableBook = SearchableBook
     { bookResult  :: LoadedCoreEntity BB.Book
-    , bookRoles :: [(LoadedEntity BB.Role, LoadedCoreEntity BB.Person)]
+    , bookRoles :: [ LoadedEntity BB.Role :. LoadedCoreEntity BB.Person ]
     }
 
 instance Document SearchableBook where
@@ -46,8 +47,8 @@ instance ToJSON Book where
 instance ToJSON Person where
   toJSON person = object [ "name" .= personName person ]
 
-instance ToJSON (LoadedEntity Role, LoadedCoreEntity Person) where
-  toJSON (role, person) = object [ "role" .= role
+instance ToJSON (LoadedEntity Role :. LoadedCoreEntity Person) where
+  toJSON (role :. person) = object [ "role" .= role
                                  , "person" .= person
                                  ]
 
@@ -55,8 +56,8 @@ instance FromJSON SearchableBook where
   parseJSON json@(Object o) =
       SearchableBook <$> parseJSON json
                      <*> (o .: "roles" >>= mapM parseRole)
-    where parseRole r = (,) <$> r .: "role"
-                            <*> r .: "person"
+    where parseRole r = (:.) <$> r .: "role"
+                             <*> r .: "person"
   parseJSON v = typeMismatch "SearchableBook" v
 
 instance FromJSON BB.Book where
