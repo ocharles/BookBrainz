@@ -1120,7 +1120,7 @@ ALTER SEQUENCE publisher_version_seq OWNED BY publisher_v.version;
 CREATE TABLE revision (
     rev_id integer NOT NULL,
     commited timestamp with time zone DEFAULT now() NOT NULL,
-    editor integer NOT NULL
+    editor_id integer NOT NULL
 );
 
 
@@ -1986,7 +1986,7 @@ ALTER TABLE ONLY publisher_tree
 --
 
 ALTER TABLE ONLY revision
-    ADD CONSTRAINT revision_editor_fkey FOREIGN KEY (editor) REFERENCES bookbrainz.editor(editor_id);
+    ADD CONSTRAINT revision_editor_fkey FOREIGN KEY (editor_id) REFERENCES bookbrainz.editor(editor_id);
 
 
 --

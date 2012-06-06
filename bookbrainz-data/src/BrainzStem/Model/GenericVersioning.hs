@@ -92,9 +92,9 @@ instance ( GenericallyVersioned a, FromRow (LoadedCoreEntity a)
                               (cfgRevision config)
                             , "(rev_id, " ++ (cfgTree config) ++ "_id)"
                             , "VALUES (?, ?)"
-                            , "RETURNING " ++ (cfgTree config) ++ "_id, rev_id"
+                            , "RETURNING rev_id"
                             ]
-    in queryOne pubRevSql (revId, treeId)
+    in fmap fromOnly $ queryOne pubRevSql (revId, treeId)
     where
       config = versioningConfig :: VersionConfig a
 
@@ -112,8 +112,8 @@ instance ( GenericallyVersioned a, FromRow (LoadedCoreEntity a)
   getRevision revision = head `fmap` query revSql (Only revision)
     where
       config = versioningConfig :: VersionConfig a
-      revSql = fromString $ unlines [ "SELECT * FROM bookbrainz_v." ++
-                         (cfgRevision config)
+      revSql = fromString $ unlines [ "SELECT " ++ (cfgTree config) ++ "_id, rev_id, commited, editor_id"
+                       , "FROM bookbrainz_v." ++ (cfgRevision config)
                        , "JOIN bookbrainz_v.revision USING (rev_id)"
                        , "WHERE rev_id = ?"
                        ]
@@ -121,7 +121,8 @@ instance ( GenericallyVersioned a, FromRow (LoadedCoreEntity a)
   findMasterBranch concept = head `fmap` query branchSql (Only concept)
     where
       config = versioningConfig :: VersionConfig a
-      branchSql = fromString $ unlines [ "SELECT * FROM bookbrainz_v.branch"
+      branchSql = fromString $ unlines [ "SELECT branch_id, master, rev_id, " ++ (cfgConcept config) ++ "_id"
+                          , "FROM bookbrainz_v.branch"
                           , "JOIN bookbrainz_v." ++ (cfgBranch config)
                           , "USING (branch_id)"
                           , "WHERE " ++ (cfgConcept config) ++ "_id = ?"

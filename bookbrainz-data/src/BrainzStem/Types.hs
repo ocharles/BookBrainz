@@ -21,6 +21,7 @@ module BrainzStem.Types
 
 import Data.Copointed
 import Data.Text      (Text)
+import Data.Time      (UTCTime)
 import Data.Typeable  (Typeable)
 import Data.UUID      (UUID, fromString)
 import Database.PostgreSQL.Simple ((:.)(..))
@@ -71,6 +72,8 @@ instance Copointed LoadedEntity where
 -- | Represents a single revision of an entity of type @a@.
 data Revision a = Revision { -- | The 'Tree' this revision refers to.
                              revisionTree :: Ref (Tree a)
+                           , revisionTime :: UTCTime
+                           , revisionEditor :: Ref Editor
                            }
 
 --------------------------------------------------------------------------------

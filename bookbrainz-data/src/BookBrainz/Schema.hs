@@ -35,6 +35,9 @@ instance FromRow (LoadedEntity Editor) where
 instance ToField (Ref Editor) where
   toField (EditorRef eid) = toField eid
 
+instance FromField (Ref Editor) where
+  fromField f v = EditorRef <$> fromField f v
+
 --------------------------------------------------------------------------------
 instance ToField (BBID a) where
   toField = Escape . pack . show
@@ -284,7 +287,12 @@ instance (FromField (Ref (Tree a)), FromField (Ref (Revision a)))
  fromRow = do
     revisionTree' <- field
     entityRef' <- field
-    return $ Entity { entityInfo = Revision { revisionTree = revisionTree' }
+    revTime <- field
+    editorId <- field
+    return $ Entity { entityInfo = Revision { revisionTree = revisionTree'
+                                            , revisionTime = revTime
+                                            , revisionEditor = editorId
+                                            }
                     , entityRef = entityRef'
                     }
 
@@ -293,10 +301,10 @@ instance ( FromField (Ref (Concept a)), FromField (Ref (Revision a))
          , FromField (Ref (Branch a)))
      => FromRow (LoadedEntity (Branch a)) where
   fromRow = do
-    isMaster <- field
-    concept <- field
-    revision <- field
     branchId <- field
+    isMaster <- field
+    revision <- field
+    concept <- field
     return $ Entity { entityInfo = Branch { branchIsMaster = isMaster
                                           , branchConcept = concept
                                           , branchRevision = revision

@@ -65,8 +65,9 @@ forkRevision :: (Applicative m, CoreEntity a, HasPostgres m, FromField (Ref (Rev
              -> Changes a ()
              -> m (LoadedEntity (Revision a))
 forkRevision revision editor changes = do
-  newRev <- newSystemRevision (revisionTree $ copoint revision) editor
-  parentRevision (entityRef newRev) (entityRef revision)
+  newRevRef <- newSystemRevision (revisionTree $ copoint revision) editor
+  parentRevision newRevRef (entityRef revision)
+  newRev <- getRevision newRevRef
   applyChanges changes newRev
   return newRev
 
@@ -116,7 +117,7 @@ class CoreEntity a where
   newRevision :: (Applicative m, HasPostgres m, Functor m)
               => Ref (Tree a)
               -> Ref (Revision a)
-              -> m (LoadedEntity (Revision a))
+              -> m (Ref (Revision a))
 
   -- | Create a completely new concept and attach a BBID to it.
   newConcept :: (HasPostgres m, Functor m)
@@ -162,7 +163,7 @@ create dat editorRef = do
   concept <- newConcept bbid'
   tree <- newTree dat
   revision <- newSystemRevision tree editorRef
-  newSystemBranch concept (entityRef revision) True
+  newSystemBranch concept revision True
   getByConcept concept
 
 --------------------------------------------------------------------------------
@@ -210,12 +211,12 @@ delete = undefined
 newSystemRevision :: (CoreEntity a, HasPostgres m, Functor m, Applicative m, FromField (Ref (Revision a)))
                   => Ref (Tree a)
                   -> Ref Editor
-                  -> m (LoadedEntity (Revision a))
+                  -> m (Ref (Revision a))
 newSystemRevision tree editor = do
   revId <- fromOnly `fmap` queryOne revSql (Only editor)
   newRevision tree revId
   where revSql = fromString $ unlines [ "INSERT INTO bookbrainz_v.revision"
-                                      , "(editor) VALUES (?)"
+                                      , "(editor_id) VALUES (?)"
                                       , "RETURNING rev_id"
                                       ]
 

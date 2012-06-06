@@ -38,6 +38,7 @@ Library
     resource-pool-catchio >= 0.2.1.0 && < 0.3,
     snaplet-postgresql-simple >= 0.1 && < 0.2,
     text >= 0.11 && < 0.12,
+    time >= 1.4 && < 1.5,
     transformers >= 0.3.0.0 && < 0.4,
     unordered-containers >= 0.2.1.0 && < 0.3,
     uuid >= 1.2.5 && < 1.3
