@@ -7,14 +7,15 @@ module BookBrainz.Web.View.Person
        , addPerson
        ) where
 
-import Data.Copointed
-import Text.Blaze.Html5    (toHtml, (!), toValue, Html)
-import qualified Text.Blaze.Html5.Attributes as A
+import           Data.Copointed
+import           Text.Blaze.Html5    (toHtml, (!), toValue, Html)
 import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import           Text.Digestive.Blaze.Html5
 import qualified Text.Digestive.View as Form
 
-import BookBrainz.Types
-import BookBrainz.Web.View (pageLayout, View)
+import           BookBrainz.Types
+import           BookBrainz.Web.View (pageLayout, View)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Person'.
@@ -32,5 +33,8 @@ addPerson :: Form.View Html -- ^ The form 'Html' and the encoding of it.
 addPerson v =
   pageLayout Nothing $ do
     H.h1 "Add Person"
-    H.form ! A.method "POST" ! A.enctype (toValue $ Form.viewEncType v) $
+    H.form ! A.method "POST" ! A.enctype (toValue $ Form.viewEncType v) $ do
+      H.p $ do
+        label "name" v "Name:"
+        inputText "name" v
       H.p $ H.input ! A.type_ "submit" ! A.value "Add Person"

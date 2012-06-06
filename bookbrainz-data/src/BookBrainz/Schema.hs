@@ -166,11 +166,11 @@ instance ToField (Ref (Branch Edition)) where
 --------------------------------------------------------------------------------
 instance FromRow (LoadedCoreEntity Person) where
   fromRow = do
-    bbid' <- field
-    revId <- field
-    treeId <- field
     conceptId <- field
+    bbid' <- field
     name <- field
+    treeId <- field
+    revId <- field
     return CoreEntity { bbid = bbid'
                       , coreEntityRevision = revId
                       , coreEntityTree = treeId
