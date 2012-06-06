@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
 module BookBrainz.Web.View.Search where
 
 import           Data.Monoid                 (mconcat)
@@ -35,10 +36,10 @@ searchResults results = pageLayout Nothing $
                          ]
 
 -- TODO Might be useful elsewhere, so this might end up in View.Role
-roleList :: [(LoadedEntity Role, LoadedCoreEntity Person)]
+roleList :: [LoadedEntity Role :. LoadedCoreEntity Person]
          -> Html
 roleList roles = H.ul (formatRole `mapM_` roles)
-  where formatRole (r, p) = H.li $ do
+  where formatRole (r :. p) = H.li $ do
           linkPerson p
           mconcat [" (", toHtml (roleName (copoint r)), ")"]
 
