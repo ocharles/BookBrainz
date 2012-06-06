@@ -16,7 +16,6 @@ import Database.PostgreSQL.Simple (Only(..))
 import Snap.Snaplet.PostgresqlSimple (HasPostgres, execute, query_)
 
 import BookBrainz.Model.Role              (copyRoles, HasRoles(..), copyRoles', addRole', findRoles')
-import BookBrainz.Search                  (indexBook)
 import BrainzStem.Model as Model
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
@@ -83,7 +82,6 @@ create :: (Functor m, HasPostgres m, Applicative m)
                                       (complete with BBID). -}
 create bookData editor = do
   book <- Model.create bookData editor
-  indexBook book []
   return book
 
 instance HasRoles Book where

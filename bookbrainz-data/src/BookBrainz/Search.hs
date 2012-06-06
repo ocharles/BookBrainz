@@ -16,7 +16,7 @@ import           Data.Copointed         (copoint)
 import           Data.HashMap.Strict    (union)
 import qualified Search.ElasticSearch   as ES
 import           Search.ElasticSearch   (Document(..), DocumentType(..)
-                                        ,localServer, indexDocument, Index)
+                                        ,localServer, Index)
 
 import           BookBrainz.Types       as BB
 
@@ -73,17 +73,6 @@ instance FromJSON BB.Role where
 instance FromJSON BB.Person where
   parseJSON (Object b) = BB.Person <$> b .: "name"
   parseJSON v = typeMismatch "Person" v
-
-index' :: (Document d, MonadIO m) => SearchType -> d -> m ()
-index' t d = liftIO $ indexDocument localServer (typeToIndex t) d
-
---------------------------------------------------------------------------------
--- | Given a book and accompanying metadata, index the book.
-indexBook :: (MonadIO m)
-          => LoadedCoreEntity BB.Book
-          -> [(LoadedEntity BB.Role, LoadedCoreEntity BB.Person)]
-          -> m ()
-indexBook = (index' BookBrainz.Search.Book .) . SearchableBook
 
 --------------------------------------------------------------------------------
 -- | Search for books, given a query.

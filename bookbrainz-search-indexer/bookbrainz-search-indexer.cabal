@@ -1,0 +1,29 @@
+Name:                bookbrainz-search-indexer
+Version:             0.1
+License:             AllRightsReserved
+
+Description:
+  BookBrainz is a system for recording information about books - authors,
+  books and their various editions, publishing houses, and much much more. This
+  documentation is about the code behind BookBrainz and is intended for
+  developers.
+  .
+  This library contains the BookBrainz search indexer daemon, which watches the
+  database for modifications and updates our Elasticsearch index.
+
+Author:              Oliver Charles
+Maintainer:          bookbrainz@ocharles.org.uk
+Stability:           Experimental
+Category:            Web
+Build-type:          Simple
+Cabal-version:       >=1.9.2
+
+Executable bookbrainz-search-indexer
+  hs-source-dirs: src
+  main-is: Main.hs
+
+  Build-depends:
+    base >= 4.5 && < 5,
+    bookbrainz-data ==0.1,
+    elasticsearch >= 0.1 && < 0.2,
+    transformers >= 0.3.0.0 && < 0.4
