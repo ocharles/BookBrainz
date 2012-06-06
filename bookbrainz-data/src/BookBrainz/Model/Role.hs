@@ -53,7 +53,7 @@ findRoles' :: (HasPostgres m, HasRoles roleLike, ToField (Ref (Tree roleLike)))
            -> m [ LoadedEntity Role :. LoadedCoreEntity Person ]
 findRoles' tableName' treeId = query roleSql (Only treeId)
   where roleSql = fromString $
-          unlines [ "SELECT person.*, role.role_id AS r_role_id, role.name AS r_name"
+          unlines [ "SELECT role.role_id AS r_role_id, role.name AS r_name, person.*"
                   , "FROM bookbrainz_v." ++ tableName' ++ "_person_role pr"
                   , "JOIN person_role role USING (role_id)"
                   , "JOIN person USING (person_id)"

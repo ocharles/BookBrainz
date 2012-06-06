@@ -83,4 +83,7 @@ addRole v =
       H.p $ do
         label "person" v "Person:"
         inputSelect "person" v
-      H.p $ H.input ! A.type_ "submit" ! A.value "Add Book"
+      H.p $ do
+        label "role" v "Role:"
+        inputSelect "role" v
+      H.p $ H.input ! A.type_ "submit" ! A.value "Add Role"

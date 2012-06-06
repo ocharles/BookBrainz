@@ -207,8 +207,8 @@ instance ToField (Ref (Branch Person)) where
 --------------------------------------------------------------------------------
 instance FromRow (LoadedEntity Role) where
   fromRow = do
-    name <- field
     roleId <- field
+    name <- field
     return Entity { entityInfo = Role { roleName = name }
                   , entityRef = RoleRef roleId
                   }

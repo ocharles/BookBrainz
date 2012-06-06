@@ -89,7 +89,7 @@ addBookRole bbid' =
     roleForm <- Forms.personRole
     (v, r) <- runForm "book" roleForm
     case r of
-      Nothing -> output $ V.addBook v
+      Nothing -> output $ V.addRole v
       Just submission -> do
         withTransaction $ do
           master <- findMasterBranch $ coreEntityConcept book
