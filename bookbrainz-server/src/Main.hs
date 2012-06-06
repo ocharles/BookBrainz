@@ -9,9 +9,6 @@ import           Snap.Http.Server
 import           Snap.Snaplet
 import           Snap.Snaplet.Config
 import           System.IO
-import Snap.Http.Server.Config
-import System.Console.GetOpt
-import Snap.Snaplet (serveSnaplet)
 import qualified Data.Text as T
 
 #ifdef DEVELOPMENT
