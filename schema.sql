@@ -507,19 +507,6 @@ ALTER SEQUENCE edition_format_id_seq OWNED BY edition_format.id;
 
 
 --
--- Name: edition_person_role; Type: TABLE; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
---
-
-CREATE TABLE edition_person_role (
-    role_id integer NOT NULL,
-    person_id integer NOT NULL,
-    edition_tree_id integer NOT NULL
-);
-
-
-ALTER TABLE bookbrainz.edition_person_role OWNER TO bookbrainz;
-
---
 -- Name: editor; Type: TABLE; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
 --
 
@@ -946,6 +933,19 @@ ALTER SEQUENCE edition_edition_id_seq OWNED BY edition.edition_id;
 
 
 --
+-- Name: edition_person_role; Type: TABLE; Schema: bookbrainz_v; Owner: bookbrainz; Tablespace: 
+--
+
+CREATE TABLE edition_person_role (
+    role_id integer NOT NULL,
+    person_id integer NOT NULL,
+    edition_tree_id integer NOT NULL
+);
+
+
+ALTER TABLE bookbrainz_v.edition_person_role OWNER TO bookbrainz;
+
+--
 -- Name: edition_tree_edition_tree_id_seq; Type: SEQUENCE; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
@@ -1326,14 +1326,6 @@ ALTER TABLE ONLY edition_format
 
 
 --
--- Name: edition_person_role_pkey; Type: CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
---
-
-ALTER TABLE ONLY edition_person_role
-    ADD CONSTRAINT edition_person_role_pkey PRIMARY KEY (role_id, person_id, edition_tree_id);
-
-
---
 -- Name: editor_pkey; Type: CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
 --
 
@@ -1461,6 +1453,14 @@ ALTER TABLE ONLY edition_branch
 
 ALTER TABLE ONLY edition_bbid
     ADD CONSTRAINT edition_gid_pkey PRIMARY KEY (bbid);
+
+
+--
+-- Name: edition_person_role_pkey; Type: CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz; Tablespace: 
+--
+
+ALTER TABLE ONLY edition_person_role
+    ADD CONSTRAINT edition_person_role_pkey PRIMARY KEY (role_id, person_id, edition_tree_id);
 
 
 --
@@ -1657,34 +1657,6 @@ CREATE INDEX publisher_branch_branch_id_idx ON publisher_branch USING btree (bra
 CREATE INDEX publisher_branch_publisher_id_idx ON publisher_branch USING btree (publisher_id);
 
 
-SET search_path = bookbrainz, pg_catalog;
-
---
--- Name: edition_person_role_edition_tree_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz
---
-
-ALTER TABLE ONLY edition_person_role
-    ADD CONSTRAINT edition_person_role_edition_tree_id_fkey FOREIGN KEY (edition_tree_id) REFERENCES bookbrainz_v.edition_tree(edition_tree_id);
-
-
---
--- Name: edition_person_role_person_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz
---
-
-ALTER TABLE ONLY edition_person_role
-    ADD CONSTRAINT edition_person_role_person_id_fkey FOREIGN KEY (person_id) REFERENCES bookbrainz_v.person(person_id);
-
-
---
--- Name: edition_person_role_role_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz
---
-
-ALTER TABLE ONLY edition_person_role
-    ADD CONSTRAINT edition_person_role_role_id_fkey FOREIGN KEY (role_id) REFERENCES person_role(role_id);
-
-
-SET search_path = bookbrainz_v, pg_catalog;
-
 --
 -- Name: book_branch_book_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz
 --
@@ -1843,6 +1815,30 @@ ALTER TABLE ONLY edition_bbid
 
 ALTER TABLE ONLY edition_v
     ADD CONSTRAINT edition_language_iso_code_fkey FOREIGN KEY (language_iso_code) REFERENCES bookbrainz.language(iso_code);
+
+
+--
+-- Name: edition_person_role_edition_tree_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz
+--
+
+ALTER TABLE ONLY edition_person_role
+    ADD CONSTRAINT edition_person_role_edition_tree_id_fkey FOREIGN KEY (edition_tree_id) REFERENCES edition_tree(edition_tree_id);
+
+
+--
+-- Name: edition_person_role_person_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz
+--
+
+ALTER TABLE ONLY edition_person_role
+    ADD CONSTRAINT edition_person_role_person_id_fkey FOREIGN KEY (person_id) REFERENCES person(person_id);
+
+
+--
+-- Name: edition_person_role_role_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz
+--
+
+ALTER TABLE ONLY edition_person_role
+    ADD CONSTRAINT edition_person_role_role_id_fkey FOREIGN KEY (role_id) REFERENCES bookbrainz.person_role(role_id);
 
 
 --

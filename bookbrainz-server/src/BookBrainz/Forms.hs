@@ -3,8 +3,9 @@
 {-# LANGUAGE TupleSections #-}
 module BookBrainz.Forms where
 
-import           Data.Char                   (isDigit, digitToInt)
 import           Control.Applicative         ((<$>), (<*>), pure)
+import           Control.Monad (join)
+import           Data.Char                   (isDigit, digitToInt)
 import           Data.Maybe                  (isNothing)
 
 import           Data.Copointed              (copoint, Copointed)
@@ -12,7 +13,7 @@ import           Data.Text                   (Text)
 import qualified Data.Text                   as T
 import           Data.Text.Read              (decimal)
 import           Snap.Core
-import Snap.Snaplet.PostgresqlSimple (HasPostgres)
+import           Snap.Snaplet.PostgresqlSimple (HasPostgres)
 import           Text.Blaze.Html5            (Html, toHtml)
 import           Text.Digestive
 import           Text.Digestive.Snap
@@ -75,40 +76,34 @@ role def = do
 addEdition :: (MonadSnap m, HasPostgres m)
            => Ref (Concept Book)
            -> m (Form Html m Edition)
-addEdition book = do
-  formatField    <- editionFormat Nothing
-  countryField   <- country Nothing
-  languageField  <- language Nothing
-  publisherField <- publisherRef Nothing
-  return $
-    Edition <$> "name" .: nonEmptyText Nothing
-            <*> "format" .: formatField
-            <*> pure book
-            <*> "year" .: year Nothing
-            <*> "publisher" .: publisherField
-            <*> "country" .: countryField
-            <*> "language" .: languageField
-            <*> "isbn" .: isbn13 Nothing
-            <*> pure Nothing
+addEdition book = edition (Right book)
 
 editEdition :: (MonadSnap m, HasPostgres m)
             => Edition
             -> m (Form Html m Edition)
-editEdition edition = do
-  formatField    <- editionFormat $ BB.editionFormat edition
-  countryField   <- country       $ BB.editionCountry edition
-  languageField  <- language      $ BB.editionLanguage edition
-  publisherField <- publisherRef  $ BB.editionPublisher edition
+editEdition edition' = edition (Left edition')
+
+edition :: (MonadSnap m, HasPostgres m)
+        => Either Edition (Ref (Concept Book))
+        -> m (Form Html m Edition)
+edition start = do
+  formatField    <- editionFormat $ getDef' BB.editionFormat
+  countryField   <- country $ getDef' BB.editionCountry
+  languageField  <- language $ getDef' BB.editionLanguage
+  publisherField <- publisherRef $ getDef' BB.editionPublisher
   return $
-    Edition <$> "name" .: (nonEmptyText . Just $ BB.editionName edition)
-            <*> "format" .: formatField
-            <*> pure (BB.editionBook edition)
-            <*> "year" .: year (BB.editionYear edition)
+    Edition <$> "name" .: (nonEmptyText $ getDef BB.editionName)
+            <*> pure (either BB.editionBook id start)
+            <*> "year" .: (year $ getDef' BB.editionYear)
             <*> "publisher" .: publisherField
             <*> "country" .: countryField
             <*> "language" .: languageField
-            <*> "isbn" .: isbn13 (BB.editionIsbn edition)
+            <*> "isbn" .: (isbn13 $ getDef' BB.editionIsbn)
             <*> pure Nothing
+            <*> "format" .: formatField
+  where existing = either Just (const Nothing) start
+        getDef p = fmap p existing
+        getDef'= join . getDef
 
 language :: (Monad m, MonadSnap m, HasPostgres m)
          => Maybe (Ref Language)

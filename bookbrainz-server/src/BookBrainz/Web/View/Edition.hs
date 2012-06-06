@@ -14,13 +14,14 @@ module BookBrainz.Web.View.Edition
        ) where
 
 import           Control.Monad       (when)
+import           Data.Copointed
 import           Data.Maybe          (isJust, fromJust)
 import           Data.Monoid         (mappend, mconcat)
-
-import           Data.Copointed
+import           Data.Text (Text)
 import           Text.Blaze.Html5    (toHtml, (!), Html, toValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import           Text.Digestive.Blaze.Html5
 import qualified Text.Digestive.View as Form
 
 import           BookBrainz.Web.Sitemap    (Sitemap(..), showURL)
@@ -28,6 +29,7 @@ import           BookBrainz.Types
 import           BookBrainz.Web.View (pageLayout, linkBook, linkEdition
                                      ,linkPublisher, optionalDl, View
                                      ,detailTable)
+import           BookBrainz.Web.View.Forms
 import qualified BookBrainz.Web.View.Sidebar as Sidebar
 
 --------------------------------------------------------------------------------
@@ -74,8 +76,7 @@ addEdition :: Form.View Html  -- ^ The form 'Html' and the encoding of it.
 addEdition v =
   pageLayout Nothing $ do
     H.h1 "Add Edition"
-    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $
-      H.p $ H.input ! A.type_ "submit" ! A.value "Add Edition"
+    editionForm v "Add Edition"
 
 --------------------------------------------------------------------------------
 -- | A form for editing existing 'Edition's.
@@ -84,8 +85,24 @@ editEdition :: Form.View Html -- ^ The form 'Html' and the encoding of it.
 editEdition v =
   pageLayout Nothing $ do
     H.h1 "Edit Edition"
-    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $
-      H.p $ H.input ! A.type_ "submit" ! A.value "Edit Edition"
+    editionForm v "Edit Edition"
+
+--------------------------------------------------------------------------------
+-- | A form to edit an 'Edition'.
+editionForm :: Form.View Html -> Text -> Html
+editionForm v submitLabel =
+  H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $ do
+    fieldTable v
+      [ ("name", "Name", inputText)
+      , ("format", "Format:", inputSelect)
+      , ("year", "Year:", inputYear)
+      , ("publisher", "Publisher:", inputSelect)
+      , ("country", "Country:", inputSelect)
+      , ("isbn", "ISBN:", inputIsbn)
+      ]
+    submitRow submitLabel
+  where inputYear n v = inputText n v ! A.size "4"
+        inputIsbn n v = inputText n v ! A.size "13"
 
 --------------------------------------------------------------------------------
 -- | Display a table of 'Edition's.

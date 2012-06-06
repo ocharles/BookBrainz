@@ -54,11 +54,11 @@ instance Typeable a => FromField (BBID a) where
 --------------------------------------------------------------------------------
 instance FromRow (LoadedCoreEntity Edition) where
   fromRow = do
-    bbid' <- field
-    revId <- field
-    treeId <- field
     conceptId <- field
+    bbid' <- field
     e' <- edition
+    treeId <- field
+    revId <- field
     return CoreEntity { bbid = bbid'
                       , coreEntityRevision = revId
                       , coreEntityTree = treeId
@@ -219,11 +219,11 @@ instance ToField (Ref Role) where
 --------------------------------------------------------------------------------
 instance FromRow (LoadedCoreEntity Publisher) where
   fromRow = do
-    bbid' <- field
-    revId <- field
-    treeId <- field
     conceptId <- field
+    bbid' <- field
     name <- field
+    treeId <- field
+    revId <- field
     return CoreEntity { bbid = bbid'
                       , coreEntityRevision = revId
                       , coreEntityTree = treeId

@@ -91,8 +91,6 @@ instance Read Isbn where
 data Edition = Edition
     { -- | The name of the edition.
       editionName        :: Text
-      -- | A reference to the format of the edition.
-    , editionFormat      :: Maybe (Ref EditionFormat)
       -- | The 'Book' that this edition is an edition of.
     , editionBook        :: Ref (Concept Book)
       -- | The year the edition was released.
@@ -107,6 +105,8 @@ data Edition = Edition
     , editionIsbn        :: Maybe Isbn
       -- | An index used for sorting this edition.
     , editionIndex       :: Maybe Int
+      -- | A reference to the format of the edition.
+    , editionFormat      :: Maybe (Ref EditionFormat)
     } deriving (Eq, Show, Typeable)
 
 data instance Ref (Concept Edition) = EditionConceptRef Int
