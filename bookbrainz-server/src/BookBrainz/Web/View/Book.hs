@@ -7,10 +7,10 @@ module BookBrainz.Web.View.Book
          addBook
        , showBook
        , showBooks
-       , addRole
        ) where
 
 import           Data.Copointed
+import           Data.Text (Text)
 import           Text.Blaze.Html5          (toHtml, toValue, Html, (!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -18,10 +18,11 @@ import           Text.Digestive.Blaze.Html5
 import qualified Text.Digestive.View as Form
 
 import           BookBrainz.Types
+import           BookBrainz.Web.Sitemap    (Sitemap(..), showURL)
 import           BookBrainz.Web.View       (pageLayout, linkBook, View)
 import           BookBrainz.Web.View.Edition (editionTable)
+import           BookBrainz.Web.View.Forms
 import qualified BookBrainz.Web.View.Sidebar as Sidebar
-import           BookBrainz.Web.Sitemap    (Sitemap(..), showURL)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Book'.
@@ -66,24 +67,11 @@ addBook :: Form.View Html  -- ^ The form 'Html' and the encoding of it.
 addBook v =
   pageLayout Nothing $ do
     H.h1 "Add Book"
-    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $ do
-      H.p $ do
-        label "title" v "Title:"
-        inputText "title" v
-      H.p $ H.input ! A.type_ "submit" ! A.value "Add Book"
+    bookForm v "Add Book"
 
 --------------------------------------------------------------------------------
--- | A form for adding new 'Role's to a 'Book'.
-addRole :: Form.View Html  -- ^ The form 'Html' and the encoding of it.
-        -> View
-addRole v =
-  pageLayout Nothing $ do
-    H.h1 "Add Role"
-    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $ do
-      H.p $ do
-        label "person" v "Person:"
-        inputSelect "person" v
-      H.p $ do
-        label "role" v "Role:"
-        inputSelect "role" v
-      H.p $ H.input ! A.type_ "submit" ! A.value "Add Role"
+bookForm :: Form.View Html -> Text -> Html
+bookForm v submitLabel =
+  H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $ do
+    fieldRow v "title" "Title:" inputText
+    submitRow submitLabel

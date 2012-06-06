@@ -7,7 +7,6 @@ module BookBrainz.Web.View.Edition
          showEdition
        , addEdition
        , editEdition
-       , addRole
 
          -- * Components
        , editionTable
@@ -31,6 +30,7 @@ import           BookBrainz.Web.View (pageLayout, linkBook, linkEdition
                                      ,detailTable)
 import           BookBrainz.Web.View.Forms
 import qualified BookBrainz.Web.View.Sidebar as Sidebar
+import           BookBrainz.Web.Sitemap as Sitemap (Sitemap(..), showURL)
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Edition'.
@@ -96,13 +96,16 @@ editionForm v submitLabel =
       [ ("name", "Name", inputText)
       , ("format", "Format:", inputSelect)
       , ("year", "Year:", inputYear)
-      , ("publisher", "Publisher:", inputSelect)
+      , ("publisher", "Publisher:", inputPublisher)
       , ("country", "Country:", inputSelect)
       , ("isbn", "ISBN:", inputIsbn)
       ]
     submitRow submitLabel
   where inputYear n v = inputText n v ! A.size "4"
         inputIsbn n v = inputText n v ! A.size "13"
+        inputPublisher n v = inputSelect n v >> " " >> addPublisher
+        addPublisher = let uri = showURL $ Sitemap.AddPublisher in
+                       H.a ! A.href (toValue uri) $ "Add a new publisher"
 
 --------------------------------------------------------------------------------
 -- | Display a table of 'Edition's.
@@ -123,12 +126,3 @@ editionTable =
       , maybeCell linkPublisher publisher
       ]
     maybeCell f = toHtml . maybe "-" f
-
---------------------------------------------------------------------------------
-addRole :: Form.View Html  -- ^ The form 'Html' and the encoding of it.
-        -> View
-addRole v =
-  pageLayout Nothing $ do
-    H.h1 "Add Edition"
-    H.form ! A.method "POST" ! A.enctype (H.toValue $ Form.viewEncType v) $
-      H.p $ H.input ! A.type_ "submit" ! A.value "Add Edition"

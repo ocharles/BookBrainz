@@ -16,6 +16,7 @@ import qualified Text.Digestive.View as Form
 import BookBrainz.Types
 import BookBrainz.Web.View.Edition (editionTable)
 import BookBrainz.Web.View (pageLayout, View)
+import BookBrainz.Web.View.Forms
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Publisher'.
@@ -37,5 +38,9 @@ addPublisher :: Form.View Html  -- ^ The form 'Html' and the encoding of it.
 addPublisher v =
   pageLayout Nothing $ do
     H.h1 "Add Publisher"
-    H.form ! A.method "POST" ! A.enctype (toValue $ Form.viewEncType v) $
-      H.p $ H.input ! A.type_ "submit" ! A.value "Add Publisher"
+    publisherForm v
+
+publisherForm :: Form.View Html -> Html
+publisherForm v =
+  H.form ! A.method "POST" ! A.enctype (toValue $ Form.viewEncType v) $
+    submitRow "Add Publisher"

@@ -2,9 +2,6 @@
 {-# LANGUAGE TypeOperators #-}
 module BookBrainz.Web.View.Search where
 
-import           Data.Monoid                 (mconcat)
-
-import           Data.Copointed              (copoint)
 import           Search.ElasticSearch        (SearchResults(..)
                                              ,SearchResult(..))
 import           Text.Blaze.Html             (Html, toHtml, (!), toValue)
@@ -17,6 +14,7 @@ import           BookBrainz.Types
 import           BookBrainz.Web.Sitemap      as Sitemap (Sitemap(..), showURL)
 import           BookBrainz.Web.View  (pageLayout, detailTable, linkBook
                                       ,linkPerson, View)
+import           BookBrainz.Web.View.Role
 
 --------------------------------------------------------------------------------
 -- | Given a list of search results, display them in a human readable
@@ -34,14 +32,6 @@ searchResults results = pageLayout Nothing $
                          , linkBook $ S.bookResult $ result r
                          , roleList $ S.bookRoles $ result r
                          ]
-
--- TODO Might be useful elsewhere, so this might end up in View.Role
-roleList :: [LoadedEntity Role :. LoadedCoreEntity Person]
-         -> Html
-roleList roles = H.ul (formatRole `mapM_` roles)
-  where formatRole (r :. p) = H.li $ do
-          linkPerson p
-          mconcat [" (", toHtml (roleName (copoint r)), ")"]
 
 --------------------------------------------------------------------------------
 -- | A form for beginning a search

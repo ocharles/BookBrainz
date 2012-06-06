@@ -31,6 +31,7 @@ import           BookBrainz.Types
 import           BookBrainz.Web.Handler         (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet         (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Edition as V
+import qualified BookBrainz.Web.View.Role as V
 
 --------------------------------------------------------------------------------
 {-| Show a single 'Edition', searching by its BBID. If the edition cannot be

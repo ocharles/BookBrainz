@@ -14,7 +14,7 @@ import           BookBrainz.Types
 import           BookBrainz.Web.View (linkPerson)
 
 roles :: [LoadedEntity Role :. LoadedCoreEntity Person]
-        -> Html
+      -> Html
 roles rs = do
   H.h2 "Roles"
   H.dl ! A.class_ "properties" $

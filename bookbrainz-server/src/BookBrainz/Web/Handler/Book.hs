@@ -28,6 +28,7 @@ import           BookBrainz.Types
 import           BookBrainz.Web.Handler     (output, onNothing, withUser)
 import           BookBrainz.Web.Snaplet     (BookBrainzHandler)
 import qualified BookBrainz.Web.View.Book   as V
+import qualified BookBrainz.Web.View.Role   as V
 import           BrainzStem.Model           (getByBbid, getByConcept, update
                                             ,findMasterBranch, changeBranch)
 
