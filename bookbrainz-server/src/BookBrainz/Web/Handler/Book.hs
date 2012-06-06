@@ -56,7 +56,7 @@ redirect to view it. -}
 addBook :: BookBrainzHandler ()
 addBook =
   withUser $ \user -> do
-    (v, r) <- runForm "book" (Forms.bookForm Nothing)
+    (v, r) <- runForm "book" (Forms.book Nothing)
     case r of
       Nothing -> output $ V.addBook v
       Just submission -> do
@@ -70,7 +70,7 @@ editBook :: BBID Book -> BookBrainzHandler ()
 editBook bbid' =
   withUser $ \user -> do
     book <- getByBbid bbid' `onNothing` "Book not found"
-    (v, r) <- runForm "book" (Forms.bookForm . Just $ copoint book)
+    (v, r) <- runForm "book" (Forms.book . Just $ copoint book)
     case r of
       Nothing -> output $ V.addBook v
       Just submission -> do

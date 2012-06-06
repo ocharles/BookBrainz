@@ -41,7 +41,7 @@ showPublisher bbid' = do
 addPublisher :: BookBrainzHandler ()
 addPublisher =
   withUser $  \user -> do
-    (v, r) <- runForm "book" Forms.addPublisher
+    (v, r) <- runForm "book" Forms.publisher
     case r of
       Nothing -> output $ V.addPublisher v
       Just submission -> do

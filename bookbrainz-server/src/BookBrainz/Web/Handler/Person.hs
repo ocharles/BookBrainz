@@ -33,7 +33,7 @@ showPerson bbid' = do
 addPerson :: BookBrainzHandler ()
 addPerson =
   withUser $  \user -> do
-    (v, r) <- runForm "person" Forms.addPerson
+    (v, r) <- runForm "person" Forms.person
     case r of
       Nothing -> output $ V.addPerson v
       Just submission -> do
