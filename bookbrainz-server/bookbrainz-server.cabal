@@ -41,7 +41,7 @@ Executable bookbrainz-server
     mtl >= 2.1.1 && < 3,
     pointed >= 2.1.0 && < 2.2,
     snap >= 0.9 && < 0.10,
-    snap-blaze >= 0.2.0.0 && < 0.3,
+    snap-blaze >= 0.2.1.0 && < 0.3,
     snap-core >= 0.9 && < 0.10,
     snap-server >= 0.9 && < 0.10,
     snaplet-postgresql-simple >= 0.1 && < 0.2,
