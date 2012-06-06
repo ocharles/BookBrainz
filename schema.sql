@@ -4,10 +4,9 @@
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
-SET standard_conforming_strings = off;
+SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-SET escape_string_warning = off;
 
 --
 -- Name: _v; Type: SCHEMA; Schema: -; Owner: bookbrainz
@@ -44,13 +43,18 @@ CREATE SCHEMA bookbrainz_v;
 ALTER SCHEMA bookbrainz_v OWNER TO bookbrainz;
 
 --
--- Name: plpgsql; Type: PROCEDURAL LANGUAGE; Schema: -; Owner: postgres
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
 --
 
-CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
-ALTER PROCEDURAL LANGUAGE plpgsql OWNER TO postgres;
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
 
 SET search_path = _v, pg_catalog;
 
@@ -344,7 +348,7 @@ ALTER TABLE bookbrainz_v.book_v OWNER TO bookbrainz;
 CREATE TABLE branch (
     master boolean NOT NULL,
     rev_id integer NOT NULL,
-    id integer NOT NULL
+    branch_id integer NOT NULL
 );
 
 
@@ -357,23 +361,10 @@ SET search_path = bookbrainz, pg_catalog;
 --
 
 CREATE VIEW book AS
-    SELECT book_branch.book_id, book_bbid.bbid, book_v.name, book_revision.book_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.book_branch ON ((book_branch.branch_id = branch.id))) JOIN bookbrainz_v.book_revision USING (rev_id)) JOIN bookbrainz_v.book USING (book_id)) JOIN bookbrainz_v.book_bbid USING (book_id)) JOIN bookbrainz_v.book_tree USING (book_tree_id)) JOIN bookbrainz_v.book_v USING (version)) WHERE (branch.master = true);
+    SELECT book_branch.book_id, book_bbid.bbid, book_v.name, book_revision.book_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.book_branch ON ((book_branch.branch_id = branch.branch_id))) JOIN bookbrainz_v.book_revision USING (rev_id)) JOIN bookbrainz_v.book USING (book_id)) JOIN bookbrainz_v.book_bbid USING (book_id)) JOIN bookbrainz_v.book_tree USING (book_tree_id)) JOIN bookbrainz_v.book_v USING (version)) WHERE (branch.master = true);
 
 
 ALTER TABLE bookbrainz.book OWNER TO bookbrainz;
-
---
--- Name: book_person_role; Type: TABLE; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
---
-
-CREATE TABLE book_person_role (
-    role_id integer NOT NULL,
-    person_id integer NOT NULL,
-    book_tree_id integer NOT NULL
-);
-
-
-ALTER TABLE bookbrainz.book_person_role OWNER TO bookbrainz;
 
 --
 -- Name: country; Type: TABLE; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
@@ -477,7 +468,7 @@ SET search_path = bookbrainz, pg_catalog;
 --
 
 CREATE VIEW edition AS
-    SELECT edition_branch.edition_id, edition_bbid.bbid, edition_v.name, edition_tree.book_id, edition_v.year, edition_tree.publisher_id, edition_v.country_iso_code, edition_v.language_iso_code, edition_v.isbn, edition_v.barcode, edition_v.edition_index, edition_v.format, edition_revision.edition_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.edition_branch ON ((edition_branch.branch_id = branch.id))) JOIN bookbrainz_v.edition_revision USING (rev_id)) JOIN bookbrainz_v.edition USING (edition_id)) JOIN bookbrainz_v.edition_bbid USING (edition_id)) JOIN bookbrainz_v.edition_tree USING (edition_tree_id)) JOIN bookbrainz_v.edition_v USING (version)) WHERE (branch.master = true);
+    SELECT edition_branch.edition_id, edition_bbid.bbid, edition_v.name, edition_tree.book_id, edition_v.year, edition_tree.publisher_id, edition_v.country_iso_code, edition_v.language_iso_code, edition_v.isbn, edition_v.barcode, edition_v.edition_index, edition_v.format, edition_revision.edition_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.edition_branch ON ((edition_branch.branch_id = branch.branch_id))) JOIN bookbrainz_v.edition_revision USING (rev_id)) JOIN bookbrainz_v.edition USING (edition_id)) JOIN bookbrainz_v.edition_bbid USING (edition_id)) JOIN bookbrainz_v.edition_tree USING (edition_tree_id)) JOIN bookbrainz_v.edition_v USING (version)) WHERE (branch.master = true);
 
 
 ALTER TABLE bookbrainz.edition OWNER TO bookbrainz;
@@ -513,13 +504,6 @@ ALTER TABLE bookbrainz.edition_format_id_seq OWNER TO bookbrainz;
 --
 
 ALTER SEQUENCE edition_format_id_seq OWNED BY edition_format.id;
-
-
---
--- Name: edition_format_id_seq; Type: SEQUENCE SET; Schema: bookbrainz; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('edition_format_id_seq', 1, false);
 
 
 --
@@ -567,13 +551,6 @@ ALTER TABLE bookbrainz.editor_editor_id_seq OWNER TO bookbrainz;
 --
 
 ALTER SEQUENCE editor_editor_id_seq OWNED BY editor.editor_id;
-
-
---
--- Name: editor_editor_id_seq; Type: SEQUENCE SET; Schema: bookbrainz; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('editor_editor_id_seq', 1, false);
 
 
 --
@@ -668,7 +645,7 @@ SET search_path = bookbrainz, pg_catalog;
 --
 
 CREATE VIEW person AS
-    SELECT person_branch.person_id, person_bbid.bbid, person_v.name, person_revision.person_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.person_branch ON ((person_branch.branch_id = branch.id))) JOIN bookbrainz_v.person_revision USING (rev_id)) JOIN bookbrainz_v.person USING (person_id)) JOIN bookbrainz_v.person_bbid USING (person_id)) JOIN bookbrainz_v.person_tree USING (person_tree_id)) JOIN bookbrainz_v.person_v USING (version)) WHERE (branch.master = true);
+    SELECT person_branch.person_id, person_bbid.bbid, person_v.name, person_revision.person_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.person_branch ON ((person_branch.branch_id = branch.branch_id))) JOIN bookbrainz_v.person_revision USING (rev_id)) JOIN bookbrainz_v.person USING (person_id)) JOIN bookbrainz_v.person_bbid USING (person_id)) JOIN bookbrainz_v.person_tree USING (person_tree_id)) JOIN bookbrainz_v.person_v USING (version)) WHERE (branch.master = true);
 
 
 ALTER TABLE bookbrainz.person OWNER TO bookbrainz;
@@ -704,13 +681,6 @@ ALTER TABLE bookbrainz.person_role_role_id_seq OWNER TO bookbrainz;
 --
 
 ALTER SEQUENCE person_role_role_id_seq OWNED BY person_role.role_id;
-
-
---
--- Name: person_role_role_id_seq; Type: SEQUENCE SET; Schema: bookbrainz; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('person_role_role_id_seq', 3, false);
 
 
 SET search_path = bookbrainz_v, pg_catalog;
@@ -793,10 +763,56 @@ SET search_path = bookbrainz, pg_catalog;
 --
 
 CREATE VIEW publisher AS
-    SELECT publisher_branch.publisher_id, publisher_bbid.bbid, publisher_v.name, publisher_revision.publisher_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.publisher_branch ON ((publisher_branch.branch_id = branch.id))) JOIN bookbrainz_v.publisher_revision USING (rev_id)) JOIN bookbrainz_v.publisher USING (publisher_id)) JOIN bookbrainz_v.publisher_bbid USING (publisher_id)) JOIN bookbrainz_v.publisher_tree USING (publisher_tree_id)) JOIN bookbrainz_v.publisher_v USING (version)) WHERE (branch.master = true);
+    SELECT publisher_branch.publisher_id, publisher_bbid.bbid, publisher_v.name, publisher_revision.publisher_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.publisher_branch ON ((publisher_branch.branch_id = branch.branch_id))) JOIN bookbrainz_v.publisher_revision USING (rev_id)) JOIN bookbrainz_v.publisher USING (publisher_id)) JOIN bookbrainz_v.publisher_bbid USING (publisher_id)) JOIN bookbrainz_v.publisher_tree USING (publisher_tree_id)) JOIN bookbrainz_v.publisher_v USING (version)) WHERE (branch.master = true);
 
 
 ALTER TABLE bookbrainz.publisher OWNER TO bookbrainz;
+
+--
+-- Name: snap_auth_user; Type: TABLE; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
+--
+
+CREATE TABLE snap_auth_user (
+    uid integer NOT NULL,
+    login text NOT NULL,
+    password text,
+    activated_at timestamp without time zone,
+    suspended_at timestamp without time zone,
+    remember_token text,
+    login_count integer NOT NULL,
+    failed_login_count integer NOT NULL,
+    locked_out_until timestamp without time zone,
+    current_login_at timestamp without time zone,
+    last_login_at timestamp without time zone,
+    current_login_ip text,
+    last_login_ip text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+ALTER TABLE bookbrainz.snap_auth_user OWNER TO bookbrainz;
+
+--
+-- Name: snap_auth_user_uid_seq; Type: SEQUENCE; Schema: bookbrainz; Owner: bookbrainz
+--
+
+CREATE SEQUENCE snap_auth_user_uid_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookbrainz.snap_auth_user_uid_seq OWNER TO bookbrainz;
+
+--
+-- Name: snap_auth_user_uid_seq; Type: SEQUENCE OWNED BY; Schema: bookbrainz; Owner: bookbrainz
+--
+
+ALTER SEQUENCE snap_auth_user_uid_seq OWNED BY snap_auth_user.uid;
+
 
 SET search_path = bookbrainz_v, pg_catalog;
 
@@ -833,11 +849,17 @@ ALTER SEQUENCE book_book_id_seq OWNED BY book.book_id;
 
 
 --
--- Name: book_book_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
+-- Name: book_person_role; Type: TABLE; Schema: bookbrainz_v; Owner: bookbrainz; Tablespace: 
 --
 
-SELECT pg_catalog.setval('book_book_id_seq', 1, false);
+CREATE TABLE book_person_role (
+    role_id integer NOT NULL,
+    person_id integer NOT NULL,
+    book_tree_id integer NOT NULL
+);
 
+
+ALTER TABLE bookbrainz_v.book_person_role OWNER TO bookbrainz;
 
 --
 -- Name: book_tree_book_tree_id_seq; Type: SEQUENCE; Schema: bookbrainz_v; Owner: bookbrainz
@@ -858,13 +880,6 @@ ALTER TABLE bookbrainz_v.book_tree_book_tree_id_seq OWNER TO bookbrainz;
 --
 
 ALTER SEQUENCE book_tree_book_tree_id_seq OWNED BY book_tree.book_tree_id;
-
-
---
--- Name: book_tree_book_tree_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('book_tree_book_tree_id_seq', 1, false);
 
 
 --
@@ -889,13 +904,6 @@ ALTER SEQUENCE book_version_seq OWNED BY book_v.version;
 
 
 --
--- Name: book_version_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('book_version_seq', 1, false);
-
-
---
 -- Name: branch_id_seq; Type: SEQUENCE; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
@@ -913,14 +921,7 @@ ALTER TABLE bookbrainz_v.branch_id_seq OWNER TO bookbrainz;
 -- Name: branch_id_seq; Type: SEQUENCE OWNED BY; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER SEQUENCE branch_id_seq OWNED BY branch.id;
-
-
---
--- Name: branch_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('branch_id_seq', 1, false);
+ALTER SEQUENCE branch_id_seq OWNED BY branch.branch_id;
 
 
 --
@@ -945,13 +946,6 @@ ALTER SEQUENCE edition_edition_id_seq OWNED BY edition.edition_id;
 
 
 --
--- Name: edition_edition_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('edition_edition_id_seq', 1, false);
-
-
---
 -- Name: edition_tree_edition_tree_id_seq; Type: SEQUENCE; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
@@ -970,13 +964,6 @@ ALTER TABLE bookbrainz_v.edition_tree_edition_tree_id_seq OWNER TO bookbrainz;
 --
 
 ALTER SEQUENCE edition_tree_edition_tree_id_seq OWNED BY edition_tree.edition_tree_id;
-
-
---
--- Name: edition_tree_edition_tree_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('edition_tree_edition_tree_id_seq', 1, false);
 
 
 --
@@ -1001,13 +988,6 @@ ALTER SEQUENCE edition_version_seq OWNED BY edition_v.version;
 
 
 --
--- Name: edition_version_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('edition_version_seq', 1, false);
-
-
---
 -- Name: person_person_id_seq; Type: SEQUENCE; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
@@ -1026,13 +1006,6 @@ ALTER TABLE bookbrainz_v.person_person_id_seq OWNER TO bookbrainz;
 --
 
 ALTER SEQUENCE person_person_id_seq OWNED BY person.person_id;
-
-
---
--- Name: person_person_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('person_person_id_seq', 1, false);
 
 
 --
@@ -1057,13 +1030,6 @@ ALTER SEQUENCE person_tree_person_tree_id_seq OWNED BY person_tree.person_tree_i
 
 
 --
--- Name: person_tree_person_tree_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('person_tree_person_tree_id_seq', 1, false);
-
-
---
 -- Name: person_version_seq; Type: SEQUENCE; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
@@ -1082,13 +1048,6 @@ ALTER TABLE bookbrainz_v.person_version_seq OWNER TO bookbrainz;
 --
 
 ALTER SEQUENCE person_version_seq OWNED BY person_v.version;
-
-
---
--- Name: person_version_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('person_version_seq', 1, false);
 
 
 --
@@ -1113,13 +1072,6 @@ ALTER SEQUENCE publisher_publisher_id_seq OWNED BY publisher.publisher_id;
 
 
 --
--- Name: publisher_publisher_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('publisher_publisher_id_seq', 1, false);
-
-
---
 -- Name: publisher_tree_publisher_tree_id_seq; Type: SEQUENCE; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
@@ -1141,13 +1093,6 @@ ALTER SEQUENCE publisher_tree_publisher_tree_id_seq OWNED BY publisher_tree.publ
 
 
 --
--- Name: publisher_tree_publisher_tree_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('publisher_tree_publisher_tree_id_seq', 1, false);
-
-
---
 -- Name: publisher_version_seq; Type: SEQUENCE; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
@@ -1166,13 +1111,6 @@ ALTER TABLE bookbrainz_v.publisher_version_seq OWNER TO bookbrainz;
 --
 
 ALTER SEQUENCE publisher_version_seq OWNED BY publisher_v.version;
-
-
---
--- Name: publisher_version_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('publisher_version_seq', 1, false);
 
 
 --
@@ -1221,34 +1159,34 @@ ALTER TABLE bookbrainz_v.revision_rev_id_seq OWNER TO bookbrainz;
 ALTER SEQUENCE revision_rev_id_seq OWNED BY revision.rev_id;
 
 
---
--- Name: revision_rev_id_seq; Type: SEQUENCE SET; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-SELECT pg_catalog.setval('revision_rev_id_seq', 1, false);
-
-
 SET search_path = bookbrainz, pg_catalog;
 
 --
 -- Name: id; Type: DEFAULT; Schema: bookbrainz; Owner: bookbrainz
 --
 
-ALTER TABLE edition_format ALTER COLUMN id SET DEFAULT nextval('edition_format_id_seq'::regclass);
+ALTER TABLE ONLY edition_format ALTER COLUMN id SET DEFAULT nextval('edition_format_id_seq'::regclass);
 
 
 --
 -- Name: editor_id; Type: DEFAULT; Schema: bookbrainz; Owner: bookbrainz
 --
 
-ALTER TABLE editor ALTER COLUMN editor_id SET DEFAULT nextval('editor_editor_id_seq'::regclass);
+ALTER TABLE ONLY editor ALTER COLUMN editor_id SET DEFAULT nextval('editor_editor_id_seq'::regclass);
 
 
 --
 -- Name: role_id; Type: DEFAULT; Schema: bookbrainz; Owner: bookbrainz
 --
 
-ALTER TABLE person_role ALTER COLUMN role_id SET DEFAULT nextval('person_role_role_id_seq'::regclass);
+ALTER TABLE ONLY person_role ALTER COLUMN role_id SET DEFAULT nextval('person_role_role_id_seq'::regclass);
+
+
+--
+-- Name: uid; Type: DEFAULT; Schema: bookbrainz; Owner: bookbrainz
+--
+
+ALTER TABLE ONLY snap_auth_user ALTER COLUMN uid SET DEFAULT nextval('snap_auth_user_uid_seq'::regclass);
 
 
 SET search_path = bookbrainz_v, pg_catalog;
@@ -1257,419 +1195,98 @@ SET search_path = bookbrainz_v, pg_catalog;
 -- Name: book_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE book ALTER COLUMN book_id SET DEFAULT nextval('book_book_id_seq'::regclass);
+ALTER TABLE ONLY book ALTER COLUMN book_id SET DEFAULT nextval('book_book_id_seq'::regclass);
 
 
 --
 -- Name: book_tree_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE book_tree ALTER COLUMN book_tree_id SET DEFAULT nextval('book_tree_book_tree_id_seq'::regclass);
+ALTER TABLE ONLY book_tree ALTER COLUMN book_tree_id SET DEFAULT nextval('book_tree_book_tree_id_seq'::regclass);
 
 
 --
 -- Name: version; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE book_v ALTER COLUMN version SET DEFAULT nextval('book_version_seq'::regclass);
+ALTER TABLE ONLY book_v ALTER COLUMN version SET DEFAULT nextval('book_version_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
+-- Name: branch_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE branch ALTER COLUMN id SET DEFAULT nextval('branch_id_seq'::regclass);
+ALTER TABLE ONLY branch ALTER COLUMN branch_id SET DEFAULT nextval('branch_id_seq'::regclass);
 
 
 --
 -- Name: edition_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE edition ALTER COLUMN edition_id SET DEFAULT nextval('edition_edition_id_seq'::regclass);
+ALTER TABLE ONLY edition ALTER COLUMN edition_id SET DEFAULT nextval('edition_edition_id_seq'::regclass);
 
 
 --
 -- Name: edition_tree_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE edition_tree ALTER COLUMN edition_tree_id SET DEFAULT nextval('edition_tree_edition_tree_id_seq'::regclass);
+ALTER TABLE ONLY edition_tree ALTER COLUMN edition_tree_id SET DEFAULT nextval('edition_tree_edition_tree_id_seq'::regclass);
 
 
 --
 -- Name: version; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE edition_v ALTER COLUMN version SET DEFAULT nextval('edition_version_seq'::regclass);
+ALTER TABLE ONLY edition_v ALTER COLUMN version SET DEFAULT nextval('edition_version_seq'::regclass);
 
 
 --
 -- Name: person_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE person ALTER COLUMN person_id SET DEFAULT nextval('person_person_id_seq'::regclass);
+ALTER TABLE ONLY person ALTER COLUMN person_id SET DEFAULT nextval('person_person_id_seq'::regclass);
 
 
 --
 -- Name: person_tree_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE person_tree ALTER COLUMN person_tree_id SET DEFAULT nextval('person_tree_person_tree_id_seq'::regclass);
+ALTER TABLE ONLY person_tree ALTER COLUMN person_tree_id SET DEFAULT nextval('person_tree_person_tree_id_seq'::regclass);
 
 
 --
 -- Name: version; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE person_v ALTER COLUMN version SET DEFAULT nextval('person_version_seq'::regclass);
+ALTER TABLE ONLY person_v ALTER COLUMN version SET DEFAULT nextval('person_version_seq'::regclass);
 
 
 --
 -- Name: publisher_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE publisher ALTER COLUMN publisher_id SET DEFAULT nextval('publisher_publisher_id_seq'::regclass);
+ALTER TABLE ONLY publisher ALTER COLUMN publisher_id SET DEFAULT nextval('publisher_publisher_id_seq'::regclass);
 
 
 --
 -- Name: publisher_tree_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE publisher_tree ALTER COLUMN publisher_tree_id SET DEFAULT nextval('publisher_tree_publisher_tree_id_seq'::regclass);
+ALTER TABLE ONLY publisher_tree ALTER COLUMN publisher_tree_id SET DEFAULT nextval('publisher_tree_publisher_tree_id_seq'::regclass);
 
 
 --
 -- Name: version; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE publisher_v ALTER COLUMN version SET DEFAULT nextval('publisher_version_seq'::regclass);
+ALTER TABLE ONLY publisher_v ALTER COLUMN version SET DEFAULT nextval('publisher_version_seq'::regclass);
 
 
 --
 -- Name: rev_id; Type: DEFAULT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
-ALTER TABLE revision ALTER COLUMN rev_id SET DEFAULT nextval('revision_rev_id_seq'::regclass);
-
-
-SET search_path = _v, pg_catalog;
-
---
--- Data for Name: patches; Type: TABLE DATA; Schema: _v; Owner: bookbrainz
---
-
-COPY patches (patch_name, applied_tsz, applied_by, requires, conflicts) FROM stdin;
-2011-07-08	2011-09-30 21:38:09.092003+01	bookbrainz	{}	{}
-20110708-initial-schema	2011-09-30 21:38:12.884031+01	bookbrainz	{2011-07-08}	{}
-20110803-versioning	2011-09-30 21:38:18.503687+01	bookbrainz	{20110708-initial-schema}	{}
-20110804-roles	2011-09-30 21:38:22.66255+01	bookbrainz	{20110803-versioning}	{}
-20110804-versions	2011-09-30 21:38:24.668134+01	bookbrainz	{20110804-roles}	{}
-20110827-revision-parent	2011-09-30 21:38:28.579972+01	bookbrainz	{20110804-versions}	{}
-20110827-revision	2011-09-30 21:38:34.355979+01	bookbrainz	{20110804-versions}	{}
-20110917-redirect	2011-09-30 21:38:44.05218+01	bookbrainz	{20110804-versions}	{}
-20110917-general-references	2011-09-30 21:38:48.078482+01	bookbrainz	{20110917-redirect}	{}
-20110918-trees	2011-09-30 21:39:05.643946+01	bookbrainz	{20110917-general-references}	{}
-20110918-pks	2011-09-30 21:39:12.211949+01	bookbrainz	{20110918-trees}	{}
-20110918-editor	2011-09-30 21:39:15.019962+01	bookbrainz	{20110918-pks}	{}
-20110919-tree-in-view	2011-09-30 21:39:23.158589+01	bookbrainz	{20110918-trees}	{}
-20110927-unique-bbid	2011-09-30 21:39:27.98022+01	bookbrainz	{20110919-tree-in-view}	{}
-\.
-
-
-SET search_path = bookbrainz, pg_catalog;
-
---
--- Data for Name: author_credit_person; Type: TABLE DATA; Schema: bookbrainz; Owner: bookbrainz
---
-
-COPY author_credit_person (author_credit, credited_name, "position", person, join_phrase) FROM stdin;
-\.
-
-
---
--- Data for Name: book_person_role; Type: TABLE DATA; Schema: bookbrainz; Owner: bookbrainz
---
-
-COPY book_person_role (role_id, person_id, book_tree_id) FROM stdin;
-\.
-
-
---
--- Data for Name: country; Type: TABLE DATA; Schema: bookbrainz; Owner: bookbrainz
---
-
-COPY country (iso_code, name) FROM stdin;
-\.
-
-
---
--- Data for Name: edition_format; Type: TABLE DATA; Schema: bookbrainz; Owner: bookbrainz
---
-
-COPY edition_format (id, name) FROM stdin;
-\.
-
-
---
--- Data for Name: edition_person_role; Type: TABLE DATA; Schema: bookbrainz; Owner: bookbrainz
---
-
-COPY edition_person_role (role_id, person_id, edition_tree_id) FROM stdin;
-\.
-
-
---
--- Data for Name: editor; Type: TABLE DATA; Schema: bookbrainz; Owner: bookbrainz
---
-
-COPY editor (editor_id, name, password) FROM stdin;
-1	BookBrainz	
-\.
-
-
---
--- Data for Name: language; Type: TABLE DATA; Schema: bookbrainz; Owner: bookbrainz
---
-
-COPY language (iso_code, name) FROM stdin;
-\.
-
-
---
--- Data for Name: person_role; Type: TABLE DATA; Schema: bookbrainz; Owner: bookbrainz
---
-
-COPY person_role (role_id, name) FROM stdin;
-1	Author
-2	Foreword
-3	Illustrator
-4	Translator
-\.
-
-
-SET search_path = bookbrainz_v, pg_catalog;
-
---
--- Data for Name: bbid; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY bbid (bbid) FROM stdin;
-\.
-
-
---
--- Data for Name: book; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY book (book_id) FROM stdin;
-\.
-
-
---
--- Data for Name: book_bbid; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY book_bbid (book_id, bbid) FROM stdin;
-\.
-
-
---
--- Data for Name: book_branch; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY book_branch (book_id, branch_id) FROM stdin;
-\.
-
-
---
--- Data for Name: book_revision; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY book_revision (rev_id, book_tree_id) FROM stdin;
-\.
-
-
---
--- Data for Name: book_tree; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY book_tree (book_tree_id, version) FROM stdin;
-\.
-
-
---
--- Data for Name: book_v; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY book_v (version, name) FROM stdin;
-\.
-
-
---
--- Data for Name: branch; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY branch (master, rev_id, id) FROM stdin;
-\.
-
-
---
--- Data for Name: edition; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY edition (edition_id) FROM stdin;
-\.
-
-
---
--- Data for Name: edition_bbid; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY edition_bbid (edition_id, bbid) FROM stdin;
-\.
-
-
---
--- Data for Name: edition_branch; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY edition_branch (edition_id, branch_id) FROM stdin;
-\.
-
-
---
--- Data for Name: edition_revision; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY edition_revision (rev_id, edition_tree_id) FROM stdin;
-\.
-
-
---
--- Data for Name: edition_tree; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY edition_tree (edition_tree_id, version, book_id, publisher_id) FROM stdin;
-\.
-
-
---
--- Data for Name: edition_v; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY edition_v (version, name, year, country_iso_code, language_iso_code, isbn, barcode, edition_index, format) FROM stdin;
-\.
-
-
---
--- Data for Name: person; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY person (person_id) FROM stdin;
-\.
-
-
---
--- Data for Name: person_bbid; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY person_bbid (person_id, bbid) FROM stdin;
-\.
-
-
---
--- Data for Name: person_branch; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY person_branch (person_id, branch_id) FROM stdin;
-\.
-
-
---
--- Data for Name: person_revision; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY person_revision (rev_id, person_tree_id) FROM stdin;
-\.
-
-
---
--- Data for Name: person_tree; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY person_tree (person_tree_id, version) FROM stdin;
-\.
-
-
---
--- Data for Name: person_v; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY person_v (version, name) FROM stdin;
-\.
-
-
---
--- Data for Name: publisher; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY publisher (publisher_id) FROM stdin;
-\.
-
-
---
--- Data for Name: publisher_bbid; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY publisher_bbid (publisher_id, bbid) FROM stdin;
-\.
-
-
---
--- Data for Name: publisher_branch; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY publisher_branch (publisher_id, branch_id) FROM stdin;
-\.
-
-
---
--- Data for Name: publisher_revision; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY publisher_revision (rev_id, publisher_tree_id) FROM stdin;
-\.
-
-
---
--- Data for Name: publisher_tree; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY publisher_tree (publisher_tree_id, version) FROM stdin;
-\.
-
-
---
--- Data for Name: publisher_v; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY publisher_v (version, name) FROM stdin;
-\.
-
-
---
--- Data for Name: revision; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY revision (rev_id, commited, editor) FROM stdin;
-\.
-
-
---
--- Data for Name: revision_parent; Type: TABLE DATA; Schema: bookbrainz_v; Owner: bookbrainz
---
-
-COPY revision_parent (rev_id, parent_id) FROM stdin;
-\.
+ALTER TABLE ONLY revision ALTER COLUMN rev_id SET DEFAULT nextval('revision_rev_id_seq'::regclass);
 
 
 SET search_path = _v, pg_catalog;
@@ -1690,14 +1307,6 @@ SET search_path = bookbrainz, pg_catalog;
 
 ALTER TABLE ONLY author_credit_person
     ADD CONSTRAINT author_credit_person_pkey PRIMARY KEY (author_credit, "position");
-
-
---
--- Name: book_person_role_pkey; Type: CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
---
-
-ALTER TABLE ONLY book_person_role
-    ADD CONSTRAINT book_person_role_pkey PRIMARY KEY (role_id, person_id, book_tree_id);
 
 
 --
@@ -1748,6 +1357,22 @@ ALTER TABLE ONLY person_role
     ADD CONSTRAINT person_role_pkey PRIMARY KEY (role_id);
 
 
+--
+-- Name: snap_auth_user_login_key; Type: CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
+--
+
+ALTER TABLE ONLY snap_auth_user
+    ADD CONSTRAINT snap_auth_user_login_key UNIQUE (login);
+
+
+--
+-- Name: snap_auth_user_pkey; Type: CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz; Tablespace: 
+--
+
+ALTER TABLE ONLY snap_auth_user
+    ADD CONSTRAINT snap_auth_user_pkey PRIMARY KEY (uid);
+
+
 SET search_path = bookbrainz_v, pg_catalog;
 
 --
@@ -1772,6 +1397,14 @@ ALTER TABLE ONLY book_branch
 
 ALTER TABLE ONLY book_bbid
     ADD CONSTRAINT book_gid_pkey PRIMARY KEY (bbid);
+
+
+--
+-- Name: book_person_role_pkey; Type: CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz; Tablespace: 
+--
+
+ALTER TABLE ONLY book_person_role
+    ADD CONSTRAINT book_person_role_pkey PRIMARY KEY (role_id, person_id, book_tree_id);
 
 
 --
@@ -1811,7 +1444,7 @@ ALTER TABLE ONLY book_tree
 --
 
 ALTER TABLE ONLY branch
-    ADD CONSTRAINT branch_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT branch_pkey PRIMARY KEY (branch_id);
 
 
 --
@@ -2027,30 +1660,6 @@ CREATE INDEX publisher_branch_publisher_id_idx ON publisher_branch USING btree (
 SET search_path = bookbrainz, pg_catalog;
 
 --
--- Name: book_person_role_book_tree_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz
---
-
-ALTER TABLE ONLY book_person_role
-    ADD CONSTRAINT book_person_role_book_tree_id_fkey FOREIGN KEY (book_tree_id) REFERENCES bookbrainz_v.book_tree(book_tree_id);
-
-
---
--- Name: book_person_role_person_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz
---
-
-ALTER TABLE ONLY book_person_role
-    ADD CONSTRAINT book_person_role_person_id_fkey FOREIGN KEY (person_id) REFERENCES bookbrainz_v.person(person_id);
-
-
---
--- Name: book_person_role_role_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz
---
-
-ALTER TABLE ONLY book_person_role
-    ADD CONSTRAINT book_person_role_role_id_fkey FOREIGN KEY (role_id) REFERENCES person_role(role_id);
-
-
---
 -- Name: edition_person_role_edition_tree_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz; Owner: bookbrainz
 --
 
@@ -2089,7 +1698,7 @@ ALTER TABLE ONLY book_branch
 --
 
 ALTER TABLE ONLY book_branch
-    ADD CONSTRAINT book_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES branch(id);
+    ADD CONSTRAINT book_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES branch(branch_id);
 
 
 --
@@ -2133,6 +1742,30 @@ ALTER TABLE ONLY book_bbid
 
 
 --
+-- Name: book_person_role_book_tree_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz
+--
+
+ALTER TABLE ONLY book_person_role
+    ADD CONSTRAINT book_person_role_book_tree_id_fkey FOREIGN KEY (book_tree_id) REFERENCES book_tree(book_tree_id);
+
+
+--
+-- Name: book_person_role_person_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz
+--
+
+ALTER TABLE ONLY book_person_role
+    ADD CONSTRAINT book_person_role_person_id_fkey FOREIGN KEY (person_id) REFERENCES person(person_id);
+
+
+--
+-- Name: book_person_role_role_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz
+--
+
+ALTER TABLE ONLY book_person_role
+    ADD CONSTRAINT book_person_role_role_id_fkey FOREIGN KEY (role_id) REFERENCES bookbrainz.person_role(role_id);
+
+
+--
 -- Name: book_revision_book_tree_id_fkey; Type: FK CONSTRAINT; Schema: bookbrainz_v; Owner: bookbrainz
 --
 
@@ -2169,7 +1802,7 @@ ALTER TABLE ONLY branch
 --
 
 ALTER TABLE ONLY edition_branch
-    ADD CONSTRAINT edition_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES branch(id);
+    ADD CONSTRAINT edition_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES branch(branch_id);
 
 
 --
@@ -2257,7 +1890,7 @@ ALTER TABLE ONLY edition_tree
 --
 
 ALTER TABLE ONLY person_branch
-    ADD CONSTRAINT person_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES branch(id);
+    ADD CONSTRAINT person_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES branch(branch_id);
 
 
 --
@@ -2305,7 +1938,7 @@ ALTER TABLE ONLY person_tree
 --
 
 ALTER TABLE ONLY publisher_branch
-    ADD CONSTRAINT publisher_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES branch(id);
+    ADD CONSTRAINT publisher_branch_branch_id_fkey FOREIGN KEY (branch_id) REFERENCES branch(branch_id);
 
 
 --
