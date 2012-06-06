@@ -452,7 +452,6 @@ CREATE TABLE edition_v (
     country_iso_code text,
     language_iso_code text,
     isbn text,
-    barcode text,
     edition_index integer,
     format integer,
     CONSTRAINT edition_edition_index_check CHECK (((edition_index IS NULL) OR (edition_index > 0)))
@@ -468,7 +467,7 @@ SET search_path = bookbrainz, pg_catalog;
 --
 
 CREATE VIEW edition AS
-    SELECT edition_branch.edition_id, edition_bbid.bbid, edition_v.name, edition_tree.book_id, edition_v.year, edition_tree.publisher_id, edition_v.country_iso_code, edition_v.language_iso_code, edition_v.isbn, edition_v.barcode, edition_v.edition_index, edition_v.format, edition_revision.edition_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.edition_branch ON ((edition_branch.branch_id = branch.branch_id))) JOIN bookbrainz_v.edition_revision USING (rev_id)) JOIN bookbrainz_v.edition USING (edition_id)) JOIN bookbrainz_v.edition_bbid USING (edition_id)) JOIN bookbrainz_v.edition_tree USING (edition_tree_id)) JOIN bookbrainz_v.edition_v USING (version)) WHERE (branch.master = true);
+    SELECT edition_branch.edition_id, edition_bbid.bbid, edition_v.name, edition_tree.book_id, edition_v.year, edition_tree.publisher_id, edition_v.country_iso_code, edition_v.language_iso_code, edition_v.isbn, edition_v.edition_index, edition_v.format, edition_revision.edition_tree_id, branch.rev_id FROM ((((((bookbrainz_v.branch JOIN bookbrainz_v.edition_branch ON ((edition_branch.branch_id = branch.branch_id))) JOIN bookbrainz_v.edition_revision USING (rev_id)) JOIN bookbrainz_v.edition USING (edition_id)) JOIN bookbrainz_v.edition_bbid USING (edition_id)) JOIN bookbrainz_v.edition_tree USING (edition_tree_id)) JOIN bookbrainz_v.edition_v USING (version)) WHERE (branch.master = true);
 
 
 ALTER TABLE bookbrainz.edition OWNER TO bookbrainz;
