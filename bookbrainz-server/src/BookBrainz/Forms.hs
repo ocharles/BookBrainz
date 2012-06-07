@@ -52,13 +52,13 @@ data Registration = Registration { newUserName :: Text
 book :: (Monad m, MonadSnap m)
      => Maybe Book
      -> Form Html m Book
-book book = Book <$> "title" .: nonEmptyText (BB.bookName `fmap` book)
+book defBook = Book <$> "title" .: nonEmptyText (BB.bookName `fmap` defBook)
 
 --------------------------------------------------------------------------------
 addEdition :: (MonadSnap m, HasPostgres m)
            => Ref (Concept Book)
            -> m (Form Html m Edition)
-addEdition book = edition (Right book)
+addEdition parentBook = edition (Right parentBook)
 
 editEdition :: (MonadSnap m, HasPostgres m)
             => Edition

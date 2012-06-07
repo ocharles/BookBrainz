@@ -30,7 +30,7 @@ import           BookBrainz.Web.View (pageLayout, linkBook, linkEdition
                                      ,detailTable)
 import           BookBrainz.Web.View.Forms
 import qualified BookBrainz.Web.View.Sidebar as Sidebar
-import           BookBrainz.Web.Sitemap as Sitemap (Sitemap(..), showURL)
+import           BookBrainz.Web.Sitemap as Sitemap (Sitemap(..))
 
 --------------------------------------------------------------------------------
 -- | Display a single 'Edition'.
@@ -101,9 +101,9 @@ editionForm v submitLabel =
       , ("isbn", "ISBN:", inputIsbn)
       ]
     submitRow submitLabel
-  where inputYear n v = inputText n v ! A.size "4"
-        inputIsbn n v = inputText n v ! A.size "13"
-        inputPublisher n v = inputSelect n v >> " " >> addPublisher
+  where inputYear n v' = inputText n v' ! A.size "4"
+        inputIsbn n v' = inputText n v' ! A.size "13"
+        inputPublisher n v' = inputSelect n v' >> " " >> addPublisher
         addPublisher = let uri = showURL $ Sitemap.AddPublisher in
                        H.a ! A.href (toValue uri) $ "Add a new publisher"
 

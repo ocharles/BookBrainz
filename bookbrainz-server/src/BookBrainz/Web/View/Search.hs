@@ -10,10 +10,8 @@ import qualified Text.Blaze.Html5.Attributes as A
 import qualified Text.Digestive.View as Forms
 
 import qualified BookBrainz.Search           as S
-import           BookBrainz.Types
 import           BookBrainz.Web.Sitemap      as Sitemap (Sitemap(..), showURL)
-import           BookBrainz.Web.View  (pageLayout, detailTable, linkBook
-                                      ,linkPerson, View)
+import           BookBrainz.Web.View  (pageLayout, detailTable, linkBook, View)
 import           BookBrainz.Web.View.Role
 
 --------------------------------------------------------------------------------

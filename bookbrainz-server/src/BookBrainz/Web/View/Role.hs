@@ -26,7 +26,7 @@ addRole v =
         , ("role", "Role:", inputSelect)
         ]
       submitRow "Add Role"
-  where inputPerson n v = inputSelect n v >> " " >> addPerson
+  where inputPerson n v' = inputSelect n v' >> " " >> addPerson
         addPerson = let uri = showURL $ Sitemap.AddPerson in
                     H.a ! A.href (toValue uri) $ "Add a new person"
 

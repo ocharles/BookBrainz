@@ -19,7 +19,7 @@ fieldRow v name label' view =
 
 fieldTable :: Form.View Html -> [(Text, Html, Renderer)] -> Html
 fieldTable v = mapM_ (row v)
-  where row v (name, label, r) = fieldRow v name label r
+  where row v' (name, label', r) = fieldRow v' name label' r
 
 submitRow :: Text -> Html
 submitRow submitLabel =

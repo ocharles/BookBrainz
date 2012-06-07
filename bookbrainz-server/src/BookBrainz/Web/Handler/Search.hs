@@ -3,7 +3,6 @@ module BookBrainz.Web.Handler.Search
        ( search
        ) where
 
-import           Text.Digestive.Blaze.Html5
 import           Text.Digestive.Snap (runForm)
 
 import qualified BookBrainz.Forms           as Forms
