@@ -17,7 +17,7 @@ import           Data.Copointed         (copoint)
 import           Data.HashMap.Strict    (union)
 import qualified Search.ElasticSearch   as ES
 import           Search.ElasticSearch   (Document(..), DocumentType(..)
-                                        ,localServer, Index)
+                                        ,localServer, Index, indexDocument)
 
 import           BookBrainz.Types       as BB
 
@@ -159,3 +159,15 @@ instance ToJSON (Ref Role) where toJSON (RoleRef i) = toJSON i
 intRef cons json = case json of
   (Number _) -> cons <$> parseJSON json
   _ -> typeMismatch "Int" json
+
+--------------------------------------------------------------------------------
+index' :: (Document d, MonadIO m) => SearchType -> d -> m ()
+index' t d = liftIO $ indexDocument localServer (typeToIndex t) d
+
+--------------------------------------------------------------------------------
+-- | Given a book and accompanying metadata, index the book.
+indexBook :: (MonadIO m)
+          => LoadedCoreEntity Book
+          -> [LoadedEntity Role :. LoadedCoreEntity Person]
+          -> m ()
+indexBook = (index' BookBrainz.Search.Book .) . SearchableBook

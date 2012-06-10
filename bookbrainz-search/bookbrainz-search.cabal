@@ -1,4 +1,4 @@
-Name:                bookbrainz-search-indexer
+Name:                bookbrainz-search
 Version:             0.1
 License:             AllRightsReserved
 
@@ -8,8 +8,9 @@ Description:
   documentation is about the code behind BookBrainz and is intended for
   developers.
   .
-  This library contains the BookBrainz search indexer daemon, which watches the
-  database for modifications and updates our Elasticsearch index.
+  This library contains the BookBrainz search indexer daemon which watches the
+  database for modifications and updates our Elasticsearch index, and a library
+  to access the BookBrainz search server.
 
 Author:              Oliver Charles
 Maintainer:          bookbrainz@ocharles.org.uk
@@ -18,22 +19,27 @@ Category:            Web
 Build-type:          Simple
 Cabal-version:       >=1.9.2
 
-Executable bookbrainz-search-indexer
+Library
   hs-source-dirs: src
+  Build-depends:
+    aeson >= 0.6.0.2 && < 0.7,
+    base >= 4.5 && < 5,
+    bookbrainz-data ==0.1,
+    elasticsearch >= 0.1 && < 0.2,
+    pointed >= 2.1.0 && < 2.2,
+    text >= 0.11 && < 0.12,
+    transformers >= 0.3.0.0 && < 0.4,
+    unordered-containers >= 0.2.1.0 && < 0.3
+  Exposed-modules:
+    BookBrainz.Search
+
+Executable bookbrainz-search-reindex
+  hs-source-dirs: reindex
   main-is: Main.hs
 
   Build-depends:
     base >= 4.5 && < 5,
     bookbrainz-data ==0.1,
-    elasticsearch >= 0.1 && < 0.2,
-    transformers >= 0.3.0.0 && < 0.4
-
-Executable bookbrainz-search-reindex
-  hs-source-dirs: src
-  main-is: Reindex.hs
-
-  Build-depends:
-    base >= 4.5 && < 5,
-    bookbrainz-data ==0.1,
+    bookbrainz-search,
     elasticsearch >= 0.1 && < 0.2,
     transformers >= 0.3.0.0 && < 0.4

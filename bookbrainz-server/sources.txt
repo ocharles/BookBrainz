@@ -1,1 +1,2 @@
 ../bookbrainz-data
+../bookbrainz-search
