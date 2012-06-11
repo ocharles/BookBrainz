@@ -8,12 +8,16 @@ import           Control.Monad (join)
 import           Data.Char                   (isDigit, digitToInt)
 import           Data.Maybe                  (isNothing)
 
+import Control.Monad.IO.Class (liftIO)
 import           Data.Copointed              (copoint, Copointed)
 import           Data.Text                   (Text)
+import           Data.Text.Encoding (encodeUtf8)
 import qualified Data.Text                   as T
 import           Data.Text.Read              (decimal)
 import           Snap.Core
+import           Snap.Snaplet (with, Handler)
 import           Snap.Snaplet.PostgresqlSimple (HasPostgres)
+import           Snap.Snaplet.Auth (checkPasswordAndLogin, lookupByLogin, withBackend, Password(..))
 import           Text.Blaze (ToMarkup)
 import           Text.Blaze.Html5            (Html, toHtml)
 import           Text.Digestive
@@ -32,6 +36,7 @@ import           BookBrainz.Types (Book (Book), Edition (Edition)
                                   ,Person (Person), Role
                                   ,entityRef, coreEntityConcept)
 import qualified BookBrainz.Types as BB
+import BookBrainz.Web.Snaplet (auth, BookBrainz)
 
 --------------------------------------------------------------------------------
 data SearchQuery = SearchQuery { query :: Text }
@@ -215,10 +220,20 @@ registerForm = Registration <$> "userName" .: nonExistingUser
     nonExistingUser = checkM "An account with this name already exists"
       (fmap isNothing . getEditorByName) $ nonEmptyText Nothing
 
-loginForm :: (Monad m, MonadSnap m) => Form Html m Login
-loginForm = Login <$> "userName" .: nonEmptyText Nothing
-                  <*> "password" .: nonEmptyText Nothing
-                  <*> "remember" .: bool Nothing
+loginForm :: Form Html (Handler BookBrainz BookBrainz) Login
+loginForm = checkM "An account could not be found with these credentials" checkLogin $
+              Login <$> "userName" .: nonEmptyText Nothing
+                    <*> "password" .: nonEmptyText Nothing
+                    <*> "remember" .: bool Nothing
+  where
+    checkLogin loginForm = with auth $ do
+      user <- withBackend $ \b -> liftIO (lookupByLogin b $ loginFormId loginForm)
+      case user of
+        Just u -> do
+          let p = (ClearText $ encodeUtf8 $ loginFormPassword loginForm)
+          checkPasswordAndLogin u p >>=
+            return . either (const False) (const True)
+        Nothing -> return False
 
 --------------------------------------------------------------------------------
 nonEmptyText :: (Monad m, MonadSnap m) => Formlet Html m Text

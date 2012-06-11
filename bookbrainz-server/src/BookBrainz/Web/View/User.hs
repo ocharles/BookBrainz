@@ -23,8 +23,13 @@ login :: Forms.View Html -- ^ The form 'Html' and the encoding of it.
 login v =
   pageLayout Nothing $ do
     H.h1 "Login"
-    H.form ! A.method "POST" ! A.enctype (toValue $ Forms.viewEncType v) $
-      H.p $ H.input ! A.type_ "submit" ! A.value "Login"
+    H.form ! A.method "POST" ! A.enctype (toValue $ Forms.viewEncType v) $ do
+      errorList "" v
+      fieldTable v
+        [ ("userName", "Username:", inputText)
+        , ("password", "Password:", inputPassword) ]
+      checkboxRow v "remember" "Remember me"
+      submitRow "Login"
 
 --------------------------------------------------------------------------------
 -- | A form for registering.

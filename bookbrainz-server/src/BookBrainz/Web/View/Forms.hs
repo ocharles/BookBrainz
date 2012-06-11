@@ -23,4 +23,11 @@ fieldTable v = mapM_ (row v)
 
 submitRow :: Text -> Html
 submitRow submitLabel =
-  H.p $ H.input ! A.type_ "submit" ! A.value (toValue submitLabel)
+  H.p ! A.class_ "indent" $
+    H.input ! A.type_ "submit" ! A.value (toValue submitLabel)
+
+checkboxRow :: Form.View Html -> Text -> Html -> Html
+checkboxRow v name label' = do
+  H.p ! A.class_ "indent" $ do
+    inputCheckbox name v
+    label name v label'

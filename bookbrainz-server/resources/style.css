@@ -123,7 +123,6 @@ table.details tr.even td {
     background: #F2F2F2;
 }
 
-
 form label {
     display: inline-block;
     width: 100pt;
@@ -131,7 +130,17 @@ form label {
     margin-right: 4pt;
 }
 
-form p input[type="submit"],
 form ul {
     margin-left: 104pt;
+}
+
+form p.indent {
+    margin-left: 104pt;
+}
+
+form p.indent label {
+    display: auto;
+    width: auto;
+    text-align: auto;
+    margin-right: 0;
 }
