@@ -54,23 +54,23 @@ data Registration = Registration { newUserName :: Text
                                  }
 
 --------------------------------------------------------------------------------
-book :: (Monad m, MonadSnap m)
+book :: (Monad m)
      => Maybe Book
      -> Form Html m Book
 book defBook = Book <$> "title" .: nonEmptyText (BB.bookName `fmap` defBook)
 
 --------------------------------------------------------------------------------
-addEdition :: (MonadSnap m, HasPostgres m)
+addEdition :: (HasPostgres m, Functor m)
            => Ref (Concept Book)
            -> m (Form Html m Edition)
 addEdition parentBook = edition (Right parentBook)
 
-editEdition :: (MonadSnap m, HasPostgres m)
+editEdition :: (HasPostgres m, Functor m)
             => Edition
             -> m (Form Html m Edition)
 editEdition edition' = edition (Left edition')
 
-edition :: (MonadSnap m, HasPostgres m)
+edition :: (HasPostgres m, Functor m)
         => Either Edition (Ref (Concept Book))
         -> m (Form Html m Edition)
 edition start = do
@@ -93,7 +93,7 @@ edition start = do
         getDef'= join . getDef
 
 --------------------------------------------------------------------------------
-personRole :: (HasPostgres m, MonadSnap m)
+personRole :: (HasPostgres m, Functor m)
            => m (Form Html m (Ref (Concept Person), Ref Role))
 personRole = do
   personField <- personRef Nothing
@@ -103,7 +103,7 @@ personRole = do
         <*> "role" .: roleField
 
 --------------------------------------------------------------------------------
-dbSelect :: (Monad m, MonadSnap m, HasPostgres m, Copointed c, ToMarkup v, Eq r)
+dbSelect :: (Monad m, HasPostgres m, Copointed c, ToMarkup v, Eq r)
          => m [c e]
          -> (c e -> r)
          -> (e -> v)
@@ -113,7 +113,7 @@ dbSelect selector value label def = do
   opts <- selector
   return $ choice (map (\a -> (value a, toHtml $ label $ copoint a)) opts) def
 
-optionalDbSelect :: (Monad m, MonadSnap m, HasPostgres m, Copointed c, ToMarkup v, Eq r)
+optionalDbSelect :: (Monad m, HasPostgres m, Copointed c, ToMarkup v, Eq r)
                  => m [c e]
                  -> (c e -> r)
                  -> (e -> v)
@@ -125,43 +125,43 @@ optionalDbSelect selector value label def = do
 
 
 --------------------------------------------------------------------------------
-personRef :: (Monad m, MonadSnap m, HasPostgres m)
+personRef :: (Monad m, Functor m, HasPostgres m)
           => Maybe (Ref (Concept Person))
           -> m (Form Html m (Ref (Concept Person)))
 personRef = dbSelect allPersons coreEntityConcept BB.personName
 
 --------------------------------------------------------------------------------
-role :: (Monad m, MonadSnap m, HasPostgres m)
+role :: (Monad m, HasPostgres m, Functor m)
      => Maybe (Ref Role)
      -> m (Form Html m (Ref Role))
 role = dbSelect allRoles entityRef BB.roleName
 
 --------------------------------------------------------------------------------
-optionalLanguage :: (Monad m, MonadSnap m, HasPostgres m)
+optionalLanguage :: (Monad m, HasPostgres m, Functor m)
                  => Maybe (Ref Language)
                  -> m (Form Html m (Maybe (Ref Language)))
 optionalLanguage = optionalDbSelect allLanguages entityRef BB.languageName
 
 --------------------------------------------------------------------------------
-optionalEditionFormat :: (Monad m, MonadSnap m, HasPostgres m)
+optionalEditionFormat :: (Monad m, HasPostgres m, Functor m)
                       => Maybe (Ref EditionFormat)
                       -> m (Form Html m (Maybe (Ref EditionFormat)))
 optionalEditionFormat = optionalDbSelect allEditionFormats entityRef BB.editionFormatName
 
 --------------------------------------------------------------------------------
-optionalCountry :: (Monad m, MonadSnap m, HasPostgres m)
+optionalCountry :: (Monad m, HasPostgres m, Functor m)
                 => Maybe (Ref Country)
                 -> m (Form Html m (Maybe (Ref Country)))
 optionalCountry = optionalDbSelect allCountries entityRef BB.countryName
 
 --------------------------------------------------------------------------------
-optionalPublisherRef :: (Monad m, MonadSnap m, HasPostgres m)
+optionalPublisherRef :: (Monad m, HasPostgres m, Functor m)
                      => Maybe (Ref (Concept Publisher))
                      -> m (Form Html m (Maybe (Ref (Concept Publisher))))
 optionalPublisherRef = optionalDbSelect allPublishers coreEntityConcept BB.publisherName
 
 --------------------------------------------------------------------------------
-optionalYear :: (Monad m, MonadSnap m)
+optionalYear :: (Monad m)
              => Maybe Int -> Form Html m (Maybe Int)
 optionalYear def = validate yearCheck $ text ((T.pack . show) `fmap` def)
   where
@@ -174,7 +174,7 @@ optionalYear def = validate yearCheck $ text ((T.pack . show) `fmap` def)
       else Error "A year can only consist of integers"
 
 --------------------------------------------------------------------------------
-optionalIsbn13 :: (Monad m, MonadSnap m)
+optionalIsbn13 :: (Monad m)
                => Maybe Isbn -> Form Html m (Maybe Isbn)
 optionalIsbn13 def = validate checkIsbn $ text ((T.pack . show) `fmap` def)
   where
@@ -192,21 +192,21 @@ optionalIsbn13 def = validate checkIsbn $ text ((T.pack . show) `fmap` def)
                           ((10 - checkSum isbn `mod` 10) `mod` 10) == checkDigit
 
 --------------------------------------------------------------------------------
-person :: (MonadSnap m)
+person :: (Monad m)
        => Form Html m Person
 person = Person <$> "name" .: nonEmptyText Nothing
 
 --------------------------------------------------------------------------------
-publisher :: (MonadSnap m)
+publisher :: (Monad m)
           => Form Html m Publisher
 publisher = Publisher <$> "name" .: nonEmptyText Nothing
 
 --------------------------------------------------------------------------------
-searchForm :: (Monad m, MonadSnap m) => Form Html m SearchQuery
+searchForm :: (Monad m) => Form Html m SearchQuery
 searchForm = SearchQuery <$> "query" .: nonEmptyText Nothing
 
 --------------------------------------------------------------------------------
-registerForm :: (Monad m, MonadSnap m, HasPostgres m)
+registerForm :: (Monad m, HasPostgres m, Functor m)
              => Form Html m Registration
 registerForm = Registration <$> "userName" .: nonExistingUser
                             <*> "password" .: passwordForm
@@ -236,11 +236,11 @@ loginForm = checkM "An account could not be found with these credentials" checkL
         Nothing -> return False
 
 --------------------------------------------------------------------------------
-nonEmptyText :: (Monad m, MonadSnap m) => Formlet Html m Text
+nonEmptyText :: (Monad m) => Formlet Html m Text
 nonEmptyText = check "Cannot be empty" (not . T.null) . text
 
 --------------------------------------------------------------------------------
-processForm :: (MonadSnap m)
+processForm :: (Monad m, Functor m, MonadSnap m)
             => Form v m a           -- ^ Form
             -> Text                 -- ^ Form name
             -> m (View v, Maybe a)  -- ^ Result
