@@ -40,9 +40,11 @@ register v =
     H.h1 "Become a BookBrainz Editor"
     H.form ! A.method "POST" ! A.enctype (toValue $ Forms.viewEncType v) $ do
       fieldRow v "userName" "Username:" inputText
-      fieldTable (Forms.subView "password" v)
-        [ ("password", "Password:", inputPassword)
-        , ("confirmPassword", "Confirm password:", inputPassword)
-        ]
+      passwords (Forms.subView "password" v)
       fieldRow v "email" "Email Address:" inputText
       submitRow "Register"
+  where passwords v = errorList "" v >>
+                      fieldTable v
+                         [ ("password", "Password:", inputPassword)
+                         , ("confirmPassword", "Confirm password:", inputPassword)
+                         ]

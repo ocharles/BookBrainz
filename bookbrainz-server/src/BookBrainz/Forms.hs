@@ -216,7 +216,7 @@ registerForm = Registration <$> "userName" .: nonExistingUser
                      (,) <$> "password" .: nonEmptyText Nothing
                          <*> "confirmPassword" .: nonEmptyText Nothing
     matchPasswords (a, b) | a == b    = Success a
-                          | otherwise = Error "Error passwords must match"
+                          | otherwise = Error "Passwords must match"
     nonExistingUser = checkM "An account with this name already exists"
       (fmap isNothing . getEditorByName) $ nonEmptyText Nothing
 
