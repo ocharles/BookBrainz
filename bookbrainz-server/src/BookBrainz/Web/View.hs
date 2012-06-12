@@ -81,7 +81,7 @@ pageLayout sidebar body = do
           navLink Home H.img
           H.div ! A.id "header-search" $
             H.form ! A.method "GET" ! A.action (toValue $ showURL Search) $ do
-              H.input ! A.name "search-fval[0]" ! A.placeholder "search"
+              H.input ! A.name "search.query" ! A.placeholder "search"
               H.input ! A.type_ "submit"
         H.div ! A.id "header-menu" $
           H.div $ do

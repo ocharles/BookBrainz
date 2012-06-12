@@ -3,7 +3,8 @@ module BookBrainz.Web.Handler.Search
        ( search
        ) where
 
-import           Text.Digestive.Snap (runForm)
+import           Text.Digestive.Types (Method(..))
+import           Text.Digestive.Snap (runFormWith, defaultSnapFormConfig, method)
 
 import qualified BookBrainz.Forms           as Forms
 import qualified BookBrainz.Search          as S
@@ -17,7 +18,8 @@ import qualified BookBrainz.Web.View.Search as V
 -- TODO The view stuff doesn't belong here.
 search :: BookBrainzHandler ()
 search = do
-  (v, r) <- runForm "search" Forms.searchForm
+  (v, r) <- runFormWith (defaultSnapFormConfig { method = Just Post })
+              "search" Forms.searchForm
   case r of
     Just submission -> do
       results <- S.searchBooks (Forms.query submission)
