@@ -18,7 +18,10 @@ import           Data.HashMap.Strict    (union)
 import qualified Search.ElasticSearch   as ES
 import           Search.ElasticSearch   (Document(..), DocumentType(..)
                                         ,localServer, Index, indexDocument)
+import           Snap.Snaplet.PostgresqlSimple (HasPostgres)
 
+import           BookBrainz.Model.Book ()
+import           BookBrainz.Model.Role (findRoles)
 import           BookBrainz.Types       as BB
 
 --------------------------------------------------------------------------------
@@ -166,8 +169,8 @@ index' t d = liftIO $ indexDocument localServer (typeToIndex t) d
 
 --------------------------------------------------------------------------------
 -- | Given a book and accompanying metadata, index the book.
-indexBook :: (MonadIO m)
+indexBook :: (MonadIO m, HasPostgres m, Functor m)
           => LoadedCoreEntity Book
-          -> [LoadedEntity Role :. LoadedCoreEntity Person]
           -> m ()
-indexBook = (index' BookBrainz.Search.Book .) . SearchableBook
+indexBook b = findRoles (coreEntityTree b) >>= doIndex b
+  where doIndex = (index' BookBrainz.Search.Book .) . SearchableBook

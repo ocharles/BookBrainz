@@ -30,8 +30,8 @@ instance HasPostgres Script where
 
 runScript :: Script a -> IO a
 runScript action = do
-  config <- load [Required "snaplets/database/snaplet.cfg"]
-  dbName <- require config "database"
+  config <- load [Required "snaplets/postgresql-simple/devel.cfg"]
+  dbName <- require config "db"
   dbUser <- require config "user"
   conn <- openConnection dbName dbUser
   runReaderT (unScript action) $ ScriptState conn
