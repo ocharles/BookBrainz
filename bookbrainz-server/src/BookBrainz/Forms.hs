@@ -62,45 +62,36 @@ book defBook = Book <$> "title" .: nonEmptyText (BB.bookName `fmap` defBook)
 --------------------------------------------------------------------------------
 addEdition :: (HasPostgres m, Functor m)
            => Ref (Concept Book)
-           -> m (Form Html m Edition)
+           -> Form Html m Edition
 addEdition parentBook = edition (Right parentBook)
 
 editEdition :: (HasPostgres m, Functor m)
             => Edition
-            -> m (Form Html m Edition)
+            -> Form Html m Edition
 editEdition edition' = edition (Left edition')
 
 edition :: (HasPostgres m, Functor m)
         => Either Edition (Ref (Concept Book))
-        -> m (Form Html m Edition)
-edition start = do
-  formatField    <- optionalEditionFormat $ getDef' BB.editionFormat
-  countryField   <- optionalCountry $ getDef' BB.editionCountry
-  languageField  <- optionalLanguage $ getDef' BB.editionLanguage
-  publisherField <- optionalPublisherRef $ getDef' BB.editionPublisher
-  return $
-    Edition <$> "name" .: (nonEmptyText $ getDef BB.editionName)
-            <*> pure (either BB.editionBook id start)
-            <*> "year" .: (optionalYear $ getDef' BB.editionYear)
-            <*> "publisher" .: publisherField
-            <*> "country" .: countryField
-            <*> "language" .: languageField
-            <*> "isbn" .: (optionalIsbn13 $ getDef' BB.editionIsbn)
-            <*> pure Nothing
-            <*> "format" .: formatField
+        -> Form Html m Edition
+edition start =
+  Edition <$> "name" .: (nonEmptyText $ getDef BB.editionName)
+          <*> pure (either BB.editionBook id start)
+          <*> "year" .: (optionalYear $ getDef' BB.editionYear)
+          <*> "publisher" .: (optionalPublisherRef $ getDef' BB.editionPublisher)
+          <*> "country" .: choice [] Nothing --(optionalCountry $ getDef' BB.editionCountry)
+          <*> "language" .: (optionalLanguage $ getDef' BB.editionLanguage)
+          <*> "isbn" .: (optionalIsbn13 $ getDef' BB.editionIsbn)
+          <*> pure Nothing
+          <*> "format" .: (optionalEditionFormat $ getDef' BB.editionFormat)
   where existing = either Just (const Nothing) start
         getDef p = fmap p existing
         getDef'= join . getDef
 
 --------------------------------------------------------------------------------
 personRole :: (HasPostgres m, Functor m)
-           => m (Form Html m (Ref (Concept Person), Ref Role))
-personRole = do
-  personField <- personRef Nothing
-  roleField   <- role Nothing
-  return $
-    (,) <$> "person" .: personField
-        <*> "role" .: roleField
+           => Form Html m (Ref (Concept Person), Ref Role)
+personRole = (,) <$> "person" .: personRef Nothing
+                 <*> "role" .: role Nothing
 
 --------------------------------------------------------------------------------
 dbSelect :: (Monad m, HasPostgres m, Copointed c, ToMarkup v, Eq r)
@@ -108,8 +99,8 @@ dbSelect :: (Monad m, HasPostgres m, Copointed c, ToMarkup v, Eq r)
          -> (c e -> r)
          -> (e -> v)
          -> Maybe r
-         -> m (Form Html m r)
-dbSelect selector value label def = do
+         -> Form Html m r
+dbSelect selector value label def = monadic $ do
   opts <- selector
   return $ choice (map (\a -> (value a, toHtml $ label $ copoint a)) opts) def
 
@@ -118,8 +109,8 @@ optionalDbSelect :: (Monad m, HasPostgres m, Copointed c, ToMarkup v, Eq r)
                  -> (c e -> r)
                  -> (e -> v)
                  -> Maybe r
-                 -> m (Form Html m (Maybe r))
-optionalDbSelect selector value label def = do
+                 -> Form Html m (Maybe r)
+optionalDbSelect selector value label def = monadic $ do
   opts <- selector
   return $ choice ((Nothing, "") : map (\a -> (Just $ value a, toHtml $ label $ copoint a)) opts) (Just def)
 
@@ -127,37 +118,37 @@ optionalDbSelect selector value label def = do
 --------------------------------------------------------------------------------
 personRef :: (Monad m, Functor m, HasPostgres m)
           => Maybe (Ref (Concept Person))
-          -> m (Form Html m (Ref (Concept Person)))
+          -> Form Html m (Ref (Concept Person))
 personRef = dbSelect allPersons coreEntityConcept BB.personName
 
 --------------------------------------------------------------------------------
 role :: (Monad m, HasPostgres m, Functor m)
      => Maybe (Ref Role)
-     -> m (Form Html m (Ref Role))
+     -> Form Html m (Ref Role)
 role = dbSelect allRoles entityRef BB.roleName
 
 --------------------------------------------------------------------------------
 optionalLanguage :: (Monad m, HasPostgres m, Functor m)
                  => Maybe (Ref Language)
-                 -> m (Form Html m (Maybe (Ref Language)))
+                 -> Form Html m (Maybe (Ref Language))
 optionalLanguage = optionalDbSelect allLanguages entityRef BB.languageName
 
 --------------------------------------------------------------------------------
 optionalEditionFormat :: (Monad m, HasPostgres m, Functor m)
                       => Maybe (Ref EditionFormat)
-                      -> m (Form Html m (Maybe (Ref EditionFormat)))
+                      -> Form Html m (Maybe (Ref EditionFormat))
 optionalEditionFormat = optionalDbSelect allEditionFormats entityRef BB.editionFormatName
 
 --------------------------------------------------------------------------------
 optionalCountry :: (Monad m, HasPostgres m, Functor m)
                 => Maybe (Ref Country)
-                -> m (Form Html m (Maybe (Ref Country)))
+                -> Form Html m (Maybe (Ref Country))
 optionalCountry = optionalDbSelect allCountries entityRef BB.countryName
 
 --------------------------------------------------------------------------------
 optionalPublisherRef :: (Monad m, HasPostgres m, Functor m)
                      => Maybe (Ref (Concept Publisher))
-                     -> m (Form Html m (Maybe (Ref (Concept Publisher))))
+                     -> Form Html m (Maybe (Ref (Concept Publisher)))
 optionalPublisherRef = optionalDbSelect allPublishers coreEntityConcept BB.publisherName
 
 --------------------------------------------------------------------------------

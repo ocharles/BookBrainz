@@ -87,8 +87,7 @@ addBookRole :: BBID Book -> BookBrainzHandler ()
 addBookRole bbid' =
   withUser $ \user -> do
     book <- getByBbid bbid' `onNothing` "Book not found"
-    roleForm <- Forms.personRole
-    (v, r) <- runForm "book" roleForm
+    (v, r) <- runForm "book" Forms.personRole
     case r of
       Nothing -> output $ V.addRole v
       Just submission -> do

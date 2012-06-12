@@ -54,8 +54,7 @@ addEdition :: BBID Book -> BookBrainzHandler ()
 addEdition bookBbid =
   withUser $ \user -> do
     book <- getByBbid bookBbid `onNothing` "Book not found"
-    editionForm <- Forms.addEdition $ coreEntityConcept book
-    (v, r) <- runForm "edition" editionForm
+    (v, r) <- runForm "edition" $ Forms.addEdition $ coreEntityConcept book
     case r of
       Nothing -> output $ V.addEdition v
       Just submission -> do
@@ -69,8 +68,7 @@ editEdition :: BBID Edition -> BookBrainzHandler ()
 editEdition editionBbid =
   withUser $ \user -> do
     edition <- getByBbid editionBbid `onNothing` "Edition not found"
-    editionForm <- Forms.editEdition $ copoint edition
-    (v, r) <- runForm "edition" editionForm
+    (v, r) <- runForm "edition" $ Forms.editEdition $ copoint edition
     case r of
       Nothing -> output $ V.editEdition v
       Just submission -> do
@@ -85,8 +83,7 @@ addEditionRole :: BBID Edition -> BookBrainzHandler ()
 addEditionRole bbid' =
   withUser $ \user -> do
     edition <- getByBbid bbid' `onNothing` "Edition not found"
-    roleForm <- Forms.personRole
-    (v, r) <- runForm "edition" roleForm
+    (v, r) <- runForm "edition" Forms.personRole
     case r of
       Nothing -> output $ V.addRole v
       Just submission -> do
