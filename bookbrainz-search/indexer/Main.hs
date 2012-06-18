@@ -14,9 +14,11 @@ import BookBrainz.Search (indexBook)
 import BookBrainz.Types
 
 handleIndex :: (Message, Envelope) -> Script ()
-handleIndex (msg, _) = do
+handleIndex (msg, env) = do
   getByBbid bbid' >>= traverse indexBook
-  liftIO $ putStrLn $ "Indexed " ++ show bbid'
+  liftIO $ do
+    putStrLn $ "Indexed " ++ show bbid'
+    ackEnv env
   where bbid' = (fromJust . parseBbid . LBS.unpack . msgBody $ msg)
 
 main :: IO ()
