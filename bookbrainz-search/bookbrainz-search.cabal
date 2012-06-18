@@ -63,12 +63,12 @@ Executable bookbrainz-search-indexer
   main-is: Main.hs
 
   Build-depends:
+    amqp >= 0.3.1 && < 0.4,
     base >= 4.5 && < 5,
     bookbrainz-data ==0.1,
     bookbrainz-search,
+    bytestring >= 0.9.2.1 && < 0.10,
     elasticsearch >= 0.1 && < 0.2,
-    postgresql-simple >= 0.1 && < 0.2,
-    snaplet-postgresql-simple >= 0.1 && < 0.2,
     transformers >= 0.3.0.0 && < 0.4
 
   if impl(ghc >= 6.12.0)
