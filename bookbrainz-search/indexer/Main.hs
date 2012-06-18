@@ -45,4 +45,5 @@ nextBatchId =
     ("foo" :: String, "bar" :: String)
 
 main :: IO ()
-main = runScript $ void $ forever (consumeBatches >> liftIO (threadDelay (5 * 1000)))
+main = runScript $ void $ forever $
+  consumeBatches >> liftIO (threadDelay (5 * 1000 * 1000))
