@@ -3,9 +3,9 @@ module Main where
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Concurrent (threadDelay)
-import Control.Monad (forever, join, void)
+import Control.Monad (forever, void)
 import Control.Monad.IO.Class (liftIO)
-import Data.Maybe (listToMaybe, fromJust)
+import Data.Maybe (fromJust)
 import Data.Traversable (traverse)
 import Database.PostgreSQL.Simple (Only(..))
 import Database.PostgreSQL.Simple.FromRow (FromRow(..), field)
@@ -41,7 +41,7 @@ consumeBatches = do
 
 nextBatchId :: Script (Maybe Int)
 nextBatchId =
-  (join . fmap fromOnly . listToMaybe) <$> query "SELECT pgq.next_batch(?, ?)"
+  (fromOnly . head) <$> query "SELECT pgq.next_batch(?, ?)"
     ("foo" :: String, "bar" :: String)
 
 main :: IO ()
