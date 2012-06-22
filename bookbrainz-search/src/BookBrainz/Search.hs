@@ -26,10 +26,10 @@ import           BookBrainz.Types       as BB
 
 --------------------------------------------------------------------------------
 -- | The types of searches that are possible.
-data SearchType = Book
+data SearchType = Book | Person | Publisher
 
 --------------------------------------------------------------------------------
--- | A book is searchable by it's name, and all roles.
+-- | A 'BB.Book' is searchable by it's name, and all 'BB.Role's.
 data SearchableBook = SearchableBook
     { bookResult  :: LoadedCoreEntity BB.Book
     , bookRoles :: [ LoadedEntity BB.Role :. LoadedCoreEntity BB.Person ]
@@ -46,9 +46,6 @@ instance ToJSON SearchableBook where
 
 instance ToJSON Book where
   toJSON book = object [ "name" .= bookName book ]
-
-instance ToJSON Person where
-  toJSON person = object [ "name" .= personName person ]
 
 instance ToJSON (LoadedEntity Role :. LoadedCoreEntity Person) where
   toJSON (role :. person) = object [ "role" .= role
@@ -74,9 +71,55 @@ instance FromJSON BB.Role where
   parseJSON (String r) = return $ BB.Role r
   parseJSON v = typeMismatch "Role" v
 
+--------------------------------------------------------------------------------
+-- | A 'BB.Person' is searchable by it's name.
+data SearchablePerson = SearchablePerson
+    { personResult  :: LoadedCoreEntity BB.Person
+    }
+
+instance Document SearchablePerson where
+  documentKey = T.pack . show . bbid . personResult
+  documentType = DocumentType "person"
+
+instance ToJSON SearchablePerson where
+  toJSON (SearchablePerson person) = toJSON person
+
+instance ToJSON Person where
+  toJSON person = object [ "name" .= personName person ]
+
+instance FromJSON SearchablePerson where
+  parseJSON json = case json of
+    Object _ -> SearchablePerson <$> parseJSON json
+    _ -> typeMismatch "SearchablePerson" json
+
 instance FromJSON BB.Person where
   parseJSON (Object b) = BB.Person <$> b .: "name"
   parseJSON v = typeMismatch "Person" v
+
+--------------------------------------------------------------------------------
+-- | A 'BB.Publisher' is searchable by it's name.
+data SearchablePublisher = SearchablePublisher
+    { publisherResult  :: LoadedCoreEntity BB.Publisher
+    }
+
+instance Document SearchablePublisher where
+  documentKey = T.pack . show . bbid . publisherResult
+  documentType = DocumentType "publisher"
+
+instance ToJSON SearchablePublisher where
+  toJSON (SearchablePublisher publisher) = toJSON publisher
+
+instance ToJSON Publisher where
+  toJSON publisher = object [ "name" .= publisherName publisher ]
+
+instance FromJSON SearchablePublisher where
+  parseJSON json = case json of
+    Object _ -> SearchablePublisher <$> parseJSON json
+    _ -> typeMismatch "SearchablePublisher" json
+
+instance FromJSON BB.Publisher where
+  parseJSON (Object b) = BB.Publisher <$> b .: "name"
+  parseJSON v = typeMismatch "Publisher" v
 
 --------------------------------------------------------------------------------
 -- | Search for books, given a query.
@@ -137,6 +180,8 @@ instance (FromJSON entity, FromJSON (Ref entity))
 
 typeToIndex :: SearchType -> Index
 typeToIndex BookBrainz.Search.Book = "book"
+typeToIndex BookBrainz.Search.Person = "person"
+typeToIndex BookBrainz.Search.Publisher = "publisher"
 
 instance FromJSON (Ref (Concept Book)) where parseJSON = intRef BookConceptRef
 instance ToJSON (Ref (Concept Book)) where toJSON (BookConceptRef i) = toJSON i
@@ -156,6 +201,15 @@ instance ToJSON (Ref (Revision Person)) where toJSON (PersonRevisionRef i) = toJ
 instance FromJSON (Ref (Tree Person)) where parseJSON = intRef PersonTreeRef
 instance ToJSON (Ref (Tree Person)) where toJSON (PersonTreeRef i) = toJSON i
 
+instance FromJSON (Ref (Concept Publisher)) where parseJSON = intRef PublisherConceptRef
+instance ToJSON (Ref (Concept Publisher)) where toJSON (PublisherConceptRef i) = toJSON i
+
+instance FromJSON (Ref (Revision Publisher)) where parseJSON = intRef PublisherRevisionRef
+instance ToJSON (Ref (Revision Publisher)) where toJSON (PublisherRevisionRef i) = toJSON i
+
+instance FromJSON (Ref (Tree Publisher)) where parseJSON = intRef PublisherTreeRef
+instance ToJSON (Ref (Tree Publisher)) where toJSON (PublisherTreeRef i) = toJSON i
+
 instance FromJSON (Ref Role) where parseJSON = intRef RoleRef
 instance ToJSON (Ref Role) where toJSON (RoleRef i) = toJSON i
 
@@ -168,9 +222,23 @@ index' :: (Document d, MonadIO m) => SearchType -> d -> m ()
 index' t d = liftIO $ indexDocument localServer (typeToIndex t) d
 
 --------------------------------------------------------------------------------
--- | Given a book and accompanying metadata, index the book.
+-- | Given a 'Book' load and accompanying metadata and index.
 indexBook :: (MonadIO m, HasPostgres m, Functor m)
           => LoadedCoreEntity Book
           -> m ()
 indexBook b = findRoles (coreEntityTree b) >>= doIndex b
   where doIndex = (index' BookBrainz.Search.Book .) . SearchableBook
+
+--------------------------------------------------------------------------------
+-- | Given a 'Person' load accompanying metadata and index.
+indexPerson :: (MonadIO m, HasPostgres m, Functor m)
+            => LoadedCoreEntity Person
+            -> m ()
+indexPerson = (index' BookBrainz.Search.Person) . SearchablePerson
+
+--------------------------------------------------------------------------------
+-- | Given a 'Publisher' load accompanying metadata and index.
+indexPublisher :: (MonadIO m, HasPostgres m, Functor m)
+               => LoadedCoreEntity Publisher
+               -> m ()
+indexPublisher = (index' BookBrainz.Search.Publisher) . SearchablePublisher
