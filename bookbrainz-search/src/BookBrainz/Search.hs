@@ -122,9 +122,19 @@ instance FromJSON BB.Publisher where
   parseJSON v = typeMismatch "Publisher" v
 
 --------------------------------------------------------------------------------
--- | Search for books, given a query.
+-- | Search for 'BB.Book's, given a query.
 searchBooks :: (MonadIO m) => T.Text -> m (ES.SearchResults SearchableBook)
 searchBooks = search BookBrainz.Search.Book
+
+--------------------------------------------------------------------------------
+-- | Search for 'BB.Person's, given a query.
+searchPersons :: (MonadIO m) => T.Text -> m (ES.SearchResults SearchablePerson)
+searchPersons = search BookBrainz.Search.Person
+
+--------------------------------------------------------------------------------
+-- | Search for 'BB.Publisher's, given a query.
+searchPublishers :: (MonadIO m) => T.Text -> m (ES.SearchResults SearchablePublisher)
+searchPublishers = search BookBrainz.Search.Publisher
 
 --------------------------------------------------------------------------------
 -- | Run a search for a given type of entity.
