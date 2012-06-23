@@ -11,7 +11,7 @@ import qualified Text.Digestive.View as Forms
 
 import qualified BookBrainz.Search           as S
 import           BookBrainz.Web.Sitemap      as Sitemap (Sitemap(..), showURL)
-import           BookBrainz.Web.View  (pageLayout, detailTable, linkBook, linkPerson, linkPublisher, View)
+import           BookBrainz.Web.View  (pageLayout, detailTable, linkBook, linkEdition, linkPerson, linkPublisher, View)
 import           BookBrainz.Web.View.Role
 
 --------------------------------------------------------------------------------
@@ -19,18 +19,26 @@ import           BookBrainz.Web.View.Role
 -- table.
 searchResults :: SearchResults S.SearchableBook
               -- ^ The 'Book' search results.
+              -> SearchResults S.SearchableEdition
+              -- ^ The 'Edition' search results.
               -> SearchResults S.SearchablePerson
               -- ^ The 'Person' search results.
               -> SearchResults S.SearchablePublisher
               -- ^ The 'Publisher' search results.
               -> View
-searchResults books persons publishers = pageLayout Nothing $ do
+searchResults books editions persons publishers = pageLayout Nothing $ do
   H.h2 "Books"
   detailTable [("Score", ["score"])
               ,("Book", [])
               ,("People", [])
               ]
             $ formatBook `map` getResults books
+  H.h2 "Editions"
+  detailTable [("Score", ["score"])
+              ,("Edition", [])
+              ,("People", [])
+              ]
+            $ formatEdition `map` getResults editions
   H.h2 "People"
   detailTable [("Score", ["score"])
               ,("Name", [])
@@ -45,6 +53,9 @@ searchResults books persons publishers = pageLayout Nothing $ do
         formatBook r = formatResult r [ linkBook $ S.bookResult $ result r
                                       , roleList $ S.bookRoles $ result r
                                       ]
+        formatEdition r = formatResult r [ linkEdition $ S.editionResult $ result r
+                                         , roleList $ S.editionRoles $ result r
+                                         ]
         formatPerson r = formatResult r [ linkPerson $ S.personResult $ result r
                                         ]
         formatPublisher r = formatResult r [ linkPublisher $ S.publisherResult $ result r

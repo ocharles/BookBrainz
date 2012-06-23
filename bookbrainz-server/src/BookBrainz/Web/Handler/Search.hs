@@ -23,8 +23,9 @@ search = do
   case r of
     Just submission -> do
       books <- S.searchBooks (Forms.query submission)
+      editions <- S.searchEditions (Forms.query submission)
       persons <- S.searchPersons (Forms.query submission)
       publishers <- S.searchPublishers (Forms.query submission)
-      output $ V.searchResults books persons publishers
+      output $ V.searchResults books editions persons publishers
     Nothing -> output $ V.searchPortal v
 
