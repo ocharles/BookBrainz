@@ -1,10 +1,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- | Functions for working with 'BookBrainz.Types.Edition.Edition' entities.
 module BookBrainz.Model.Edition
        ( -- * Working With Editions
          findBookEditions
+       , allEditions
        ) where
 
 import Control.Applicative ((<$>))
@@ -18,7 +20,7 @@ import BrainzStem.Database                (queryOne, safeQueryOne)
 import BrainzStem.Model.GenericVersioning (GenericallyVersioned (..)
                                           ,VersionConfig (..))
 
-import Snap.Snaplet.PostgresqlSimple (query, HasPostgres)
+import Snap.Snaplet.PostgresqlSimple (query, query_, HasPostgres)
 
 instance GenericallyVersioned Edition where
   versioningConfig = VersionConfig { cfgView = "edition"
@@ -88,6 +90,12 @@ findBookEditions b = query selectQuery (Only b)
                               , "WHERE book_id = ?"
                               , "ORDER BY year, edition_index NULLS LAST"
                               ]
+
+--------------------------------------------------------------------------------
+-- | List the latest version of all known 'Edition's.
+allEditions :: (Functor m, HasPostgres m)
+            => m [LoadedCoreEntity Edition]
+allEditions = query_ "SELECT * FROM edition"
 
 instance HasRoles Edition where
   findRoles = findRoles' "edition"
