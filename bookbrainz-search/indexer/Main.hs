@@ -15,7 +15,7 @@ import           System.Log.Logger
 
 import           BookBrainz.Model.Publisher ()
 import           BookBrainz.Script
-import           BookBrainz.Search (indexBook, indexPerson, indexPublisher)
+import           BookBrainz.Search (indexBook, indexEdition, indexPerson, indexPublisher)
 import           BookBrainz.Types
 import           BrainzStem.Model (CoreEntity)
 import           BrainzStem.Model (getByBbid)
@@ -36,6 +36,10 @@ handleIndex' (msg, env) logClass indexer = do
 handleIndexBook :: (Message, Envelope) -> Script ()
 handleIndexBook m =
   handleIndex' m "BookBrainz.Search.Book" indexBook
+
+handleIndexEdition :: (Message, Envelope) -> Script ()
+handleIndexEdition m =
+  handleIndex' m "BookBrainz.Search.Edition" indexEdition
 
 handleIndexPublisher :: (Message, Envelope) -> Script ()
 handleIndexPublisher m =
@@ -67,6 +71,7 @@ main = runScript $ void $ liftIO $ do
          bindQueue chan n "search" n
          consumeMsgs chan n Ack (runScript . indexer))
     [ ("book", handleIndexBook)
+    , ("edition", handleIndexEdition)
     , ("person", handleIndexPerson)
     , ("publisher", handleIndexPublisher)
     ]
