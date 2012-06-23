@@ -123,6 +123,10 @@ table.details tr.even td {
     background: #F2F2F2;
 }
 
+table.details .score {
+    width: 2em;
+}
+
 form label {
     display: inline-block;
     width: 100pt;
