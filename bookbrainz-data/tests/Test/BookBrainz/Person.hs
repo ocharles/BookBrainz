@@ -4,7 +4,6 @@ module Test.BookBrainz.Person (tests) where
 import Test.BrainzStem
 
 import Data.Maybe (fromJust)
-import Database.HDBC (toSql)
 
 import BookBrainz.Model.Person
 import BookBrainz.Types

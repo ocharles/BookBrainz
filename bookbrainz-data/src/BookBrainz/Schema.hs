@@ -54,7 +54,6 @@ instance Typeable a => FromField (BBID a) where
 --------------------------------------------------------------------------------
 instance FromRow (LoadedCoreEntity Edition) where
   fromRow = do
-    conceptId <- field
     bbid' <- field
     e' <- edition
     treeId <- field
@@ -62,7 +61,6 @@ instance FromRow (LoadedCoreEntity Edition) where
     return CoreEntity { bbid = bbid'
                       , coreEntityRevision = revId
                       , coreEntityTree = treeId
-                      , coreEntityConcept = conceptId
                       , coreEntityInfo = e'
                       }
     where edition = Edition
@@ -72,29 +70,24 @@ instance FromRow (LoadedCoreEntity Edition) where
 --------------------------------------------------------------------------------
 instance FromRow (LoadedCoreEntity Book) where
   fromRow = do
-    conceptId <- field
     bbid' <- field
-    name <- field
-    treeId <- field
     revId <- field
+    treeId <- field
+    name <- field
     return CoreEntity { bbid = bbid'
                       , coreEntityRevision = revId
                       , coreEntityTree = treeId
-                      , coreEntityConcept = conceptId
                       , coreEntityInfo = Book { bookName = name }
                       }
 
 instance FromField (Ref (Revision Book)) where
   fromField f v = BookRevisionRef <$> fromField f v
 
-instance FromField (Ref (Concept Book)) where
-  fromField f v = BookConceptRef <$> fromField f v
+instance FromField (Ref Book) where
+  fromField f v = BookRef <$> fromField f v
 
 instance FromField (Ref (Tree Book)) where
   fromField f v = BookTreeRef <$> fromField f v
-
-instance FromField (Ref (Branch Book)) where
-  fromField f v = BookBranchRef <$> fromField f v
 
 instance ToField (Ref (Revision Book)) where
   toField (BookRevisionRef rid) = toField rid
@@ -102,11 +95,8 @@ instance ToField (Ref (Revision Book)) where
 instance ToField (Ref (Tree Book)) where
   toField (BookTreeRef rid) = toField rid
 
-instance ToField (Ref (Concept Book)) where
-  toField (BookConceptRef rid) = toField rid
-
-instance ToField (Ref (Branch Book)) where
-  toField (BookBranchRef rid) = toField rid
+instance ToField (Ref Book) where
+  toField (BookRef rid) = toField rid
 
 --------------------------------------------------------------------------------
 instance FromRow (LoadedEntity Country) where
@@ -145,14 +135,11 @@ instance FromField (Ref EditionFormat) where
 instance FromField (Ref (Revision Edition)) where
   fromField f v = EditionRevisionRef <$> fromField f v
 
-instance FromField (Ref (Concept Edition)) where
-  fromField f v = EditionConceptRef <$> fromField f v
+instance FromField (Ref Edition) where
+  fromField f v = EditionRef <$> fromField f v
 
 instance FromField (Ref (Tree Edition)) where
   fromField f v = EditionTreeRef <$> fromField f v
-
-instance FromField (Ref (Branch Edition)) where
-  fromField f v = EditionBranchRef <$> fromField f v
 
 instance ToField (Ref (Revision Edition)) where
   toField (EditionRevisionRef rid) = toField rid
@@ -160,16 +147,12 @@ instance ToField (Ref (Revision Edition)) where
 instance ToField (Ref (Tree Edition)) where
   toField (EditionTreeRef rid) = toField rid
 
-instance ToField (Ref (Concept Edition)) where
-  toField (EditionConceptRef rid) = toField rid
-
-instance ToField (Ref (Branch Edition)) where
-  toField (EditionBranchRef rid) = toField rid
+instance ToField (Ref Edition) where
+  toField (EditionRef rid) = toField rid
 
 --------------------------------------------------------------------------------
 instance FromRow (LoadedCoreEntity Person) where
   fromRow = do
-    conceptId <- field
     bbid' <- field
     name <- field
     treeId <- field
@@ -177,20 +160,16 @@ instance FromRow (LoadedCoreEntity Person) where
     return CoreEntity { bbid = bbid'
                       , coreEntityRevision = revId
                       , coreEntityTree = treeId
-                      , coreEntityConcept = conceptId
                       , coreEntityInfo = Person { personName = name }
                       }
 instance FromField (Ref (Revision Person)) where
   fromField f v = PersonRevisionRef <$> fromField f v
 
-instance FromField (Ref (Concept Person)) where
-  fromField f v = PersonConceptRef <$> fromField f v
+instance FromField (Ref Person) where
+  fromField f v = PersonRef <$> fromField f v
 
 instance FromField (Ref (Tree Person)) where
   fromField f v = PersonTreeRef <$> fromField f v
-
-instance FromField (Ref (Branch Person)) where
-  fromField f v = PersonBranchRef <$> fromField f v
 
 instance ToField (Ref (Revision Person)) where
   toField (PersonRevisionRef rid) = toField rid
@@ -198,11 +177,8 @@ instance ToField (Ref (Revision Person)) where
 instance ToField (Ref (Tree Person)) where
   toField (PersonTreeRef rid) = toField rid
 
-instance ToField (Ref (Concept Person)) where
-  toField (PersonConceptRef rid) = toField rid
-
-instance ToField (Ref (Branch Person)) where
-  toField (PersonBranchRef rid) = toField rid
+instance ToField (Ref Person) where
+  toField (PersonRef rid) = toField rid
 
 --------------------------------------------------------------------------------
 instance FromRow (LoadedEntity Role) where
@@ -219,7 +195,6 @@ instance ToField (Ref Role) where
 --------------------------------------------------------------------------------
 instance FromRow (LoadedCoreEntity Publisher) where
   fromRow = do
-    conceptId <- field
     bbid' <- field
     name <- field
     treeId <- field
@@ -227,18 +202,14 @@ instance FromRow (LoadedCoreEntity Publisher) where
     return CoreEntity { bbid = bbid'
                       , coreEntityRevision = revId
                       , coreEntityTree = treeId
-                      , coreEntityConcept = conceptId
                       , coreEntityInfo = Publisher { publisherName = name }
                       }
 
 instance FromField (Ref (Revision Publisher)) where
   fromField f v = PublisherRevisionRef <$> fromField f v
 
-instance FromField (Ref (Branch Publisher)) where
-  fromField f v = PublisherBranchRef <$> fromField f v
-
-instance FromField (Ref (Concept Publisher)) where
-  fromField f v = PublisherConceptRef <$> fromField f v
+instance FromField (Ref Publisher) where
+  fromField f v = PublisherRef <$> fromField f v
 
 instance FromField (Ref (Tree Publisher)) where
   fromField f v = PublisherTreeRef <$> fromField f v
@@ -249,11 +220,8 @@ instance ToField (Ref (Revision Publisher)) where
 instance ToField (Ref (Tree Publisher)) where
   toField (PublisherTreeRef rid) = toField rid
 
-instance ToField (Ref (Concept Publisher)) where
-  toField (PublisherConceptRef rid) = toField rid
-
-instance ToField (Ref (Branch Publisher)) where
-  toField (PublisherBranchRef rid) = toField rid
+instance ToField (Ref Publisher) where
+  toField (PublisherRef rid) = toField rid
 
 --------------------------------------------------------------------------------
 instance FromField Isbn where
@@ -294,20 +262,4 @@ instance (FromField (Ref (Tree a)), FromField (Ref (Revision a)))
                                             , revisionEditor = editorId
                                             }
                     , entityRef = entityRef'
-                    }
-
---------------------------------------------------------------------------------
-instance ( FromField (Ref (Concept a)), FromField (Ref (Revision a))
-         , FromField (Ref (Branch a)))
-     => FromRow (LoadedEntity (Branch a)) where
-  fromRow = do
-    branchId <- field
-    isMaster <- field
-    revision <- field
-    concept <- field
-    return $ Entity { entityInfo = Branch { branchIsMaster = isMaster
-                                          , branchConcept = concept
-                                          , branchRevision = revision
-                                          }
-                    , entityRef = branchId
                     }

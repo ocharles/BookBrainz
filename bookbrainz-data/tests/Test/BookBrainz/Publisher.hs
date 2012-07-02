@@ -4,7 +4,6 @@ module Test.BookBrainz.Publisher (tests) where
 import Test.BrainzStem
 
 import Data.Maybe (fromJust)
-import Database.HDBC (toSql)
 
 import BookBrainz.Model.Publisher
 import BookBrainz.Types

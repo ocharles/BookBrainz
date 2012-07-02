@@ -1,0 +1,5 @@
+BEGIN;
+
+CREATE LANGUAGE plpgsql;
+
+COMMIT;

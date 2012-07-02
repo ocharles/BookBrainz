@@ -3,7 +3,6 @@ module Test.BookBrainz.Role (tests) where
 
 import Test.BrainzStem
 
-import Database.HDBC (toSql)
 import Data.Maybe (fromJust)
 
 import BookBrainz.Model.Book

@@ -43,13 +43,14 @@ data Book = Book
     { bookName :: Text  -- ^ The name of the book.
     } deriving (Show, Eq, Typeable)
 
-data instance Ref (Concept Book) = BookConceptRef Int
-data instance Ref (Revision Book) = BookRevisionRef Int
-data instance Ref (Tree Book) = BookTreeRef Int
-data instance Ref (Branch Book) = BookBranchRef Int
+data instance Ref Book = BookRef (BBID Book)
+  deriving (Eq, Show)
 
-deriving instance Eq (Ref (Concept Book))
-deriving instance Show (Ref (Concept Book))
+data instance Ref (Revision Book) = BookRevisionRef Int
+  deriving (Eq, Show)
+
+data instance Ref (Tree Book) = BookTreeRef Int
+  deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | A country, as defined by ISO 3166-1.
@@ -61,8 +62,7 @@ data Country = Country
     } deriving (Eq, Show)
 
 data instance Ref Country = CountryRef String
-deriving instance Eq (Ref Country)
-deriving instance Show (Ref Country)
+  deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | The actual format of the edition that people read.
@@ -72,8 +72,7 @@ data EditionFormat = EditionFormat
     } deriving (Eq, Show)
 
 data instance Ref EditionFormat = EditionFormatRef Int
-deriving instance Eq (Ref EditionFormat)
-deriving instance Show (Ref EditionFormat)
+  deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | A 13 digit ISBN code
@@ -92,11 +91,11 @@ data Edition = Edition
     { -- | The name of the edition.
       editionName        :: Text
       -- | The 'Book' that this edition is an edition of.
-    , editionBook        :: Ref (Concept Book)
+    , editionBook        :: Ref Book
       -- | The year the edition was released.
     , editionYear        :: Maybe Int
       -- | The 'Publisher' that published the edition.
-    , editionPublisher   :: Maybe (Ref (Concept Publisher))
+    , editionPublisher   :: Maybe (Ref Publisher)
       -- | The 'Country' where the edition was published.
     , editionCountry     :: Maybe (Ref Country)
       -- | The 'Language' of this edition.
@@ -109,13 +108,14 @@ data Edition = Edition
     , editionFormat      :: Maybe (Ref EditionFormat)
     } deriving (Eq, Show, Typeable)
 
-data instance Ref (Concept Edition) = EditionConceptRef Int
-data instance Ref (Revision Edition) = EditionRevisionRef Int
-data instance Ref (Tree Edition) = EditionTreeRef Int
-data instance Ref (Branch Edition) = EditionBranchRef Int
+data instance Ref Edition = EditionRef (BBID Edition)
+  deriving (Eq, Show)
 
-deriving instance Eq (Ref (Concept Edition))
-deriving instance Show (Ref (Concept Edition))
+data instance Ref (Revision Edition) = EditionRevisionRef Int
+  deriving (Eq, Show)
+
+data instance Ref (Tree Edition) = EditionTreeRef Int
+  deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | A language, as defined by ISO-639-3.
@@ -127,8 +127,7 @@ data Language = Language
     } deriving (Eq, Show)
 
 data instance Ref Language = LanguageRef String
-deriving instance Eq (Ref Language)
-deriving instance Show (Ref Language)
+  deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 {-| A person involved with a book, be it author, editor, illustrator,
@@ -138,13 +137,14 @@ data Person = Person
       personName :: Text
     } deriving (Eq, Show, Typeable)
 
-data instance Ref (Concept Person) = PersonConceptRef Int
-data instance Ref (Revision Person) = PersonRevisionRef Int
-data instance Ref (Tree Person) = PersonTreeRef Int
-data instance Ref (Branch Person) = PersonBranchRef Int
+data instance Ref Person = PersonRef (BBID Person)
+  deriving (Eq, Show)
 
-deriving instance Eq (Ref (Concept Person))
-deriving instance Show (Ref (Concept Person))
+data instance Ref (Revision Person) = PersonRevisionRef Int
+  deriving (Eq, Show)
+
+data instance Ref (Tree Person) = PersonTreeRef Int
+  deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 -- | An organization or company which publishes books.
@@ -153,13 +153,14 @@ data Publisher = Publisher
       publisherName :: Text
     } deriving (Eq, Show, Typeable)
 
-data instance Ref (Concept Publisher) = PublisherConceptRef Int
-data instance Ref (Revision Publisher) = PublisherRevisionRef Int
-data instance Ref (Tree Publisher) = PublisherTreeRef Int
-data instance Ref (Branch Publisher) = PublisherBranchRef Int
+data instance Ref Publisher = PublisherRef (BBID Publisher)
+  deriving (Eq, Show)
 
-deriving instance Eq (Ref (Concept Publisher))
-deriving instance Show (Ref (Concept Publisher))
+data instance Ref (Revision Publisher) = PublisherRevisionRef Int
+  deriving (Eq, Show)
+
+data instance Ref (Tree Publisher) = PublisherTreeRef Int
+  deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
 {-| The role a 'Person' played on a core entity (author, translator, etc. -}
@@ -169,6 +170,4 @@ data Role = Role
     } deriving (Eq, Show)
 
 data instance Ref Role = RoleRef Int
-
-deriving instance Eq (Ref Role)
-deriving instance Show (Ref Role)
+  deriving (Eq, Show)

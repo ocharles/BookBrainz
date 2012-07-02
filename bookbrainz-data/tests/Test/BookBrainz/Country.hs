@@ -3,8 +3,6 @@ module Test.BookBrainz.Country (tests) where
 
 import Test.BrainzStem
 
-import Database.HDBC (toSql)
-
 import BookBrainz.Model.Country
 import BookBrainz.Types
 import BrainzStem.Model

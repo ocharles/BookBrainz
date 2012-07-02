@@ -1,8 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Types overlooking the whole BrainzStem architecture.
 module BrainzStem.Types
@@ -10,8 +13,6 @@ module BrainzStem.Types
        , LoadedEntity (..)
        , Ref
        , Revision (..)
-       , Branch (..)
-       , Concept
        , Tree
        , Editor (..)
        , BBID
@@ -48,9 +49,13 @@ data LoadedCoreEntity a = CoreEntity
     , coreEntityTree :: Ref (Tree a)
       -- | The underlying information about this entity.
     , coreEntityInfo :: a
-      -- | The concept this entity defines.
-    , coreEntityConcept :: Ref (Concept a)
     }
+
+deriving instance ( Eq a, Eq (Ref (Tree a)), Eq (Ref (Revision a)))
+  => Eq (LoadedCoreEntity a)
+
+deriving instance ( Show a, Show (Ref (Tree a)), Show (Ref (Revision a)))
+  => Show (LoadedCoreEntity a)
 
 instance Copointed LoadedCoreEntity where
   copoint = coreEntityInfo
@@ -65,6 +70,12 @@ data LoadedEntity a = Entity
     , entityRef :: Ref a
     }
 
+deriving instance (Eq a, Eq (Ref a))
+  => Eq (LoadedEntity a)
+
+deriving instance (Show a, Show (Ref a))
+  => Show (LoadedEntity a)
+
 instance Copointed LoadedEntity where
   copoint = entityInfo
 
@@ -75,26 +86,6 @@ data Revision a = Revision { -- | The 'Tree' this revision refers to.
                            , revisionTime :: UTCTime
                            , revisionEditor :: Ref Editor
                            }
-
---------------------------------------------------------------------------------
--- | Represents a branch of revisions for an entity of type @a@.
-data Branch a = Branch { -- | True is the branch is the master branch, false for
-                         -- all other branches
-                         branchIsMaster :: Bool
-                         -- | The 'Concept' this branch contains revisions of.
-                       , branchConcept :: Ref (Concept a)
-                         -- | The 'Revision' at the tip of this branch.
-                       , branchRevision :: Ref (Revision a)
-                       }
-
---------------------------------------------------------------------------------
-{-| A concept is a single unique identifier for entiites. Every distinct book
-has one (and only one) concept, for example. This may sound like the purpose of
-a BookBrainz ID, but it is in fact what a BookBrainz ID /refers to/.
-
-There is no value of a concept, and they are intended to be used only in the
-phantom type of 'Ref'. -}
-data Concept a
 
 --------------------------------------------------------------------------------
 {-| A tree is a collection of data about an entity, at a point in time (at a
@@ -114,7 +105,7 @@ data Editor = Editor { -- | The name of the editor.
 
 --------------------------------------------------------------------------------
 -- | A BookBrainz identifier. @a@ is a phantom type, which stops you using this
--- BBID to refer to different concepts.
+-- BBID to refer to different entities.
 newtype BBID a = BBID UUID
                  deriving (Eq, Typeable, Random)
 

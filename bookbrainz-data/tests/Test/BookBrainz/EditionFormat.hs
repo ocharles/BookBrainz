@@ -3,7 +3,6 @@ module Test.BookBrainz.EditionFormat (tests) where
 
 import Test.BrainzStem
 
-import Database.HDBC (toSql)
 import Data.Text (Text)
 
 import BookBrainz.Model.EditionFormat

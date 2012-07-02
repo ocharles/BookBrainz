@@ -34,20 +34,20 @@ instance GenericallyVersioned Publisher where
         case foundId of
           Just id' -> return id'
           Nothing -> newVersion
-      insertTreeSql = fromString $ unlines [ "INSERT INTO bookbrainz_v.publisher_tree"
-                              , "(version) VALUES (?)"
+      insertTreeSql = fromString $ unlines [ "INSERT INTO publisher_tree"
+                              , "(publisher_data_id) VALUES (?)"
                               , "RETURNING publisher_tree_id"
                               ]
       findVersion =
-        let findSql = fromString $ unlines [ "SELECT version"
-                              , "FROM bookbrainz_v.publisher_v"
+        let findSql = fromString $ unlines [ "SELECT publisher_data_id"
+                              , "FROM publisher_data"
                               , "WHERE name = ?"
                               ]
         in (fmap fromOnly) `fmap` safeQueryOne findSql (Only $ publisherName pubData)
       newVersion =
-        let insertSql = fromString $ unlines [ "INSERT INTO bookbrainz_v.publisher_v"
+        let insertSql = fromString $ unlines [ "INSERT INTO publisher_data"
                                 , "(name) VALUES (?)"
-                                , "RETURNING version"
+                                , "RETURNING publisher_data_id"
                                 ]
         in (`asTypeOf` (undefined :: Int)) `fmap`
                (fmap fromOnly $ queryOne insertSql (Only $ publisherName pubData))

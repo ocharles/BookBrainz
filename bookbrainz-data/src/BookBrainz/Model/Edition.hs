@@ -43,13 +43,13 @@ instance GenericallyVersioned Edition where
         case foundId of
           Just id' -> return id'
           Nothing -> newVersion
-      insertTreeSql = fromString $ unlines [ "INSERT INTO bookbrainz_v.edition_tree"
-                              , "(version, book_id, publisher_id) VALUES (?, ?, ?)"
+      insertTreeSql = fromString $ unlines [ "INSERT INTO edition_tree"
+                              , "(edition_data_id, book_id, publisher_id) VALUES (?, ?, ?)"
                               , "RETURNING edition_tree_id"
                               ]
       findVersion =
-        let findSql = fromString $ unlines [ "SELECT version"
-                              , "FROM bookbrainz_v.edition_v"
+        let findSql = fromString $ unlines [ "SELECT edition_data_id"
+                              , "FROM edition_data"
                               , "WHERE name = ? AND year = ? AND country_iso_code = ?"
                               , "AND language_iso_code = ? AND isbn = ?"
                               , "AND format = ?"
@@ -62,10 +62,10 @@ instance GenericallyVersioned Edition where
                                 , editionFormat pubData
                                 )
       newVersion =
-        let insertSql = fromString $ unlines [ "INSERT INTO bookbrainz_v.edition_v"
+        let insertSql = fromString $ unlines [ "INSERT INTO edition_data"
                                 , "(name, year, country_iso_code, language_iso_code, isbn, format)"
                                 , "VALUES (?, ?, ?, ?, ?, ?)"
-                                , "RETURNING version"
+                                , "RETURNING edition_data_id"
                                 ]
         in (\x -> x `asTypeOf` (undefined :: Int)) <$>
                (fmap fromOnly $ queryOne insertSql

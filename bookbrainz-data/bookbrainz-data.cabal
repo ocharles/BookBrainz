@@ -42,20 +42,20 @@ Library
 
   Exposed-modules:
     BookBrainz.Model.Book
-    BookBrainz.Model.Country
-    BookBrainz.Model.Edition
-    BookBrainz.Model.EditionFormat
-    BookBrainz.Model.Editor
-    BookBrainz.Model.Language
-    BookBrainz.Model.Person
-    BookBrainz.Model.Publisher
-    BookBrainz.Model.Role
+    -- BookBrainz.Model.Country
+    -- BookBrainz.Model.Edition
+    -- BookBrainz.Model.EditionFormat
+    -- BookBrainz.Model.Editor
+    -- BookBrainz.Model.Language
+    -- BookBrainz.Model.Person
+    -- BookBrainz.Model.Publisher
+    -- BookBrainz.Model.Role
     BookBrainz.Schema
     BookBrainz.Script
     BookBrainz.Types
     BrainzStem.Database
     BrainzStem.Model
-    BrainzStem.Model.GenericVersioning
+    -- BrainzStem.Model.GenericVersioning
     BrainzStem.Types
     BrainzStem.Types.Internal
 
@@ -82,7 +82,7 @@ Test-Suite test-bookbrainz
     transformers,
     snaplet-postgresql-simple,
     HUnit,
-    bookbrainz,
+    bookbrainz-data,
     text,
     QuickCheck,
     test-framework-quickcheck2,

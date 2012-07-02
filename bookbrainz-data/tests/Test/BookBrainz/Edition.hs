@@ -4,7 +4,6 @@ module Test.BookBrainz.Edition (tests) where
 import Test.BrainzStem
 
 import Data.Maybe (fromJust)
-import Database.HDBC (toSql)
 
 import BookBrainz.Model.Edition (findBookEditions)
 import BookBrainz.Types

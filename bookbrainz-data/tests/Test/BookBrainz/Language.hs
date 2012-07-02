@@ -3,8 +3,6 @@ module Test.BookBrainz.Language (tests) where
 
 import Test.BrainzStem
 
-import Database.HDBC (toSql)
-
 import BookBrainz.Model.Language
 import BookBrainz.Types
 import BrainzStem.Model

@@ -37,20 +37,20 @@ instance GenericallyVersioned Person where
         case foundId of
           Just id' -> return id'
           Nothing -> newVersion
-      insertTreeSql = fromString $ unlines [ "INSERT INTO bookbrainz_v.person_tree"
+      insertTreeSql = fromString $ unlines [ "INSERT INTO person_tree"
                               , "(version) VALUES (?)"
                               , "RETURNING person_tree_id"
                               ]
       findVersion =
-        let findSql = fromString $ unlines [ "SELECT version"
-                              , "FROM bookbrainz_v.person_v"
+        let findSql = fromString $ unlines [ "SELECT person_data_id"
+                              , "FROM person_data"
                               , "WHERE name = ?"
                               ]
         in (fmap fromOnly) `fmap` safeQueryOne findSql (Only $ personName pubData)
       newVersion =
-        let insertSql = fromString $ unlines [ "INSERT INTO bookbrainz_v.person_v"
+        let insertSql = fromString $ unlines [ "INSERT INTO person_data"
                                 , "(name) VALUES (?)"
-                                , "RETURNING version"
+                                , "RETURNING person_data_id"
                                 ]
         in (\x -> x `asTypeOf` (undefined :: Int)) <$>
              (fmap fromOnly $ queryOne insertSql (Only $ personName pubData))
